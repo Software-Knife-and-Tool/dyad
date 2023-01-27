@@ -1,0 +1,29 @@
+#! /bin/bash
+EXEC=../dist/mu-runtime
+TMP=/var/tmp
+
+args=("$@")
+opts=("${args[@]:1}")
+
+function assert_eq () {
+    result=`$EXEC ${opts[@]} -s -e "$1"`
+
+    if [ $? -eq 0 ]
+    then
+       if [ "$result" != "$2" ]
+       then
+            echo "--" "$1" "--" "$2" "--" "$result" "-- " failed
+        fi
+    else
+        echo "--" "$1" "--" "$2" "-- test aborted --" failed
+    fi
+}
+
+source "$1" >> $TMP/dyad-test.$$.log 2>&1
+
+echo "mu:" $1 `cat $1 | wc -l` `grep failed $TMP/dyad-test.$$.log | wc -l`
+cat $TMP/dyad-test.$$.log
+
+rm -f $TMP/dyad-test.$$.log
+
+exit 0

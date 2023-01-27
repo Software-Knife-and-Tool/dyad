@@ -1,0 +1,9 @@
+
+assert_eq "(mu:eof mu:std-in)" ":nil"
+assert_eq "(mu:wr-char mu:std-out #\a)" "a#\a"
+assert_eq '(mu:close mu:err-out)' ":t"
+assert_eq '(mu:openp mu:err-out)' "#<stream: id: 2147483650>"
+assert_eq '(mu:write "abc" () mu:std-out)' 'abc"abc"'
+assert_eq '(mu:write "abc" :t mu:std-out)' '"abc""abc"'
+assert_eq '(mu:write () () mu:std-out)' ":nil:nil"
+assert_eq '(mu:write :abcde :t mu:std-out)' ":abcde:abcde"

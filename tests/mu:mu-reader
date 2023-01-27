@@ -1,0 +1,37 @@
+# assert_eq "#\ " "#\"
+assert_eq "#(:t)" "#(:t)"
+assert_eq "#(:t 1 2 3)" "#(:t 1 2 3)"
+assert_eq "#(:byte)" "#(:byte)"
+assert_eq "#(:byte 1 2 3)" "#(:byte 1 2 3)"
+assert_eq "#(:char)" '""'
+assert_eq "#(:char #\1 #\2 #\3)" '"123"'
+assert_eq "#(:fixnum)" "#(:fixnum)"
+assert_eq "#(:fixnum 1 2 -3)" "#(:fixnum 1 2 -3)"
+assert_eq "#(:float)" "#(:float)"
+assert_eq "#(:float 1.0 2.0 -3.0)" "#(:float 1.0000 2.0000 -3.0000)"
+assert_eq "#\)" "#\)"
+assert_eq "#\a" "#\a"
+assert_eq "#\A" "#\A"
+assert_eq "#xabc" "2748"
+assert_eq "#| hello |# 1234" "1234"
+assert_eq "'()" ":nil"
+assert_eq "'(1 2 3)" "(1 2 3)"
+assert_eq "'(1 2 3)" "(1 2 3)"
+assert_eq "'a-long-symbol" "a-long-symbol"
+assert_eq "'a-symbol " "a-symbol"
+assert_eq "'mu:eq " "mu:eq"
+assert_eq "'mu::eq " "mu::eq"
+assert_eq "'s" "s"
+assert_eq "'symbol" "symbol"
+assert_eq "(mu:type-of '#:abc)" ":symbol"
+assert_eq "1.024e23" "102400002052185839894528.0000"
+assert_eq "1234 ; hello" "1234"
+assert_eq "1234" "1234"
+assert_eq ":a" ":a"
+assert_eq ":abcdefg" ":abcdefg"
+assert_eq '""' '""'
+assert_eq '"a long string"' '"a long string"'
+assert_eq '"a"' '"a"'
+assert_eq '"abcd"' '"abcd"'
+assert_eq '"abcdefg"' '"abcdefg"'
+assert_eq '()' ":nil"

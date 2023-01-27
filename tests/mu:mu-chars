@@ -1,0 +1,2 @@
+assert_eq "(mu:coerce #\a :fixnum)" "97"
+assert_eq "(mu:coerce 97 :char)" "#\a"
