@@ -1,0 +1,4 @@
+assert_eq "(mu:compile #\a)" "#\a"
+assert_eq "(mu:compile 1)" "1"
+assert_eq "(mu:compile :compile)" ":compile"
+assert_eq '(mu:compile "compile")' '"compile"'

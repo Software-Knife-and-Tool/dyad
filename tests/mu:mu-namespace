@@ -1,0 +1,12 @@
+assert_eq "(mu:eq :func (mu:type-of mu:make-ns))" ":t"
+assert_eq '(mu:intern (mu:map-ns "") :extern "foo" "foo")' "foo"
+assert_eq '(mu:intern (mu:map-ns "mu") :extern "foo" "foo")' "mu:foo"
+assert_eq '(mu:make-ns "core" (mu:map-ns "mu"))' '#<namespace: "core">'
+assert_eq '(mu:map-ns "")' '#<namespace: "">'
+assert_eq '(mu:map-ns "mu")' '#<namespace: "mu">'
+assert_eq '(mu:map-ns (mu:ns-name (mu:make-ns "core" (mu:map-ns "mu"))))' '#<namespace: "core">'
+assert_eq '(mu:ns-imp (mu:make-ns "core" (mu:map-ns "mu")))' '#<namespace: "mu">'
+assert_eq '(mu:ns-imp (mu:map-ns "mu"))' ":nil"
+assert_eq '(mu:ns-map (mu:map-ns "mu") :extern "eq")' "mu:eq"
+assert_eq '(mu:ns-map (mu:map-ns "mu") :extern "foo")' ":nil"
+assert_eq '(mu:ns-name (mu:map-ns "mu"))' '"mu"'
