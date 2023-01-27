@@ -1,0 +1,619 @@
+//  SPDX-FileCopyrightText: Copyright 2022-2023 James M. Putnam (putnamjm.design@gmail.com)
+//  SPDX-License-Identifier: MIT
+
+//! mu vector type
+use {
+    crate::{
+        classes::{
+            char::Char,
+            cons::{Cons, ConsIter, Core as _, Properties as _},
+            fixnum::Fixnum,
+            float::Float,
+            indirect_vector::{IVec, IVector, Image, IndirectVector},
+            indirect_vector::{TypedVec, VecType, VectorIter},
+            stream::{Core as _, Stream},
+            symbol::{Core as _, Symbol},
+        },
+        core::{
+            classes::{Class, DirectClass, Tag},
+            exception,
+            exception::{Condition, Except},
+            frame::Frame,
+            mu::{Core as _, Mu},
+        },
+        image,
+    },
+    std::{cell::Ref, str},
+};
+
+pub enum Vector {
+    Direct(Tag),
+    Indirect((Image, IVec)),
+}
+
+lazy_static! {
+    static ref VECTYPEMAP: Vec<(Tag, Class)> = vec![
+        (Symbol::keyword("t"), Class::T),
+        (Symbol::keyword("char"), Class::Char),
+        (Symbol::keyword("byte"), Class::Byte),
+        (Symbol::keyword("fixnum"), Class::Fixnum),
+        (Symbol::keyword("float"), Class::Float),
+        (Symbol::keyword("nil"), Class::Null),
+    ];
+}
+
+impl Vector {
+    pub fn to_type(keyword: Tag) -> Option<Class> {
+        VECTYPEMAP
+            .iter()
+            .copied()
+            .find(|tab| keyword.eq_(tab.0))
+            .map(|tab| tab.1)
+    }
+
+    pub fn from_tag(mu: &Mu, tag: Tag) -> Image {
+        match Tag::class_of(mu, tag) {
+            Class::Vector => match tag {
+                Tag::Indirect(image) => {
+                    let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
+                    Image {
+                        vtype: Tag::from_slice(
+                            heap_ref.of_length(image.offset() as usize, 8).unwrap(),
+                        ),
+                        length: Tag::from_slice(
+                            heap_ref.of_length(image.offset() as usize + 8, 8).unwrap(),
+                        ),
+                    }
+                }
+                _ => panic!("internal: tag format consistency"),
+            },
+            _ => panic!("internal: vector type required"),
+        }
+    }
+}
+
+/// properties
+pub trait Properties {
+    fn length_of(_: &Mu, _: Tag) -> usize;
+    fn class_of(_: &Mu, _: Tag) -> Class;
+}
+
+impl Properties for Vector {
+    fn class_of(mu: &Mu, vector: Tag) -> Class {
+        match vector {
+            Tag::Direct(_) => Class::Char,
+            Tag::Indirect(_) => {
+                let image = Self::from_tag(mu, vector);
+
+                match VECTYPEMAP
+                    .iter()
+                    .copied()
+                    .find(|desc| image.vtype.eq_(desc.0))
+                {
+                    Some(desc) => desc.1,
+                    None => panic!("internal: vector type inconsistency"),
+                }
+            }
+            _ => panic!("internal: tag format inconsistency"),
+        }
+    }
+
+    fn length_of(mu: &Mu, vector: Tag) -> usize {
+        match vector {
+            Tag::Direct(direct) => direct.length() as usize,
+            Tag::Indirect(_) => {
+                let image = Self::from_tag(mu, vector);
+                Fixnum::as_i64(mu, image.length) as usize
+            }
+            _ => panic!("internal: tag format inconsistency"),
+        }
+    }
+}
+
+/// core
+pub trait Core<'a> {
+    fn read(_: &Mu, _: char, _: Tag) -> exception::Result<Tag>;
+    fn write(_: &Mu, _: Tag, _: bool, _: Tag) -> exception::Result<()>;
+
+    fn evict(&self, _: &Mu) -> Tag;
+    fn svref(_: &Mu, _: Tag, _: usize) -> Option<Tag>;
+
+    fn from_string(_: &str) -> Vector;
+    fn as_string(_: &Mu, _: Tag) -> String;
+
+    fn view(_: &Mu, _: Tag) -> Tag;
+}
+
+impl<'a> Core<'a> for Vector {
+    fn view(mu: &Mu, vector: Tag) -> Tag {
+        let vec = TypedVec::<Vec<Tag>> {
+            vec: vec![
+                Fixnum::as_tag(Self::length_of(mu, vector) as i64),
+                match Tag::type_key(Self::class_of(mu, vector)) {
+                    Some(key) => key,
+                    None => panic!("internal: type inconsistency"),
+                },
+            ],
+        };
+
+        vec.vec.to_vector().evict(mu)
+    }
+
+    fn from_string(str: &str) -> Vector {
+        let len = str.len();
+
+        if len > Tag::DIRECT_STR_MAX {
+            TypedVec::<String> {
+                vec: str.to_string(),
+            }
+            .vec
+            .to_vector()
+        } else {
+            let mut data: [u8; 8] = 0u64.to_le_bytes();
+
+            for (src, dst) in str.as_bytes().iter().zip(data.iter_mut()) {
+                *dst = *src
+            }
+
+            Vector::Direct(Tag::to_direct(
+                u64::from_le_bytes(data),
+                len as u8,
+                DirectClass::Byte,
+            ))
+        }
+    }
+
+    fn as_string(mu: &Mu, tag: Tag) -> String {
+        match Tag::class_of(mu, tag) {
+            Class::Vector => match tag {
+                Tag::Direct(dir) => match dir.dtype() {
+                    DirectClass::Byte => str::from_utf8(&dir.data().to_le_bytes()).unwrap()
+                        [..dir.length() as usize]
+                        .to_string(),
+                    _ => panic!("internal: vector state inconsistency"),
+                },
+                Tag::Indirect(image) => {
+                    let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
+                    let vec: Image = Self::from_tag(mu, tag);
+
+                    str::from_utf8(
+                        heap_ref
+                            .of_length(
+                                (image.offset() + 16) as usize,
+                                Fixnum::as_i64(mu, vec.length) as usize,
+                            )
+                            .unwrap(),
+                    )
+                    .unwrap()
+                    .to_string()
+                }
+                _ => panic!("internal: tag format inconsistency"),
+            },
+            _ => panic!("internal: vector type required"),
+        }
+    }
+
+    fn write(mu: &Mu, vector: Tag, escape: bool, stream: Tag) -> exception::Result<()> {
+        match vector {
+            Tag::Direct(_) => match str::from_utf8(&vector.data(mu).to_le_bytes()) {
+                Ok(s) => {
+                    if escape {
+                        mu.write_string(format!("\"{s}\""), stream)
+                    } else {
+                        mu.write_string(s.to_string(), stream)
+                    }
+                }
+                Err(_) => panic!("internal: vector type inconsistency"),
+            },
+            Tag::Indirect(_) => match Self::class_of(mu, vector) {
+                Class::Char => {
+                    if escape {
+                        match mu.write_string("\"".to_string(), stream) {
+                            Ok(_) => (),
+                            Err(e) => return Err(e),
+                        }
+                    }
+
+                    for ch in VectorIter::new(mu, vector) {
+                        match mu.write(ch, false, stream) {
+                            Ok(_) => (),
+                            Err(e) => return Err(e),
+                        }
+                    }
+
+                    if escape {
+                        match mu.write_string("\"".to_string(), stream) {
+                            Ok(_) => (),
+                            Err(e) => return Err(e),
+                        }
+                    }
+
+                    Ok(())
+                }
+                _ => {
+                    match mu.write_string("#(".to_string(), stream) {
+                        Ok(_) => (),
+                        Err(e) => return Err(e),
+                    }
+                    match mu.write(Self::from_tag(mu, vector).vtype, true, stream) {
+                        Ok(_) => (),
+                        Err(e) => return Err(e),
+                    }
+
+                    for tag in VectorIter::new(mu, vector) {
+                        match mu.write_string(" ".to_string(), stream) {
+                            Ok(_) => (),
+                            Err(e) => return Err(e),
+                        }
+
+                        match mu.write(tag, false, stream) {
+                            Ok(_) => (),
+                            Err(e) => return Err(e),
+                        }
+                    }
+
+                    mu.write_string(")".to_string(), stream)
+                }
+            },
+            _ => panic!("internal: vector type inconsistency"),
+        }
+    }
+
+    fn read(mu: &Mu, syntax: char, stream: Tag) -> exception::Result<Tag> {
+        match syntax {
+            '"' => {
+                let mut str: String = String::new();
+
+                loop {
+                    match Stream::read_char(mu, stream) {
+                        Ok(Some('"')) => break,
+                        Ok(Some(ch)) => str.push(ch),
+                        Ok(None) => {
+                            return Err(Except::raise(mu, Condition::Eof, "vector::read", stream));
+                        }
+                        Err(e) => return Err(e),
+                    }
+                }
+
+                Ok(Self::from_string(&str).evict(mu))
+            }
+            '(' => {
+                let vec_list = match Cons::read(mu, stream) {
+                    Ok(list) => {
+                        if list.null_() {
+                            return Err(Except::raise(
+                                mu,
+                                Condition::Type,
+                                "vector::read",
+                                Tag::nil(),
+                            ));
+                        }
+                        list
+                    }
+                    Err(_) => {
+                        return Err(Except::raise(mu, Condition::Syntax, "vector::read", stream));
+                    }
+                };
+
+                let vec_type = Cons::car(mu, vec_list);
+
+                match VECTYPEMAP.iter().copied().find(|tab| vec_type.eq_(tab.0)) {
+                    Some(tab) => match tab.1 {
+                        Class::T => {
+                            let mut vec = Vec::new();
+                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                                vec.push(Cons::car(mu, cons));
+                            }
+                            Ok(TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu))
+                        }
+                        Class::Char => {
+                            let mut vec = String::new();
+                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                                let el = Cons::car(mu, cons);
+                                match Tag::class_of(mu, el) {
+                                    Class::Char => {
+                                        let ch = Char::as_char(mu, el);
+                                        vec.push(ch)
+                                    }
+                                    _ => {
+                                        return Err(Except::raise(
+                                            mu,
+                                            Condition::Type,
+                                            "vector::read",
+                                            el,
+                                        ))
+                                    }
+                                }
+                            }
+
+                            Ok(TypedVec::<String> { vec }.vec.to_vector().evict(mu))
+                        }
+                        Class::Byte => {
+                            let mut vec = Vec::<u8>::new();
+                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                                let el = Cons::car(mu, cons);
+                                match Tag::class_of(mu, el) {
+                                    Class::Fixnum => {
+                                        let byte = Fixnum::as_i64(mu, el);
+                                        if !(0..255).contains(&byte) {
+                                            return Err(Except::raise(
+                                                mu,
+                                                Condition::Range,
+                                                "vector::read",
+                                                el,
+                                            ));
+                                        }
+                                        vec.push(byte as u8)
+                                    }
+                                    _ => {
+                                        return Err(Except::raise(
+                                            mu,
+                                            Condition::Type,
+                                            "vector::read",
+                                            el,
+                                        ))
+                                    }
+                                }
+                            }
+
+                            Ok(TypedVec::<Vec<u8>> { vec }.vec.to_vector().evict(mu))
+                        }
+                        Class::Fixnum => {
+                            let mut vec = Vec::new();
+
+                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                                let el = Cons::car(mu, cons);
+                                match Tag::class_of(mu, el) {
+                                    Class::Fixnum => vec.push(Fixnum::as_i64(mu, el)),
+                                    _ => {
+                                        return Err(Except::raise(
+                                            mu,
+                                            Condition::Type,
+                                            "vector::read",
+                                            el,
+                                        ))
+                                    }
+                                }
+                            }
+
+                            Ok(TypedVec::<Vec<i64>> { vec }.vec.to_vector().evict(mu))
+                        }
+                        Class::Float => {
+                            let mut vec = Vec::new();
+
+                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                                let el = Cons::car(mu, cons);
+                                match Tag::class_of(mu, el) {
+                                    Class::Float => vec.push(Float::as_f32(mu, el)),
+                                    _ => {
+                                        return Err(Except::raise(
+                                            mu,
+                                            Condition::Type,
+                                            "vector::read",
+                                            el,
+                                        ))
+                                    }
+                                }
+                            }
+
+                            Ok(TypedVec::<Vec<f32>> { vec }.vec.to_vector().evict(mu))
+                        }
+                        _ => panic!("internal: vector type inconsistency"),
+                    },
+                    None => Err(Except::raise(mu, Condition::Type, "vector::read", vec_type)),
+                }
+            }
+            _ => panic!("internal: vector type required"),
+        }
+    }
+
+    fn evict(&self, mu: &Mu) -> Tag {
+        match self {
+            Vector::Direct(tag) => *tag,
+            Vector::Indirect(desc) => {
+                let (_, ivec) = desc;
+                match ivec {
+                    IVec::T(_) => IndirectVector::T(desc).evict(mu),
+                    IVec::Char(_) => IndirectVector::Char(desc).evict(mu),
+                    IVec::Byte(_) => IndirectVector::Byte(desc).evict(mu),
+                    IVec::Fixnum(_) => IndirectVector::Fixnum(desc).evict(mu),
+                    IVec::Float(_) => IndirectVector::Float(desc).evict(mu),
+                }
+            }
+        }
+    }
+
+    fn svref(mu: &Mu, vector: Tag, index: usize) -> Option<Tag> {
+        match Tag::class_of(mu, vector) {
+            Class::Vector => match vector {
+                Tag::Direct(_direct) => {
+                    Some(Char::as_tag(vector.data(mu).to_le_bytes()[index] as char))
+                }
+                Tag::Indirect(_) => IndirectVector::svref(mu, vector, index),
+                _ => panic!("internal: vector type inconsistency"),
+            },
+            _ => panic!("internal: vector type inconsistency"),
+        }
+    }
+}
+
+/// mu functions
+pub trait MuFunction {
+    fn mu_type(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+    fn mu_length(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+    fn mu_make_vector(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+    fn mu_slice(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+    fn mu_svref(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+}
+
+impl MuFunction for Vector {
+    fn mu_make_vector(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        let type_sym = fp.argv[0];
+        let list = fp.argv[1];
+
+        fp.value = match Self::to_type(type_sym) {
+            Some(vtype) => match vtype {
+                Class::Null => {
+                    return Err(Except::raise(mu, Condition::Type, "mu:sv-list", type_sym))
+                }
+                Class::T => {
+                    let mut vec = Vec::new();
+                    for cons in ConsIter::new(mu, list) {
+                        vec.push(Cons::car(mu, cons));
+                    }
+
+                    TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu)
+                }
+                Class::Char => {
+                    let mut vec = String::new();
+
+                    for cons in ConsIter::new(mu, list) {
+                        let el = Cons::car(mu, cons);
+
+                        match Tag::class_of(mu, el) {
+                            Class::Char => {
+                                vec.push(Char::as_char(mu, el));
+                            }
+                            _ => return Err(Except::raise(mu, Condition::Type, "mu:sv-list", el)),
+                        }
+                    }
+
+                    TypedVec::<String> { vec }.vec.to_vector().evict(mu)
+                }
+                Class::Byte => {
+                    let mut vec = Vec::<u8>::new();
+
+                    for cons in ConsIter::new(mu, list) {
+                        let el = Cons::car(mu, cons);
+
+                        match Tag::class_of(mu, el) {
+                            Class::Fixnum => {
+                                let byte = Fixnum::as_i64(mu, el);
+
+                                if !(0..=255).contains(&byte) {
+                                    return Err(Except::raise(
+                                        mu,
+                                        Condition::Range,
+                                        "mu:sv-list",
+                                        el,
+                                    ));
+                                }
+
+                                vec.push(byte as u8);
+                            }
+                            _ => return Err(Except::raise(mu, Condition::Type, "mu:sv-list", el)),
+                        }
+                    }
+
+                    TypedVec::<Vec<u8>> { vec }.vec.to_vector().evict(mu)
+                }
+                Class::Fixnum => {
+                    let mut vec = Vec::new();
+                    for cons in ConsIter::new(mu, list) {
+                        let el = Cons::car(mu, cons);
+
+                        match Tag::class_of(mu, el) {
+                            Class::Fixnum => {
+                                vec.push(Fixnum::as_i64(mu, el));
+                            }
+                            _ => return Err(Except::raise(mu, Condition::Type, "mu:sv-list", el)),
+                        }
+                    }
+
+                    TypedVec::<Vec<i64>> { vec }.vec.to_vector().evict(mu)
+                }
+                Class::Float => {
+                    let mut vec = Vec::new();
+                    for cons in ConsIter::new(mu, list) {
+                        let el = Cons::car(mu, cons);
+
+                        match Tag::class_of(mu, el) {
+                            Class::Float => {
+                                vec.push(Float::as_f32(mu, el));
+                            }
+                            _ => return Err(Except::raise(mu, Condition::Type, "mu:sv-list", el)),
+                        }
+                    }
+
+                    TypedVec::<Vec<f32>> { vec }.vec.to_vector().evict(mu)
+                }
+                _ => {
+                    return Err(Except::raise(mu, Condition::Type, "mu:sv-list", type_sym));
+                }
+            },
+            None => {
+                return Err(Except::raise(mu, Condition::Type, "mu:sv-list", type_sym));
+            }
+        };
+
+        Ok(())
+    }
+
+    fn mu_slice(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        fp.value = Tag::nil();
+        Ok(())
+    }
+
+    fn mu_svref(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        let vector = fp.argv[0];
+        let index = fp.argv[1];
+
+        match Tag::class_of(mu, index) {
+            Class::Fixnum => {
+                let nth = Fixnum::as_i64(mu, index);
+
+                if nth < 0 || nth as usize >= Self::length_of(mu, vector) {
+                    return Err(Except::raise(mu, Condition::Range, "mu:svref", index));
+                }
+
+                match Tag::class_of(mu, vector) {
+                    Class::Vector => {
+                        fp.value = match Self::svref(mu, vector, nth as usize) {
+                            Some(ch) => ch,
+                            None => panic!("internal: mu:svref inconsistency"),
+                        };
+                        Ok(())
+                    }
+                    _ => Err(Except::raise(mu, Condition::Type, "mu:sy-ns", vector)),
+                }
+            }
+            _ => Err(Except::raise(mu, Condition::Type, "mu:svref", index)),
+        }
+    }
+
+    fn mu_type(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        let vector = fp.argv[0];
+
+        match Tag::class_of(mu, vector) {
+            Class::Vector => {
+                fp.value = match Tag::type_key(Vector::class_of(mu, vector)) {
+                    Some(key) => key,
+                    None => panic!("internal: type inconsistency"),
+                };
+
+                Ok(())
+            }
+            _ => Err(Except::raise(mu, Condition::Type, "mu:sv-type", vector)),
+        }
+    }
+
+    fn mu_length(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        let vector = fp.argv[0];
+
+        match Tag::class_of(mu, vector) {
+            Class::Vector => {
+                fp.value = Fixnum::as_tag(Self::length_of(mu, vector) as i64);
+                Ok(())
+            }
+            _ => Err(Except::raise(mu, Condition::Type, "mu:sv-len", vector)),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+}
