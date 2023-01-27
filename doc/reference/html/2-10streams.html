@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>2.10 Core Streams</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">2.10 Core Streams</h1>
+</header>
+<h4 id="streams"><strong>Streams</strong></h4>
+<hr>
+<p><em>core</em> streams are primarily distinguished from <em>mu</em>
+streams by accepting <em>stream-designator</em> arguments that map () to
+<em>mu:std-out</em> and <em>t</em> to <em>mu:std-in</em>. The
+<em>core</em> <em>read</em> function has been enhanced to allow error
+handling on end of stream conditions, similar to the Common Lisp
+<em>read</em> function.</p>
+<p><strong>make-string-stream</strong> <em>direction string</em>
+<strong><em>=&gt;</em></strong> <em>stream</em></p>
+<hr>
+<div class="list">
+<p><dfn>direction</dfn> : a <dfn>keyword symbol</dfn> :input |
+:output</br> <dfn>string</dfn> : a <dfn>string</dfn></br></p>
+</div>
+<p><em>make-string-stream</em> creates a string stream with the
+indicated direction. The stream is initialized from <em>string</em>.</p>
+<p><strong>get-output-string-stream</strong>
+<em>output-string-stream</em> <strong><em>=&gt;</em></strong>
+<em>string</em></p>
+<hr>
+<div class="list">
+<p><dfn>string-stream</dfn> : an output <dfn>string
+stream</dfn></br></p>
+</div>
+<p><em>get-output-string-stream</em> gets the stream contents, resets
+the stream to empty, and returns the contents.</p>
+<p><strong>eofp</strong> <em>stream-designator</em>
+<strong><em>=&gt;</em></strong> <em>boolean</em></p>
+<hr>
+<div class="list">
+<p><dfn>stream-designator</dfn> : an input <dfn>string stream
+designator</dfn></br></p>
+</div>
+<p><em>eofp</em> tests the stream for the end of stream condition.</p>
+<p><strong>open-file</strong> <em>direction path</em>
+<strong><em>=&gt;</em></strong> <em>stream</em></p>
+<hr>
+<div class="list">
+<p><dfn>direction</dfn> : a <dfn>keyword symbol</dfn> :input |
+:output</br> <dfn>path</dfn> : a file system path
+<dfn>string</dfn></br></p>
+</div>
+<p><em>open-file</em> opens a file stream for reading or writing,
+depending on <em>direction</em>.</p>
+<p><strong>close</strong> <em>stream-designator</em>
+<strong><em>=&gt;</em></strong> <em>boolean</em></p>
+<hr>
+<div class="list">
+<p><dfn>stream-designator</dfn> : an <dfn>stream
+designator</dfn></br></p>
+</div>
+<p><em>close</em> closes a stream. <em>close</em> returns () on an
+already closed stream, otherwise <strong><em>t</em></strong>.</p>
+<p><strong>write-char</strong> <em>char stream-designator</em>
+<strong><em>=&gt;</em></strong> <em>char</em> | ()</br>
+<strong>write-byte</strong> <em>byte stream-designator</em>
+<strong><em>=&gt;</em></strong> <em>byte</em> | ()</p>
+<hr>
+<div class="list">
+<p><dfn>char</dfn> : a <dfn>character</dfn> object</br> <dfn>byte</dfn>
+: a small <dfn>fixnum</dfn> in the range of [0..255]</br>
+<dfn>stream-designator</dfn> : an output <dfn>stream
+designator</dfn></br></p>
+</div>
+<p><em>write-char</em> writes <em>char</em> to an output stream.</p>
+<p><em>write-byte</em> writes <em>byte</em> to an output stream.</p>
+<p><strong>write</strong> <em>form</em> stream-designator escape*
+<strong><em>=&gt;</em></strong> t | ()</p>
+<hr>
+<div class="list">
+<p><dfn>form</dfn> : an <dfn>value</dfn></br>
+<dfn>stream-designator</dfn> : an output <dfn>stream
+designator</dfn></br> <dfn>escape</dfn> : a <dfn>generalized
+boolean</dfn></br></p>
+</div>
+<p><em>write</em> converts <em>form</em> to a <em>string</em> and writes
+it to <em>stream-designator</em>. <em>write</em> includes escape
+characters (” for strings, # for chars, etc) if <em>escape</em> is true.
+<em>write</em> with a true <em>escape</em> is suitable for subsequent
+<em>read</em>s for objects that have a printable representation. Other
+types will be printed in <em>broket notation</em>, which are not
+generally readable.</p>
+<p><strong>terpri</strong> <em>stream-designator</em>
+<strong><em>=&gt;</em></strong> t | ()</p>
+<hr>
+<div class="list">
+<p><dfn>stream-designator</dfn> : an output <dfn>stream
+designator</dfn></br></p>
+</div>
+<p><em>terpri</em> outputs the system’s best guess at an end of line
+character.</p>
+<p><strong>read-char</strong> <em>stream-designator</em>
+<strong><em>=&gt;</em></strong> <em>char</em> | ()</br>
+<strong>read-byte</strong> <em>stream-designator error-eofp
+eof-value</em> <strong><em>=&gt;</em></strong> <em>fixnum</em> | ()</p>
+<hr>
+<div class="list">
+<p><dfn>stream-designator</dfn> : an input <dfn>stream
+designator</dfn></br> <dfn>error-eofp</dfn> : a <dfn>generalized
+boolean</dfn></br> <dfn>eof-value</dfn> : a <dfn>value</dfn></br></p>
+</div>
+<p><em>read-char</em> returns the next <em>char</em> from the input
+stream . If at end of stream and <em>error-eofp</em> is true, an error
+is raised, otherwise <em>eof-value</em> is returned.</p>
+<p><em>read-byte</em> returns the next <em>fixnum</em> from the input
+stream . If at end of stream and <em>error-eofp</em> is true, an error
+is raised, otherwise <em>eof-value</em> is returned.</p>
+<p><strong>unread-char</strong> <em>char stream-designator</em>
+<strong><em>=&gt;</em></strong> <em>char</em> | ()</br>
+<strong>unread-byte</strong> <em>byte stream-designator</em>
+<strong><em>=&gt;</em></strong> <em>byte</em> | ()</p>
+<hr>
+<div class="list">
+<p><dfn>char</dfn> : a <dfn>character</dfn> object</br> <dfn>byte</dfn>
+: a small <dfn>fixnum</dfn> in the range of [0..255]</br>
+<dfn>stream-designator</dfn> : an input <dfn>stream
+designator</dfn></br></p>
+</div>
+<p><em>unread-char</em> pushes back <em>char</em> onto the input
+stream.</p>
+<p><em>unread-byte</em> pushes back <em>byte</em> onto the input
+stream.</p>
+<p>One level of pushback is supported, attempts to push more, or
+attempts to read a non-pushed stream raises an error.</p>
+<p><strong>read</strong> <em>stream-designator eof-error eof-value</em>
+<strong><em>=&gt;</em></strong> <em>object</em></p>
+<hr>
+<div class="list">
+<p><dfn>stream-designator</dfn> : an input <dfn>stream
+designator</dfn></br> <dfn>error-eofp</dfn> : a <dfn>boolean</dfn>
+object</br> <dfn>eof-value</dfn> : an <dfn>object</dfn></br></p>
+</div>
+<p><em>read</em> returns the next object from the input stream . If at
+end of stream and <em>error-eofp</em> is true, an error is raised,
+otherwise <em>eof-value</em> is returned.</p>
+</body>
+</html>

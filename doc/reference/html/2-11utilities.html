@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>2.11 Core Utilities</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">2.11 Core Utilities</h1>
+</header>
+<h4 id="utilities"><strong>Utilities</strong></h4>
+<hr>
+<p>Functions united by the singular attribute of not obviously belonging
+anywhere else.</p>
+<p><strong>load</strong> <em>file-path verbose print</em>
+<strong><em>=&gt;</em></strong> <em>boolean</em></p>
+<hr>
+<div class="list">
+<p><dfn>file-path</dfn>: a <dfn>string</dfn> file system path</br>
+<dfn>verbose</dfn>: a <dfn>generalized boolean</dfn></br>
+<dfn>print</dfn>: a <dfn> generalized boolean</dfn></br></p>
+</div>
+<p><em>load</em> sequentially reads <em>core</em> forms from
+<em>file-path</em>, compiles them, and evaluates them. If
+<em>verbose</em> is <em>true</em>, a brief informational header is
+printed to <em>mu:std-out</em> before the load begins. If <em>print</em>
+is <em>true</em>, the result of evaluating each form is printed to
+<em>mu:std-out</em>. If <em>load</em> encounters an error, it prints an
+exception message and returns (). <em>load</em> catches exceptions and
+terminates after printing an informational message.</p>
+<p><em>load</em> returns <em>t</em> if it completes with no errors,
+otherwise <em>()</em>.</p>
+<p><strong>format</strong> <em>dest</em> string arg-list*
+<strong><em>=&gt;</em></strong> <em>string | ()</em></p>
+<hr>
+<div class="list">
+<p><dfn>dest</dfn>: a <dfn>boolean</dfn>, select output type</br>
+<dfn>string</dfn>: a format <dfn>string</dfn></br> <dfn>arg-list</dfn>:
+a <dfn>list</dfn> of arguments</br></p>
+</div>
+<p><em>format</em> determines whether it writes to a fresh
+<em>string</em> (if <em>dest</em> is ()) or to <em>mu:std-out</em> (if
+<em>dest</em> is <em>t</em>).</p>
+<p>It then iterates the format <em>string</em> and formats successive
+elements of the <em>arg-list</em> onto the output according to the
+current directive. <em>format</em> prints non
+<strong><em>~</em></strong> characters as themselves. When
+<em>format</em> encounters a <strong><em>~,</em></strong> it uses the
+next character to determine how to print the current element of the
+<em>arg-list</em>.</p>
+<div class="list">
+<p><strong>~~</strong> - print #~ unescaped</br> <strong>~%</strong> -
+print newline</br> <strong>~A</strong> - print unescaped object like
+<dfn>princ</dfn></br> <strong>~S</strong> - print escaped object like
+<dfn>prin1</dfn></br> <strong>~D</strong> - print fixnum in decimal</br>
+<strong>~X</strong> - print fixnum in hexadecimal</br></p>
+</div>
+<p><strong><em>~</em></strong> followed by any other character raises an
+error.</p>
+<p><strong>:debug-repl</strong> <strong><em>=&gt;</em></strong>
+<em>()</em></p>
+<hr>
+<p><em>debug-repl</em> is a bare-bones REPL primarily intended for
+debugging <em>core</em>.</p>
+</body>
+</html>

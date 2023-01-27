@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>hrafn - a minimal LISP environment</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">hrafn - a minimal LISP environment</h1>
+</header>
+<h3 id="foreward"><strong>Foreward</strong></h3>
+<hr>
+<p>Welcome to <em>hrafn</em>. We hope it serves you well, and is easily
+extended to meet your needs.</p>
+<p>Dynamic languages for low overhead environments must be lightweight,
+but developing applications in the target environment can be painful.
+<em>hrafn</em> is a general development and execution environment for
+containers, shells, and other utilities that need small installation and
+runtime footprints.</p>
+<p><em>hrafn</em> was designed to operate effectively on <em>Raspberry
+Pi</em> class machines and containers, and consists of a small
+native-code kernel runtime and a set of layered libraries in source
+form.</p>
+<p>The <em>hrafn</em> runtime is a native code library that directly
+interprets <em>mu</em> kernel code. A great deal of useful work can be
+done directly with the limited kernel language, though it lacks the
+niceties of a more canonical LISP programming environment. More advanced
+language features require the use of the included <em>core</em>
+library.</p>
+<p>The <em>preface</em> library provides traditional LISP forms and a
+collection of functional programming features like pattern matching and
+monads. <em>hrafn</em> <em>core</em> and <em>preface</em> code are
+human-readable and portable between machine architectures.</p>
+<p>Questions? You can contact the author at
+putnamjm.design@gmail.com.</p>
+<div style="page-break-after: always">
+
+</div>
+<h3 id="table-of-contents"><strong>Table of Contents</strong></h3>
+<hr />
+<p><strong>Foreward</strong> ……………………………………………………………………………………………</br>
+<strong>mu</strong> …………………………………………………………………………………………………….</br>
+<strong>core</strong> ……………………………………………………………………………………………………</br> 2.1
+<em>about</em> …………………………………………………………………………………………….. <a
+href="2-1core.html">2.1</a></br> 2.2 <em>reader</em>
+…………………………………………………………………………………………… <a
+href="2-2reader.html">2.2</a></br> 2.3 <em>compiler</em>
+………………………………………………………………………………………… <a
+href="2-3compile.html">2.3</a></br> 2.4 <em>lambda</em>
+………………………………………………………………………………………….. <a
+href="2-4lambda.html">2.4</a></br> 2.5 <em>functions</em>
+………………………………………………………………………………………… <a
+href="2-5functions.html">2.5</a></br> 2.6 <em>macros</em>
+…………………………………………………………………………………………… <a
+href="2-6macros.html">2.6</a></br> 2.7 <em>sequences</em>
+……………………………………………………………………………………….. <a
+href="2-7sequences.html">2.7</a></br> 2.8 <em>exceptions</em>
+………………………………………………………………………………………. <a
+href="2-8exceptions.html">2.8</a></br> 2.9 <em>lists</em>
+………………………………………………………………………………………………… <a
+href="2-9lists.html">2.9</a></br> 2.10 <em>streams</em>
+…………………………………………………………………………………………. <a
+href="2-10streams.html">2.10</a></br> 2.11 <em>utilities</em>
+…………………………………………………………………………………………… <a
+href="2-11utilities.html">2.11</a></br> 2.12 <em>core symbols</em>
+………………………………………………………………………………….. <a
+href="2-12core-symbols.html">2.12</a></br> <strong>preface</strong>
+………………………………………………………………………………………………</br> <strong>hrafn</strong>
+…………………………………………………………………………………………………….</br> <strong>system</strong>
+………………………………………………………………………………………………..</br> <strong>Appendices</strong>
+…………………………………………………………………………………………</br></p>
+</body>
+</html>

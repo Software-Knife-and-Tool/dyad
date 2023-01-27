@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>2. Core library</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">2. Core library</h1>
+</header>
+<h4 id="about-the-core-library"><strong>About the Core
+Library</strong></h4>
+<hr />
+<p><em>Core</em> is a syntactic and semantic extension library coded in
+the <em>mu</em> language primarily for the benefit of the
+<em>preface</em> library. It adds a complement of functions purposely
+missing from <em>mu</em>, an enhanced exception facility, a compiler for
+lambdas with rest arguments and function closures, and macros.
+<em>Preface</em> is intended to be largely, if not wholly coded on
+<em>core</em>.</p>
+<p><em>Core</em> symbols reside in the <em>core</em> namespace, which
+inherits <em>mu</em>. A complete listing of <em>core</em> external
+symbols can be found in the <a href="2-13core-symbols.html"><em>core
+symbol list</em></a>.</p>
+<h5 id="type-designators">Type Designators</h5>
+<hr>
+<p>Functions and special operators described in this reference specify
+type designators for arguments and returned values. Most of these map
+directly onto the <em>mu</em> type class, but <em>core</em>
+documentation cites a few synthetic classes that are not strictly
+<em>mu</em> types.</p>
+<ul>
+<li><p><strong><em>value</em></strong> designates any <em>core</em> or
+<em>mu</em> type, used to type a value that has no more specialized
+class.</p></li>
+<li><p><strong><em>form</em></strong> is an
+<strong><em>value</em></strong> or a special operator
+application.</p></li>
+<li><p><strong><em>list</em></strong> is either a proper list or
+<strong><em>()</em></strong>.</p></li>
+<li><p><strong><em>byte</em></strong> is a small <em>fixnum</em> in the
+range of [0..255].</p></li>
+<li><p><strong><em>boolean</em></strong> indicates one of
+<strong><em>t</em></strong> or <strong><em>:t</em></strong> for
+<em>true</em> and <strong><em>()</em></strong> or
+<strong><em>:nil</em></strong> for <em>false</em>.</p></li>
+<li><p><strong><em>generalized boolean</em></strong> indicates
+<strong><em>()</em></strong> or <strong><em>:nil</em></strong> as
+<em>false</em>, and otherwise <em>true</em>.</p></li>
+<li><p><strong><em>string</em></strong> is a <em>vector</em> of
+<em>characters</em>. <em>mu</em> has no separate string type.</p></li>
+<li><p><strong><em>function-designator</em></strong> is a <em>mu</em>
+function type or a <em>symbol</em> bound to a function.</p></li>
+<li><p><strong><em>stream-designator</em></strong> is a <em>mu</em>
+<em>stream</em> or a <strong><em>boolean</em></strong> which maps to a
+standard stream.</p></li>
+<li><p><strong><em>sequence</em></strong> is either a
+<strong><em>list</em></strong> or a
+<strong><em>vector</em></strong>.</p></li>
+</ul>
+<h5 id="synopsis-of-core-additions-to-the-mu-language">Synopsis of
+<em>core</em> additions to the <em>mu</em> language</h5>
+<hr>
+<div class="list">
+<p>reader resolves unqualified non-lexical symbols to the current
+namespace</br> folds and utility functions for sequences</br> maps and
+utility functions for lists</br> debug repl</br> simple format
+facility</br> stream designators</br> improved exception handling, break
+loop</br> lambdas with rest arguments</br> macro definition and
+expansion</br> file loader</br></p>
+</div>
+</body>
+</html>

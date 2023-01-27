@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>2.8 Core Exceptions</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">2.8 Core Exceptions</h1>
+</header>
+<h4 id="exceptions"><strong>Exceptions</strong></h4>
+<hr />
+<p><em>core</em> exceptions are currently a thin layer on <em>mu</em>
+exceptions, and are currently not well-developed.</p>
+<p><strong><em>:print-except</em></strong> <em>exception</em>
+<em>string</em> =&gt; <em>exception</em></p>
+<hr>
+<div class="list">
+<p><dfn>exception</dfn> : an <dfn>exception</dfn> object</br>
+<dfn>string</dfn> : a <dfn>string</dfn></br></p>
+</div>
+<p><em>print-except</em> prints a human-readable description of
+<em>exception</em> on <em>mu:std-out</em>, with <em>string</em> for
+additional identification.</p>
+<p><em>print-except</em> returns the <em>exception</em> argument.</p>
+<p><strong><em>break</em></strong> <em>exception</em></p>
+<hr>
+<div class="list">
+<p><dfn>exception</dfn> : an <dfn>exception</dfn> object</br></p>
+</div>
+<p><em>break</em> prints the <em>exception</em> via
+<em>:print-except</em> and enters an interactive loop.</p>
+<h5 id="condition-reporting">Condition Reporting</h5>
+<hr>
+<div class="list">
+<p><strong>error</strong> <dfn>value string</dfn> <strong> =&gt;
+</strong><dfn>value</dfn></br> <strong>error-if</strong> <dfn>test value
+string</dfn> <strong> =&gt; </strong><dfn>value</dfn></br>
+<strong>errorp-when</strong> <dfn>predicate value string</dfn> <strong>
+=&gt; </strong><dfn>value</dfn></br> <strong>errorp-unless</strong>
+<dfn>predicate value string</dfn> <strong> =&gt;
+</strong><dfn>value</dfn></br> <strong>warn</strong> <dfn>value
+string</dfn> <strong> =&gt; </strong><dfn>value</dfn></br>
+<strong>debug</strong> <dfn>value string</dfn> <strong> =&gt;
+</strong><dfn>value</dfn></br></p>
+</div>
+<p>These functions print error conditions. All of them except
+<em>warn</em> and <em>debug</em> call <em>break</em>.</p>
+</body>
+</html>

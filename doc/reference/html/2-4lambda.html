@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>2.4 Core Lambda</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">2.4 Core Lambda</h1>
+</header>
+<h4 id="lambda"><strong>Lambda</strong></h4>
+<hr />
+<p><em>lambda</em> is the part of the <em>core</em> compiler that deals
+with function definition, in specific the lambda rest argument.</p>
+<h5 id="core-lambda-form"><em>core lambda form</em></h5>
+<hr />
+<p>The <em>core lambda</em> form adds a rest argument to the <em>mu</em>
+fixed argument lambda syntax.</p>
+<h5 id="lambda-symbol-rest-rest-symbol-.-body">(lambda ([symbol …]
+[&amp;rest rest-symbol]) . body)</h5>
+<h5 id="lambda-descriptor"><em>lambda-descriptor</em></h5>
+<hr />
+<p>A <em>lambda-descriptor</em> is a general vector that holds
+information about a lambda definition. A lambda descriptor is compiled
+into the body of a rest lambda or closure.</p>
+<h6 id="t-lambda-syms-req-syms-rest-sym-macrop-environment-closure">#(:t
+<em>lambda-syms req-syms rest-sym macrop environment closure</em>)</h6>
+<div class="list">
+<p><dfn>lambda-syms</dfn> : a list of <dfn>symbols</dfn> suitable for
+:lambda</br> <dfn>req-syms</dfn> : a <dfn>list</dfn> of required
+<dfn>symbols</dfn></br> <dfn>rest-sym</dfn>: rest <dfn>symbol</dfn> or
+()</br> <dfn>macrop</dfn> : a <dfn>boolean</dfn></br>
+<dfn>environment</dfn> : a <dfn>list</dfn> of lambda descriptors</br>
+<dfn>closure</dfn> : a <dfn>list</dfn> of frames</br></p>
+</div>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>2.9 Core Lists</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">2.9 Core Lists</h1>
+</header>
+<h4 id="lists"><strong>Lists</strong></h4>
+<hr>
+<p><em>Core</em> list functions are inspired by Common Lisp and
+Scala.</p>
+<p><strong><em>append</em></strong> <em>list</em>
+<strong><em>=&gt;</em></strong> <em>list</em></p>
+<hr>
+<div class="list">
+<p><dfn>list</dfn> : a <dfn>list</dfn></br></p>
+</div>
+<p><em>append</em> merges the elements of <em>list</em> into a single
+list. All elements but the last must be lists.</p>
+<p><strong><em>mapc</em></strong> <em>function</em> <em>list</em>=&gt;
+<em>list</em></br> <strong><em>mapcar</em></strong> <em>function</em>
+src-list <strong><em>=&gt;</em></strong> <em>list</em></br>
+<strong><em>mapl</em></strong> <em>function</em> <em>src-list</em>
+<strong><em>=&gt;</em></strong> <em>list</em></br>
+<strong><em>maplist</em></strong> <em>function</em> <em>src-list</em>
+<strong><em>=&gt;</em></strong> <em>list</em></p>
+<hr>
+<div class="list">
+<p><dfn>function</dfn> : a <dfn>function</dfn> taking a single
+argument</br> <dfn>list</dfn> : a <dfn>list</dfn></br></p>
+</div>
+<p><em>mapc</em> iterates a list and calls <em>function</em> with each
+element. Returns the <em>list</em> argument, side-effects only.</p>
+<p><em>mapcar</em> iterates a list and calls <em>function</em> with each
+element. The results are used to construct a new list.</p>
+<p><em>mapl</em> is similar to <em>mapc</em> except that
+<em>function</em> is called with the <em>cons</em> of each list element.
+Returns the <em>list</em> argument, side-effects only.</p>
+<p><em>maplist</em> is similar to <em>mapl</em> except that the results
+of calling <em>function</em> with the <em>src-list</em> conses are used
+to construct a new list which is returned.</p>
+<p><strong><em>sv-list</em></strong> <em>vector</em>
+<strong><em>=&gt;</em></strong> <em>list</em></p>
+<hr>
+<div class="list">
+<p><dfn>vector</dfn> : a <dfn>vector</dfn></br></p>
+</div>
+<p><em>sv-list</em> coerces (which is probably a better name for it, and
+moves it to <em>sequences</em>) a <em>vector</em> to a
+<em>list</em>.</p>
+<p><strong><em>dropl</em></strong> <em>list</em> <em>n</em>
+<strong><em>=&gt;</em></strong> <em>list</em></br>
+<strong><em>dropr</em></strong> <em>list</em> <em>n</em>
+<strong><em>=&gt;</em></strong> <em>list</em></p>
+<hr>
+<div class="list">
+<p><dfn>list</dfn> : a <dfn>list</dfn></br> <dfn>n</dfn> : a
+<dfn>fixnum</dfn></br></p>
+</div>
+<p><em>dropl</em> returns <em>list</em> without the first <em>n</em>
+elements, essentially the <em>nthcdr</em>. <em>dropr</em> creates a new
+list from <em>list</em> without the last <em>n</em> elements.</p>
+<p><strong><em>assoc</em></strong> <em>item</em> <em>a-list</em>
+<strong><em>=&gt;</em></strong> <em>list</em></p>
+<hr>
+<div class="list">
+<p><dfn>item</dfn> : an <dfn>value</dfn></br> <dfn>a-list</dfn> : an
+<dfn>association list</dfn></br></p>
+</div>
+<p>An <em>association list</em> is a list of dotted pairs, the car of
+which is the key value and the cdr the associated value.</p>
+<p><em>assoc</em> searches an association list for <em>item</em> using
+<em>eq</em> for the key value of each dotted pair. The first such
+successful comparison returns the corresponding associated value. If
+there are no matches, <em>assoc</em> returns ().</p>
+<p><strong><em>last</em></strong> <em>list</em>
+<strong><em>=&gt;</em></strong> <em>list</em></p>
+<hr>
+<div class="list">
+<p><dfn>list</dfn> : a <dfn>list</dfn></br></p>
+</div>
+<p><em>last</em> returns the last <em>cdr</em> of <em>list</em>. The
+return value is not copied.</p>
+</body>
+</html>

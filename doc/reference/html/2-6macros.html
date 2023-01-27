@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>2.6 Core Macros</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">2.6 Core Macros</h1>
+</header>
+<h4 id="macros"><strong>Macros</strong></h4>
+<hr>
+<p>Macro definitions are compiled with <em>core</em> lambdas and macro
+calls are expanded at compile time.</p>
+<p><strong>:macroexpand-1</strong> <em>form</em>
+<strong><em>=&gt;</em></strong> <em>form</em></br>
+<strong><em>macroexpand</em></strong> <em>form</em>
+<strong><em>=&gt;</em></strong> <em>form</em></p>
+<hr>
+<div class="list">
+<p><dfn>form</dfn> : a <dfn>core form</dfn></br></p>
+</div>
+<p><em>macroexpand</em> and <em>macroexpand-1</em> expand a form against
+a macro definition.</p>
+<p><em>macroexpand</em> expands a form until it no longer is a macro
+call, <em>:macroexpand-1</em> expands the form just once. <em>forms</em>
+that are not macro calls are returned unchanged.</p>
+<p>(Common Lisp adds an optional environment argument here, think about
+why.)</p>
+<p><strong><em>macro-function</em></strong> <em>function-designator</em>
+<strong><em>=&gt;</em></strong> <em>function | ()</em></p>
+<hr>
+<div class="list">
+<p><dfn>function-designator</dfn> : a
+<dfn>function-designator</dfn></br></p>
+</div>
+<p><em>macro-function</em> determines whether
+<em>function-designator</em> specifies a macro expander function, and if
+so, returns it. Otherwise, it returns ().</p>
+</body>
+</html>

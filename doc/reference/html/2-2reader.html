@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>2.2 Core Reader</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">2.2 Core Reader</h1>
+</header>
+<h4 id="reader"><strong>Reader</strong></h4>
+<hr />
+<p>The core reader converts a stream of characters to values, and
+resolves unqualified symbols in the current namespace.</p>
+<h5 id="readtable">Readtable</h5>
+<hr />
+<p>A readable similar to the Common Lisp initial readable is included.
+While core reader syntax may be altered by judicious modification of
+this readable, it is used to read in the <em>preface</em> and subsequent
+libraries and significant changes to it will probably cause read
+failures while trying to bootstrap the system.</p>
+<p>The current readtable is formatted as an association list and looks
+like:</p>
+<pre><code>   &#39;((#\0 . constituent)  (#\1 . constituent)  (#\2 . constituent)  
+     (#\3 . constituent)  (#\4 . constituent)  (#\5 . constituent)  
+     (#\6 . constituent)  (#\7 . constituent)  (#\8 . constituent)  
+     (#\9 . constituent)  (#\: . constituent)  (#\&lt; . constituent)
+     (#\&gt; . constituent)  (#\= . constituent)  (#\? . constituent)  
+     (#\! . constituent)  (#\@ . constituent)  (#xa . wspace)
+     (#xd . wspace)       (#xc . wspace)       (#x20 . wspace)
+     (#\; . tmacro)       (#\&quot; . tmacro)       (#\# . macro)
+     (#\&#39; . tmacro)       (#\( . tmacro)       (#\) . tmacro)
+     (#\` . tmacro)       (#\, . tmacro)       (#\\ . escape)       
+     (#\| . mescape)      (#\a . constituent)  (#\b . constituent)
+     (#\c . constituent)  (#\d . constituent)  (#\e . constituent)
+     (#\f . constituent)  (#\g . constituent)  (#\h . constituent)
+     (#\i . constituent)  (#\j . constituent)  (#\k . constituent)  
+     (#\l . constituent)  (#\m . constituent)  (#\n . constituent)
+     (#\o . constituent)  (#\p . constituent)  (#\q . constituent)
+     (#\r . constituent)  (#\s . constituent)  (#\t . constituent)
+     (#\v . constituent)  (#\w . constituent)  (#\x . constituent)  
+     (#\y . constituent)  (#\z . constituent)  (#\[ . constituent) 
+     (#\] . constituent)  (#\$ . constituent)  (#\* . constituent)
+     (#\{ . constituent)  (#\} . constituent)  (#\+ . constituent)  
+     (#\- . constituent)  (#\/ . constituent)  (#\~ . constituent)  
+     (#\. . constituent)  (#\% . constituent)  (#\&amp; . constituent)
+     (#\^ . constituent)  (#\_ . constituent)  (#\a . constituent)
+     (#\b . constituent)  (#\c . constituent)  (#\d . constituent)
+     (#\e . constituent)  (#\f . constituent)  (#\g . constituent)
+     (#\h . constituent)  (#\i . constituent)  (#\j . constituent)
+     (#\k . constituent)  (#\l . constituent)  (#\m . constituent)
+     (#\n . constituent)  (#\o . constituent)  (#\p . constituent)
+     (#\q . constituent)  (#\r . constituent)  (#\s . constituent) 
+     (#\t . constituent)  (#\u . constituent)  (#\v . constituent)
+     (#\w . constituent)  (#\x . constituent)  (#\y . constituent)
+     (#\z . constituent)))</code></pre>
+<p><strong><em>Stream Designators</em></strong></p>
+<hr>
+<p>A <em>stream-designator</em> is either a <em>stream</em> object, or
+the symbol <em>t</em>, or (). The <em>t</em> designator is an alias for
+<em>mu:std-in</em>, and () is an alias for <em>mu:std-out</em>.
+Functions that take stream designators map the designator to the
+appropriate stream.</p>
+<h5
+id="read-stream-designator-eof-error-eof-value-value"><strong><em>read</em></strong>
+<em>stream-designator</em> <em>eof-error</em> <em>eof-value</em> =&gt;
+<em>value</em></h5>
+<hr />
+<div class="list">
+<p><dfn>stream-designator</dfn>: an input
+<dfn>stream-designator</dfn></br> <dfn>eof-error</dfn>: a
+<dfn>generalized boolean</dfn></br> <dfn>eof-value</dfn>: a <dfn>
+generalized boolean</dfn></br></p>
+</div>
+<p><em>read</em> is the <em>core reader</em> external interface. If
+<em>eof-error</em> is <em>true</em>, an exception will be raised if
+<em>read</em> is called on a <em>stream</em> that is at end of file. If
+<em>eof-error</em> is <em>false</em>, <em>eof-value</em> will be
+returned on end of file.</p>
+<h5 id="read-stream-value"><strong><em>:read</em></strong>
+<em>stream</em> =&gt; <em>value</em></h5>
+<hr />
+<div class="list">
+<p><dfn>stream</dfn>: an input <dfn>stream</dfn></br></p>
+</div>
+<p><em>:read</em> is the internal implementation of the core reader.</p>
+</body>
+</html>

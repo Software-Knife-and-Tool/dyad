@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>2.5 Core Functions</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">2.5 Core Functions</h1>
+</header>
+<h4 id="functions"><strong>Functions</strong></h4>
+<hr>
+<p>The <em>function</em> module is an adjunct to the core compiler. It
+is primarily responsible for compiling and executing function
+applications.</p>
+<p>Rest argument or closure functions will be compiled with it’s first
+form as the <a href="2-4lambda.html">lambda-descriptor</a> from the
+defining lambda. Applications of those functions will subsequently be
+compiled as a call to the fixed-argument <em>:funcall</em> function,
+which arranges to manage the function’s environment, evaluate and
+rewrite the arguments in a form that <em>mu:eval</em> can execute.</p>
+<p>The <em>core</em> compiler compiles all forms so that they can be
+directly evaluated by the runtime evaluator. Lambdas with rest
+arguments, macro expander calls, and closures need to be treated
+differently. A specialized funcall is compiled into function activation
+forms that need it. Function calls with rest arguments are massaged into
+a fixed-arity function call that can be executed by the runtime.</p>
+<h5 id="funcall-function-arg-list-value">:funcall <em>function</em>
+<em>arg-list</em> =&gt; <em>value</em></h5>
+<hr />
+<div class="list">
+<p><dfn>function</dfn> : a <dfn>core function</dfn></br>
+<dfn>arg-list</dfn>: a list of <dfn>core forms</dfn>, possibly
+()</br></p>
+</div>
+<p><em>:funcall</em> manages the runtime’s lexical environment for
+closures and creates appropriate argument lists for the runtime
+evaluator.</p>
+</body>
+</html>

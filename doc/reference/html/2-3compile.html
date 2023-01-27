@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>2.3 Core Compiler</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="./reference.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">2.3 Core Compiler</h1>
+</header>
+<h4 id="compiler"><strong>Compiler</strong></h4>
+<hr />
+<p>The <em>core</em> compiler accepts all legal <em>mu</em> forms by the
+simple expedient of deferring any form it doesn’t recognize to the
+runtime compiler. Consequently, <em>core</em> forms are a proper
+superset of <em>mu</em> forms. Anywhere a <em>core</em> form is legal, a
+<em>mu</em> form is recognized.</p>
+<p>The <em>core</em> compiler adds enhanced special operators:</p>
+<div class="list">
+<p>lambda lists with rest arguments</br> macro definition and
+expansion</br> two and three clause <dfn>if </dfn>form</br> constant
+symbol binding form</br> a primitive <dfn>defun</dfn> special
+operator<br></p>
+</div>
+<p>Compiling a <em>core</em> form results in an object that can be
+evaluated by the <em>mu</em> evaluator.</p>
+<h5
+id="special-operator-defconst-name-form-symbol"><em><code>[special operator]</code>
+</em> defconst <em>name</em> <em>form</em> =&gt; <em>symbol</em></h5>
+<hr>
+<div class="list">
+<p><dfn>name</dfn> : a <dfn>symbol</dfn>, unevaluated</br>
+<dfn>form</dfn> : a <dfn>core form</dfn>, evaluated</br>
+<dfn>symbol</dfn>: <dfn>name</dfn></br></p>
+</div>
+<p>The <em>defconst</em> special operator binds <em>name</em> in the
+designated namespace to the value of <em>form</em> when evaluated.
+Multiple invocations of <em>defconst</em> on the same symbol have
+undefined consequences. Do not confuse <em>defconst</em> with the
+similarly named Common Lisp macro, it has very different semantics due
+to the lack of dynamic variables in <em>hrafn</em>.</p>
+<h5
+id="special-operator-defun-name-lambda-list-rest-body-symbol"><em><code>[special operator]</code>
+</em> defun <em>name</em> <em>lambda-list</em> &amp;rest <em>body</em>
+=&gt; <em>symbol</em></h5>
+<hr>
+<div class="list">
+<p><dfn>name</dfn> : a <dfn>symbol</dfn>, unevaluated</br>
+<dfn>lambda-list</dfn> : a <a href="2-4lambda.html">lambda list</a>,
+unevaluated</br> <dfn>body</dfn>: a list of <dfn>forms</dfn>,
+unevaluated</br> <dfn>symbol</dfn> : a <dfn>name</dfn></br></p>
+</div>
+<p>The <em>defun</em> special operator binds <em>name</em> in the
+designated namespace to a function defined by the <em>lambda-list</em>
+and <em>body</em> arguments. Unlike the Common Lisp macro, the body is
+not surrounded in a block form, nor is the <em>name</em> symbol
+lexically visible in the body. Multiple invocations of <em>defun</em> on
+the same symbol have undefined consequences.</p>
+<h5
+id="special-operator-defmacro-name-lambda-list-rest-body-symbol"><em><code>[special operator]</code></em>
+defmacro <em>name</em> <em>lambda-list</em> &amp;rest <em>body</em>
+=&gt; <em>symbol</em></h5>
+<hr>
+<div class="list">
+<p><dfn>name</dfn> : a <dfn>symbol</dfn>, unevaluated</br>
+<dfn>lambda-list</dfn> : a <a href="2-4lambda.html">lambda list</a>,
+unevaluated</br> <dfn>body</dfn>: a list of <dfn>forms</dfn>,
+unevaluated</br> <dfn>symbol</dfn> : a <dfn>name</dfn></br></p>
+</div>
+<p>The <em>defmacro</em> special operator binds <em>name</em> in the
+designated namespace to a macro expander function defined by the
+<em>lambda-list</em> and <em>body</em> arguments. Multiple invocations
+of <em>defmacro</em> on the same symbol have undefined consequences.</p>
+<h5
+id="special-operator-if-test-form-then-form-else-form-value"><em><code>[special operator]</code></em>
+if <em>test-form</em> <em>then-form</em> [<em>else-form</em>] =&gt;
+<em>value</em></h5>
+<hr>
+<div class="list">
+<p><dfn>test-form</dfn> : a <dfn>core</dfn> form, unevaluated</br>
+<dfn>then-form</dfn> : a <dfn>core</dfn> form, unevaluated</br>
+<dfn>else-form</dfn> : a <dfn>core</dfn> form, unevaluated</br></p>
+</div>
+<p>The <em>if</em> special operator evaluates <em>test-form</em>. If the
+result is true as a generalized boolean and returns the evaluated
+<em>then-form</em>. In this case, <em>else-form</em> remains
+unevaluated. If the result of evaluating <em>test-form</em> is (), the
+evaluated <em>else-form</em> is returned.</p>
+<p><em>if</em> may be called without an <em>else-form</em>. If so and
+<em>test-form</em> evaluates to (), () is returned. This <em>if</em>
+form is similar to the Common Lisp special operator.</p>
+<h5
+id="special-operator-lambda-lambda-list-rest-body-function"><em><code>special operator</code></em>
+lambda <em>lambda-list</em> &amp;rest <em>body</em> =&gt;
+<em>function</em></h5>
+<hr>
+<div class="list">
+<p><dfn>lambda-list</dfn> : a <a href="2-4lambda.html">lambda list</a>,
+unevaluated</br> <dfn>body</dfn>: a list of <dfn>forms</dfn>,
+unevaluated</br></p>
+</div>
+<p>The <em>lambda</em> special operator creates a function from
+<em>lambda-list</em> and <em>body</em> and returns it.</p>
+<h5 id="compile-form-value">compile <em>form</em> =&gt;
+<em>value</em></h5>
+<hr>
+<div class="list">
+<p><dfn>form</dfn> : a <dfn>core form</dfn></br></p>
+</div>
+<p><em>compile</em> compiles <em>form</em> in the null lexical
+environment and returns the compiled <em>form</em>.</p>
+</body>
+</html>
