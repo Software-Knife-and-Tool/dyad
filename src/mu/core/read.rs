@@ -8,7 +8,7 @@ use crate::{
         cons::{Cons, Core as _},
         fixnum::Fixnum,
         float::Float,
-        namespace::{Core as _, Namespace},
+        namespace::{Core as _, Namespace, Scope},
         stream::{Core as _, Stream},
         symbol::{Core as _, Symbol, UNBOUND},
         vector::{Core as _, Vector},
@@ -242,7 +242,9 @@ impl Read for Mu {
             Err(_) => match token.parse::<f32>() {
                 Ok(fl) => Ok(Float::as_tag(fl)),
                 Err(_) => match token.find(':') {
-                    Some(0) => Ok(Symbol::new(mu, Tag::nil(), true, &token, *UNBOUND).evict(mu)),
+                    Some(0) => {
+                        Ok(Symbol::new(mu, Tag::nil(), Scope::Extern, &token, *UNBOUND).evict(mu))
+                    }
                     Some(_) => {
                         let sym: Vec<&str> = token.split(':').collect();
                         match sym.len() {
@@ -251,7 +253,9 @@ impl Read for Mu {
                                 let name = sym[1].to_string();
 
                                 match Namespace::map_ns(mu, ns) {
-                                    Some(ns) => Ok(Namespace::intern(mu, ns, true, name, *UNBOUND)),
+                                    Some(ns) => {
+                                        Ok(Namespace::intern(mu, ns, Scope::Extern, name, *UNBOUND))
+                                    }
                                     None => Err(Except::raise(
                                         mu,
                                         Condition::Unbound,
@@ -266,7 +270,7 @@ impl Read for Mu {
 
                                 match Namespace::map_ns(mu, ns) {
                                     Some(ns) => {
-                                        Ok(Namespace::intern(mu, ns, false, name, *UNBOUND))
+                                        Ok(Namespace::intern(mu, ns, Scope::Intern, name, *UNBOUND))
                                     }
                                     None => Err(Except::raise(
                                         mu,
@@ -284,7 +288,13 @@ impl Read for Mu {
                             )),
                         }
                     }
-                    None => Ok(Namespace::intern(mu, mu.nil_ns, true, token, *UNBOUND)),
+                    None => Ok(Namespace::intern(
+                        mu,
+                        mu.nil_ns,
+                        Scope::Extern,
+                        token,
+                        *UNBOUND,
+                    )),
                 },
             },
         }

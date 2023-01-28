@@ -12,7 +12,7 @@ use {
             fixnum::{Core as _, Fixnum},
             float::{Core as _, Float},
             function::{Core as _, Function},
-            namespace::{Core as _, Namespace},
+            namespace::{Core as _, Namespace, Scope},
             stream::{Core as _, Stream},
             symbol::{Core as _, Properties as _, Symbol},
             vector::{Core as _, Vector},
@@ -36,7 +36,7 @@ pub type MuCondition = exception::Condition;
 
 // native functions
 pub type MuFunctionType = fn(&Mu, &mut Frame) -> exception::Result<()>;
-pub type FunctionDesc = (&'static str, bool, u16, MuFunctionType);
+pub type FunctionDesc = (&'static str, Scope, u16, MuFunctionType);
 
 // mu environment
 pub struct Mu {
@@ -72,7 +72,7 @@ pub struct Mu {
 }
 
 pub trait Core {
-    const VERSION: &'static str = "0.0.4";
+    const VERSION: &'static str = "0.0.5";
 
     fn new(config: String) -> Self;
     fn funcall(&self, _: Tag, _: Tag) -> exception::Result<Tag>;

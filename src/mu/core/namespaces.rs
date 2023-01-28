@@ -8,7 +8,7 @@ use crate::{
         fixnum::{Fixnum, MuFunction as _},
         float::{Float, MuFunction as _},
         function::Function,
-        namespace::{Core as _, MuFunction as _, Namespace, NS_EXTERN, NS_INTERN},
+        namespace::{Core as _, MuFunction as _, Namespace, Scope},
         stream::{MuFunction as _, Stream},
         symbol::{MuFunction as _, Symbol},
         vector::{MuFunction as _, Vector},
@@ -28,88 +28,86 @@ use crate::{
 lazy_static! {
     static ref FUNCTIONMAP: Vec<FunctionDesc> = vec![
         // conses and lists
-        ("append", NS_EXTERN, 2, Cons::mu_append),
-        ("car", NS_EXTERN, 1, Cons::mu_car),
-        ("cdr", NS_EXTERN, 1, Cons::mu_cdr),
-        ("cons", NS_EXTERN, 2, Cons::mu_cons),
-        ("length", NS_EXTERN, 1, Cons::mu_length),
-        ("nth", NS_EXTERN, 2, Cons::mu_nth),
-        ("nthcdr", NS_EXTERN, 2, Cons::mu_nthcdr),
+        ("append", Scope::Extern, 2, Cons::mu_append),
+        ("car", Scope::Extern, 1, Cons::mu_car),
+        ("cdr", Scope::Extern, 1, Cons::mu_cdr),
+        ("cons", Scope::Extern, 2, Cons::mu_cons),
+        ("length", Scope::Extern, 1, Cons::mu_length),
+        ("nth", Scope::Extern, 2, Cons::mu_nth),
+        ("nthcdr", Scope::Extern, 2, Cons::mu_nthcdr),
         // mu
-        ("compile", NS_EXTERN, 1, Mu::mu_compile),
-        ("eval", NS_EXTERN, 1, Mu::mu_eval),
-        ("exit", NS_EXTERN, 1, Mu::mu_exit),
-        ("fix", NS_EXTERN, 2, Mu::mu_fix),
-        ("fix*", NS_EXTERN, 2, Mu::mu_fix_env),
-        ("funcall", NS_EXTERN, 2, Mu::mu_funcall),
-        ("tag-of", NS_EXTERN, 1, Mu::mu_tag_of),
-        ("view", NS_EXTERN, 1, Mu::mu_view),
+        ("compile", Scope::Extern, 1, Mu::mu_compile),
+        ("eval", Scope::Extern, 1, Mu::mu_eval),
+        ("exit", Scope::Extern, 1, Mu::mu_exit),
+        ("fix", Scope::Extern, 2, Mu::mu_fix),
+        ("fix*", Scope::Extern, 2, Mu::mu_fix_env),
+        ("funcall", Scope::Extern, 2, Mu::mu_funcall),
+        ("tag-of", Scope::Extern, 1, Mu::mu_tag_of),
+        ("view", Scope::Extern, 1, Mu::mu_view),
         // exceptions
-        ("raise", NS_EXTERN, 2, Exception::mu_raise),
+        ("raise", Scope::Extern, 2, Exception::mu_raise),
         // frames
-        ("fr-get", NS_EXTERN, 1, Frame::mu_fr_get),
-        ("fr-pop", NS_EXTERN, 1, Frame::mu_fr_pop),
-        ("fr-push", NS_EXTERN, 1, Frame::mu_fr_push),
-        ("fr-setv", NS_EXTERN, 3, Frame::mu_fr_setv),
+        ("fr-get", Scope::Extern, 1, Frame::mu_fr_get),
+        ("fr-pop", Scope::Extern, 1, Frame::mu_fr_pop),
+        ("fr-push", Scope::Extern, 1, Frame::mu_fr_push),
+        ("fr-setv", Scope::Extern, 3, Frame::mu_fr_setv),
         // types
-        ("eq", NS_EXTERN, 2, Tag::mu_eq),
-        ("type-of", NS_EXTERN, 1, Tag::mu_typeof),
-        ("coerce", NS_EXTERN, 2, Mu::mu_coerce),
+        ("eq", Scope::Extern, 2, Tag::mu_eq),
+        ("type-of", Scope::Extern, 1, Tag::mu_typeof),
+        ("coerce", Scope::Extern, 2, Mu::mu_coerce),
         // fixnums
-        ("fx-add", NS_EXTERN, 2, Fixnum::mu_fxadd),
-        ("fx-sub", NS_EXTERN, 2, Fixnum::mu_fxsub),
-        ("fx-lt", NS_EXTERN, 2, Fixnum::mu_fxlt),
-        ("fx-mul", NS_EXTERN, 2, Fixnum::mu_fxmul),
-        ("fx-div", NS_EXTERN, 2, Fixnum::mu_fxdiv),
-        ("logand", NS_EXTERN, 2, Fixnum::mu_fxand),
-        ("logor", NS_EXTERN, 2, Fixnum::mu_fxor),
+        ("fx-add", Scope::Extern, 2, Fixnum::mu_fxadd),
+        ("fx-sub", Scope::Extern, 2, Fixnum::mu_fxsub),
+        ("fx-lt", Scope::Extern, 2, Fixnum::mu_fxlt),
+        ("fx-mul", Scope::Extern, 2, Fixnum::mu_fxmul),
+        ("fx-div", Scope::Extern, 2, Fixnum::mu_fxdiv),
+        ("logand", Scope::Extern, 2, Fixnum::mu_fxand),
+        ("logor", Scope::Extern, 2, Fixnum::mu_fxor),
         // floats
-        ("fl-add", NS_EXTERN, 2, Float::mu_fladd),
-        ("fl-sub", NS_EXTERN, 2, Float::mu_flsub),
-        ("fl-lt", NS_EXTERN, 2, Float::mu_fllt),
-        ("fl-mul", NS_EXTERN, 2, Float::mu_flmul),
-        ("fl-div", NS_EXTERN, 2, Float::mu_fldiv),
+        ("fl-add", Scope::Extern, 2, Float::mu_fladd),
+        ("fl-sub", Scope::Extern, 2, Float::mu_flsub),
+        ("fl-lt", Scope::Extern, 2, Float::mu_fllt),
+        ("fl-mul", Scope::Extern, 2, Float::mu_flmul),
+        ("fl-div", Scope::Extern, 2, Float::mu_fldiv),
         // heap
-        ("hp-info", NS_EXTERN, 0, Mu::mu_hp_info),
-        ("hp-type", NS_EXTERN, 2, Mu::mu_hp_type),
+        ("hp-info", Scope::Extern, 0, Mu::mu_hp_info),
+        ("hp-type", Scope::Extern, 2, Mu::mu_hp_type),
         // namespaces
-        ("intern", NS_EXTERN, 4, Namespace::mu_intern),
-        ("make-ns", NS_EXTERN, 2, Namespace::mu_make_ns),
-        ("map-ns", NS_EXTERN, 1, Namespace::mu_map_ns),
-        ("ns-map", NS_EXTERN, 3, Namespace::mu_ns_map),
-        ("ns-imp", NS_EXTERN, 1, Namespace::mu_ns_import),
-        ("ns-name", NS_EXTERN, 1, Namespace::mu_ns_name),
+        ("intern", Scope::Extern, 4, Namespace::mu_intern),
+        ("make-ns", Scope::Extern, 2, Namespace::mu_make_ns),
+        ("map-ns", Scope::Extern, 1, Namespace::mu_map_ns),
+        ("ns-map", Scope::Extern, 3, Namespace::mu_ns_map),
+        ("ns-imp", Scope::Extern, 1, Namespace::mu_ns_import),
+        ("ns-name", Scope::Extern, 1, Namespace::mu_ns_name),
         // read/write
-        ("read", NS_EXTERN, 3, Stream::mu_read),
-        ("write", NS_EXTERN, 3, Stream::mu_write),
+        ("read", Scope::Extern, 3, Stream::mu_read),
+        ("write", Scope::Extern, 3, Stream::mu_write),
         // symbols
-        ("boundp", NS_EXTERN, 1, Symbol::mu_boundp),
-        ("keyp", NS_EXTERN, 1, Symbol::mu_keywordp),
-        ("keyword", NS_EXTERN, 1, Symbol::mu_keyword),
-        ("symbol", NS_EXTERN, 1, Symbol::mu_symbol),
-        ("sy-name", NS_EXTERN, 1, Symbol::mu_name),
-        ("sy-ns", NS_EXTERN, 1, Symbol::mu_ns),
-        ("sy-val", NS_EXTERN, 1, Symbol::mu_value),
+        ("boundp", Scope::Extern, 1, Symbol::mu_boundp),
+        ("keyp", Scope::Extern, 1, Symbol::mu_keywordp),
+        ("keyword", Scope::Extern, 1, Symbol::mu_keyword),
+        ("symbol", Scope::Extern, 1, Symbol::mu_symbol),
+        ("sy-name", Scope::Extern, 1, Symbol::mu_name),
+        ("sy-ns", Scope::Extern, 1, Symbol::mu_ns),
+        ("sy-val", Scope::Extern, 1, Symbol::mu_value),
         // simple vectors
-        ("make-sv", NS_EXTERN, 2, Vector::mu_make_vector),
-        ("sv-len", NS_EXTERN, 1, Vector::mu_length),
-        ("sv-ref", NS_EXTERN, 2, Vector::mu_svref),
-        ("sv-type", NS_EXTERN, 1, Vector::mu_type),
+        ("make-sv", Scope::Extern, 2, Vector::mu_make_vector),
+        ("sv-len", Scope::Extern, 1, Vector::mu_length),
+        ("sv-ref", Scope::Extern, 2, Vector::mu_svref),
+        ("sv-type", Scope::Extern, 1, Vector::mu_type),
         // streams
-        ("close", NS_EXTERN, 1, Stream::mu_close),
-        ("eof", NS_EXTERN, 1, Stream::mu_eof),
-        ("get-str", NS_EXTERN, 1, Stream::mu_get_string),
-        ("open", NS_EXTERN, 3, Stream::mu_open),
-        ("openp", NS_EXTERN, 1, Stream::mu_openp),
-        ("rd-byte", NS_EXTERN, 3, Stream::mu_read_byte),
-        ("rd-char", NS_EXTERN, 3, Stream::mu_read_char),
-        ("un-char", NS_EXTERN, 2, Stream::mu_unread_char),
-        ("wr-byte", NS_EXTERN, 2, Stream::mu_write_byte),
-        ("wr-char", NS_EXTERN, 2, Stream::mu_write_char),
-        ("%if", NS_EXTERN, 3, Mu::mu_if),
-        ("%fr-ref", NS_EXTERN, 2, Frame::mu_fr_ref),
-        ("if", NS_INTERN, 3, Mu::mu_if),
-        ("fr-ref", NS_INTERN, 2, Frame::mu_fr_ref),
+        ("close", Scope::Extern, 1, Stream::mu_close),
+        ("eof", Scope::Extern, 1, Stream::mu_eof),
+        ("get-str", Scope::Extern, 1, Stream::mu_get_string),
+        ("open", Scope::Extern, 3, Stream::mu_open),
+        ("openp", Scope::Extern, 1, Stream::mu_openp),
+        ("rd-byte", Scope::Extern, 3, Stream::mu_read_byte),
+        ("rd-char", Scope::Extern, 3, Stream::mu_read_char),
+        ("un-char", Scope::Extern, 2, Stream::mu_unread_char),
+        ("wr-byte", Scope::Extern, 2, Stream::mu_write_byte),
+        ("wr-char", Scope::Extern, 2, Stream::mu_write_char),
+        ("if", Scope::Intern, 3, Mu::mu_if),
+        ("fr-ref", Scope::Intern, 2, Frame::mu_fr_ref),
     ];
 }
 
@@ -124,10 +122,28 @@ impl Core for Mu {
     }
 
     fn install_mu_symbols(mu: &Mu) {
-        Namespace::intern(mu, mu.mu_ns, NS_EXTERN, "version".to_string(), mu.version);
-        Namespace::intern(mu, mu.mu_ns, NS_EXTERN, "std-in".to_string(), mu.stdin);
-        Namespace::intern(mu, mu.mu_ns, NS_EXTERN, "std-out".to_string(), mu.stdout);
-        Namespace::intern(mu, mu.mu_ns, NS_EXTERN, "err-out".to_string(), mu.errout);
+        Namespace::intern(
+            mu,
+            mu.mu_ns,
+            Scope::Extern,
+            "version".to_string(),
+            mu.version,
+        );
+        Namespace::intern(mu, mu.mu_ns, Scope::Extern, "std-in".to_string(), mu.stdin);
+        Namespace::intern(
+            mu,
+            mu.mu_ns,
+            Scope::Extern,
+            "std-out".to_string(),
+            mu.stdout,
+        );
+        Namespace::intern(
+            mu,
+            mu.mu_ns,
+            Scope::Extern,
+            "err-out".to_string(),
+            mu.errout,
+        );
 
         for (id, fnmap) in FUNCTIONMAP.iter().enumerate() {
             let (name, scope, nreqs, _) = fnmap;
@@ -150,7 +166,7 @@ impl Core for Mu {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn mu_namespace() {
+    fn namespace() {
         assert_eq!(2 + 2, 4);
     }
 }

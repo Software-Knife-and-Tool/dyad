@@ -10,7 +10,7 @@ use {
             cons::{Cons, ConsIter, Core as _, Properties as _},
             fixnum::Fixnum,
             function::Function,
-            namespace::{Core as _, Namespace},
+            namespace::{Core as _, Namespace, Scope},
             symbol::{Core as _, Symbol},
         },
         core::{
@@ -48,7 +48,7 @@ fn compile_if(mu: &Mu, args: Tag) -> exception::Result<Tag> {
     let lambda = Symbol::keyword("lambda");
 
     let if_vec = vec![
-        Namespace::intern(mu, mu.mu_ns, true, "%if".to_string(), Tag::nil()),
+        Namespace::intern(mu, mu.mu_ns, Scope::Intern, "if".to_string(), Tag::nil()),
         match Cons::nth(mu, 0, args) {
             Some(t) => t,
             None => panic!("internal: if argument inconsistency"),
@@ -158,7 +158,13 @@ fn compile_lexical(mu: &Mu, symbol: Tag) -> Result<Tag> {
 
         if let Some(nth) = symbols.iter().position(|lex| symbol.eq_(*lex)) {
             let lex_ref = vec![
-                Namespace::intern(mu, mu.mu_ns, true, "%fr-ref".to_string(), Tag::nil()),
+                Namespace::intern(
+                    mu,
+                    mu.mu_ns,
+                    Scope::Intern,
+                    "fr-ref".to_string(),
+                    Tag::nil(),
+                ),
                 Fixnum::as_tag(tag.as_u64() as i64),
                 Fixnum::as_tag(nth as i64),
             ];
@@ -200,7 +206,7 @@ fn compile_lambda(mu: &Mu, args: Tag) -> exception::Result<Tag> {
         }
     };
 
-    let frame_tag = Symbol::new(mu, Tag::nil(), true, "lambda", Tag::nil()).evict(mu);
+    let frame_tag = Symbol::new(mu, Tag::nil(), Scope::Extern, "lambda", Tag::nil()).evict(mu);
 
     match compile_frame_symbols(mu, lambda) {
         Ok(lexicals) => {
