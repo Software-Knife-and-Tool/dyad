@@ -5,7 +5,7 @@ use {
     crate::{
         classes::{
             indirect_vector::{TypedVec, VecType},
-            namespace::{Namespace, Properties as _},
+            namespace::{Namespace, Properties as _, Scope},
             vector::{Core as _, Vector},
         },
         core::{
@@ -41,7 +41,7 @@ lazy_static! {
 }
 
 impl Symbol {
-    pub fn new(mu: &Mu, namespace: Tag, is_extern: bool, name: &str, value: Tag) -> Self {
+    pub fn new(mu: &Mu, namespace: Tag, scope: Scope, name: &str, value: Tag) -> Self {
         let str = name.as_bytes();
         let len = str.len();
 
@@ -64,10 +64,9 @@ impl Symbol {
             }
             _ => Symbol::Symbol(Image {
                 namespace,
-                scope: if is_extern {
-                    Symbol::keyword("extern")
-                } else {
-                    Symbol::keyword("intern")
+                scope: match scope {
+                    Scope::Extern => Symbol::keyword("extern"),
+                    Scope::Intern => Symbol::keyword("intern"),
                 },
                 name: Vector::from_string(name).evict(mu),
                 value,
@@ -376,10 +375,10 @@ impl MuFunction for Symbol {
         match Tag::class_of(mu, symbol) {
             Class::Vector => {
                 let str = Vector::as_string(mu, symbol);
-                fp.value = Self::new(mu, mu.nil_ns, true, &str, *UNBOUND).evict(mu);
+                fp.value = Self::new(mu, mu.nil_ns, Scope::Extern, &str, *UNBOUND).evict(mu);
                 Ok(())
             }
-            _ => Err(Except::raise(mu, Condition::Type, "mu:make-sy", symbol)),
+            _ => Err(Except::raise(mu, Condition::Type, "mu:symbol", symbol)),
         }
     }
 }

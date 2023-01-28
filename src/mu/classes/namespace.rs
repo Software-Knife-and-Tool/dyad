@@ -25,8 +25,11 @@ use {
     },
 };
 
-pub const NS_EXTERN: bool = true;
-pub const NS_INTERN: bool = false;
+#[derive(Copy, Clone, Debug)]
+pub enum Scope {
+    Intern,
+    Extern,
+}
 
 pub struct Namespace {
     name: Tag, // string
@@ -196,7 +199,7 @@ impl Properties for Namespace {
 
 pub trait Core {
     fn write(_: &Mu, _: Tag, _: bool, _: Tag) -> exception::Result<()>;
-    fn intern(_: &Mu, _: Tag, _: bool, _: String, _: Tag) -> Tag;
+    fn intern(_: &Mu, _: Tag, _: Scope, _: String, _: Tag) -> Tag;
     fn view(_: &Mu, _: Tag) -> Tag;
 }
 
@@ -227,7 +230,7 @@ impl Core for Namespace {
         }
     }
 
-    fn intern(mu: &Mu, ns: Tag, is_extern: bool, name: String, value: Tag) -> Tag {
+    fn intern(mu: &Mu, ns: Tag, scope: Scope, name: String, value: Tag) -> Tag {
         match Tag::class_of(mu, ns) {
             Class::Namespace => match ns {
                 Tag::Indirect(_) => {
@@ -249,17 +252,16 @@ impl Core for Namespace {
                     }
 
                     let (_, (ext, int)) = &ns_ref[&ns_name];
-                    let mut hash = if is_extern {
-                        ext.borrow_mut()
-                    } else {
-                        int.borrow_mut()
+                    let mut hash = match scope {
+                        Scope::Intern => int.borrow_mut(),
+                        Scope::Extern => ext.borrow_mut(),
                     };
 
                     if hash.contains_key(&name) {
                         return hash[&name];
                     }
 
-                    let symbol = Symbol::new(mu, ns, is_extern, &name, value).evict(mu);
+                    let symbol = Symbol::new(mu, ns, scope, &name, value).evict(mu);
                     hash.insert(name, symbol);
 
                     symbol
@@ -287,12 +289,12 @@ impl MuFunction for Namespace {
         let name = fp.argv[2];
         let value = fp.argv[3];
 
-        let is_extern = match Tag::class_of(mu, scope) {
+        let scope_type = match Tag::class_of(mu, scope) {
             Class::Keyword => {
                 if scope.eq_(Symbol::keyword("extern")) {
-                    true
+                    Scope::Extern
                 } else if scope.eq_(Symbol::keyword("intern")) {
-                    false
+                    Scope::Intern
                 } else {
                     return Err(Except::raise(mu, Condition::Type, "mu:intern", scope));
                 }
@@ -304,7 +306,7 @@ impl MuFunction for Namespace {
             Class::Namespace => match Tag::class_of(mu, name) {
                 Class::Vector => {
                     fp.value =
-                        Namespace::intern(mu, ns, is_extern, Vector::as_string(mu, name), value);
+                        Namespace::intern(mu, ns, scope_type, Vector::as_string(mu, name), value);
                     Ok(())
                 }
                 _ => Err(Except::raise(mu, Condition::Type, "mu:intern", name)),

@@ -102,9 +102,9 @@ impl MuFunction for Mu {
                         Err(e) => return Err(e),
                     }
                 }
-                _ => return Err(Except::raise(mu, Condition::Type, "mu::%if", false_fn)),
+                _ => return Err(Except::raise(mu, Condition::Type, "mu::if", false_fn)),
             },
-            _ => return Err(Except::raise(mu, Condition::Type, "mu::%if", true_fn)),
+            _ => return Err(Except::raise(mu, Condition::Type, "mu::if", true_fn)),
         };
 
         Ok(())
