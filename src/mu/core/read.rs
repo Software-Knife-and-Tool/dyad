@@ -330,13 +330,7 @@ impl Read for Mu {
                     Err(e) => Err(e),
                 },
                 '|' => match Self::read_block_comment(mu, stream) {
-                    Ok(Some(())) => Ok(None),
-                    Ok(None) => Err(Except::raise(
-                        mu,
-                        Condition::Eof,
-                        "read::sharp_macro",
-                        stream,
-                    )),
+                    Ok(_) => Ok(None),
                     Err(e) => Err(e),
                 },
                 '\\' => match Stream::read_char(mu, stream) {
@@ -430,9 +424,7 @@ impl Read for Mu {
                     SyntaxType::Macro => match ch {
                         '#' => match Self::sharp_macro(mu, stream) {
                             Ok(Some(tag)) => Ok(tag),
-                            Ok(None) => {
-                                <Mu as Read>::read(mu, stream, false, Tag::nil(), recursivep)
-                            }
+                            Ok(None) => Self::read(mu, stream, eofp, eof_value, recursivep),
                             Err(e) => Err(e),
                         },
                         _ => Err(Except::raise(
@@ -443,8 +435,7 @@ impl Read for Mu {
                         )),
                     },
                     SyntaxType::Tmacro => match ch {
-                        '\'' => match <Mu as Read>::read(mu, stream, false, Tag::nil(), recursivep)
-                        {
+                        '\'' => match Self::read(mu, stream, false, Tag::nil(), recursivep) {
                             Ok(tag) => Ok(Cons::new(
                                 Symbol::keyword("quote"),
                                 Cons::new(tag, Tag::nil()).evict(mu),
@@ -467,8 +458,8 @@ impl Read for Mu {
                                 Err(Except::raise(mu, Condition::Syntax, "read:read", stream))
                             }
                         }
-                        ';' => match <Mu as Read>::read_comment(mu, stream) {
-                            Ok(_) => <Mu as Read>::read(mu, stream, eofp, eof_value, recursivep),
+                        ';' => match Self::read_comment(mu, stream) {
+                            Ok(_) => Self::read(mu, stream, eofp, eof_value, recursivep),
                             Err(e) => Err(e),
                         },
                         _ => Err(Except::raise(
