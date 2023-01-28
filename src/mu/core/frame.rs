@@ -19,7 +19,8 @@ use {
             classes::{Class, Tag},
             exception,
             exception::{Condition, Except},
-            mu::{Core as _, Mu, MuFunctionType},
+            mu::{Core as _, Mu},
+            namespaces::Core as _,
         },
     },
     std::{
@@ -54,9 +55,8 @@ impl Frame {
                         return Err(Except::raise(mu, Condition::Arity, "frame::apply", func));
                     }
 
-                    let fn_ref: Ref<Vec<MuFunctionType>> = mu.fnmap.borrow();
                     let fn_off = Fixnum::as_i64(mu, Function::func_of(mu, func)) as usize;
-                    let fnc = fn_ref[fn_off];
+                    let (_, _, _, fnc) = Mu::functionmap(fn_off);
 
                     match fnc(mu, &mut self) {
                         Ok(_) => Ok(self.value),

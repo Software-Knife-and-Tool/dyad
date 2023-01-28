@@ -148,7 +148,8 @@ impl Core for Function {
                         Err(e) => return Err(e),
                     },
                     Class::Fixnum => {
-                        let (name, nreqs, _) = Mu::fnmap(Fixnum::as_i64(mu, form) as usize);
+                        let (name, _, nreqs, _) =
+                            Mu::functionmap(Fixnum::as_i64(mu, form) as usize);
                         match mu.write_string(format!(":native [req:{nreqs}] mu:{name}"), stream) {
                             Ok(_) => (),
                             Err(e) => return Err(e),

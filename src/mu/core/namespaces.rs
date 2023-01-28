@@ -2,152 +2,147 @@
 //  SPDX-License-Identifier: MIT
 
 //! mu namespace symbols
-use {
-    crate::{
-        classes::{
-            cons::{Cons, MuFunction as _},
-            fixnum::{Fixnum, MuFunction as _},
-            float::{Float, MuFunction as _},
-            function::Function,
-            namespace::{Core as _, MuFunction as _, Namespace},
-            stream::{MuFunction as _, Stream},
-            symbol::{MuFunction as _, Symbol},
-            vector::{MuFunction as _, Vector},
-        },
-        core::{
-            classes::{MuFunction as _, Tag},
-            coerce::MuFunction as _,
-            exception::{Exception, MuFunction as _},
-            frame::{Frame, MuFunction as _},
-            functions::MuFunction as _,
-            image::MuFunction as _,
-            mu::{Mu, MuFunctionType},
-        },
+use crate::{
+    classes::{
+        cons::{Cons, MuFunction as _},
+        fixnum::{Fixnum, MuFunction as _},
+        float::{Float, MuFunction as _},
+        function::Function,
+        namespace::{Core as _, MuFunction as _, Namespace, NS_EXTERN, NS_INTERN},
+        stream::{MuFunction as _, Stream},
+        symbol::{MuFunction as _, Symbol},
+        vector::{MuFunction as _, Vector},
     },
-    std::cell::RefMut,
+    core::{
+        classes::{MuFunction as _, Tag},
+        coerce::MuFunction as _,
+        exception::{Exception, MuFunction as _},
+        frame::{Frame, MuFunction as _},
+        functions::MuFunction as _,
+        image::MuFunction as _,
+        mu::{FunctionDesc, Mu},
+    },
 };
 
 // mu function dispatch table
-pub type MuFunctionMap = (&'static str, u16, MuFunctionType);
 lazy_static! {
-    static ref FNMAP: Vec<MuFunctionMap> = vec![
+    static ref FUNCTIONMAP: Vec<FunctionDesc> = vec![
         // conses and lists
-        ("append", 2, Cons::mu_append),
-        ("car", 1, Cons::mu_car),
-        ("cdr", 1, Cons::mu_cdr),
-        ("cons", 2, Cons::mu_cons),
-        ("length", 1, Cons::mu_length),
-        ("nth", 2, Cons::mu_nth),
-        ("nthcdr", 2, Cons::mu_nthcdr),
+        ("append", NS_EXTERN, 2, Cons::mu_append),
+        ("car", NS_EXTERN, 1, Cons::mu_car),
+        ("cdr", NS_EXTERN, 1, Cons::mu_cdr),
+        ("cons", NS_EXTERN, 2, Cons::mu_cons),
+        ("length", NS_EXTERN, 1, Cons::mu_length),
+        ("nth", NS_EXTERN, 2, Cons::mu_nth),
+        ("nthcdr", NS_EXTERN, 2, Cons::mu_nthcdr),
         // mu
-        ("%if", 3, Mu::mu_if),
-        ("compile", 1, Mu::mu_compile),
-        ("eval", 1, Mu::mu_eval),
-        ("exit", 1, Mu::mu_exit),
-        ("fix", 2, Mu::mu_fix),
-        ("fix*", 2, Mu::mu_fix_env),
-        ("funcall", 2, Mu::mu_funcall),
-        ("tag-of", 1, Mu::mu_tag_of),
-        ("view", 1, Mu::mu_view),
+        ("compile", NS_EXTERN, 1, Mu::mu_compile),
+        ("eval", NS_EXTERN, 1, Mu::mu_eval),
+        ("exit", NS_EXTERN, 1, Mu::mu_exit),
+        ("fix", NS_EXTERN, 2, Mu::mu_fix),
+        ("fix*", NS_EXTERN, 2, Mu::mu_fix_env),
+        ("funcall", NS_EXTERN, 2, Mu::mu_funcall),
+        ("tag-of", NS_EXTERN, 1, Mu::mu_tag_of),
+        ("view", NS_EXTERN, 1, Mu::mu_view),
         // exceptions
-        ("raise", 2, Exception::mu_raise),
+        ("raise", NS_EXTERN, 2, Exception::mu_raise),
         // frames
-        ("fr-get", 1, Frame::mu_fr_get),
-        ("fr-pop", 1, Frame::mu_fr_pop),
-        ("fr-push", 1, Frame::mu_fr_push),
-        ("fr-setv", 3, Frame::mu_fr_setv),
-        ("%fr-ref", 2, Frame::mu_fr_ref),
+        ("fr-get", NS_EXTERN, 1, Frame::mu_fr_get),
+        ("fr-pop", NS_EXTERN, 1, Frame::mu_fr_pop),
+        ("fr-push", NS_EXTERN, 1, Frame::mu_fr_push),
+        ("fr-setv", NS_EXTERN, 3, Frame::mu_fr_setv),
         // types
-        ("eq", 2, Tag::mu_eq),
-        ("type-of", 1, Tag::mu_typeof),
-        ("coerce", 2, Mu::mu_coerce),
+        ("eq", NS_EXTERN, 2, Tag::mu_eq),
+        ("type-of", NS_EXTERN, 1, Tag::mu_typeof),
+        ("coerce", NS_EXTERN, 2, Mu::mu_coerce),
         // fixnums
-        ("fx-add", 2, Fixnum::mu_fxadd),
-        ("fx-sub", 2, Fixnum::mu_fxsub),
-        ("fx-lt", 2, Fixnum::mu_fxlt),
-        ("fx-mul", 2, Fixnum::mu_fxmul),
-        ("fx-div", 2, Fixnum::mu_fxdiv),
-        ("logand", 2, Fixnum::mu_fxand),
-        ("logor", 2, Fixnum::mu_fxor),
+        ("fx-add", NS_EXTERN, 2, Fixnum::mu_fxadd),
+        ("fx-sub", NS_EXTERN, 2, Fixnum::mu_fxsub),
+        ("fx-lt", NS_EXTERN, 2, Fixnum::mu_fxlt),
+        ("fx-mul", NS_EXTERN, 2, Fixnum::mu_fxmul),
+        ("fx-div", NS_EXTERN, 2, Fixnum::mu_fxdiv),
+        ("logand", NS_EXTERN, 2, Fixnum::mu_fxand),
+        ("logor", NS_EXTERN, 2, Fixnum::mu_fxor),
         // floats
-        ("fl-add", 2, Float::mu_fladd),
-        ("fl-sub", 2, Float::mu_flsub),
-        ("fl-lt", 2, Float::mu_fllt),
-        ("fl-mul", 2, Float::mu_flmul),
-        ("fl-div", 2, Float::mu_fldiv),
+        ("fl-add", NS_EXTERN, 2, Float::mu_fladd),
+        ("fl-sub", NS_EXTERN, 2, Float::mu_flsub),
+        ("fl-lt", NS_EXTERN, 2, Float::mu_fllt),
+        ("fl-mul", NS_EXTERN, 2, Float::mu_flmul),
+        ("fl-div", NS_EXTERN, 2, Float::mu_fldiv),
         // heap
-        ("hp-info", 0, Mu::mu_hp_info),
-        ("hp-type", 2, Mu::mu_hp_type),
+        ("hp-info", NS_EXTERN, 0, Mu::mu_hp_info),
+        ("hp-type", NS_EXTERN, 2, Mu::mu_hp_type),
         // namespaces
-        ("intern", 4, Namespace::mu_intern),
-        ("make-ns", 2, Namespace::mu_make_ns),
-        ("map-ns", 1, Namespace::mu_map_ns),
-        ("ns-map", 3, Namespace::mu_ns_map),
-        ("ns-imp", 1, Namespace::mu_ns_import),
-        ("ns-name", 1, Namespace::mu_ns_name),
+        ("intern", NS_EXTERN, 4, Namespace::mu_intern),
+        ("make-ns", NS_EXTERN, 2, Namespace::mu_make_ns),
+        ("map-ns", NS_EXTERN, 1, Namespace::mu_map_ns),
+        ("ns-map", NS_EXTERN, 3, Namespace::mu_ns_map),
+        ("ns-imp", NS_EXTERN, 1, Namespace::mu_ns_import),
+        ("ns-name", NS_EXTERN, 1, Namespace::mu_ns_name),
         // read/write
-        ("read", 3, Stream::mu_read),
-        ("write", 3, Stream::mu_write),
+        ("read", NS_EXTERN, 3, Stream::mu_read),
+        ("write", NS_EXTERN, 3, Stream::mu_write),
         // symbols
-        ("boundp", 1, Symbol::mu_boundp),
-        ("keyp", 1, Symbol::mu_keywordp),
-        ("keyword", 1, Symbol::mu_keyword),
-        ("symbol", 1, Symbol::mu_symbol),
-        ("sy-name", 1, Symbol::mu_name),
-        ("sy-ns", 1, Symbol::mu_ns),
-        ("sy-val", 1, Symbol::mu_value),
+        ("boundp", NS_EXTERN, 1, Symbol::mu_boundp),
+        ("keyp", NS_EXTERN, 1, Symbol::mu_keywordp),
+        ("keyword", NS_EXTERN, 1, Symbol::mu_keyword),
+        ("symbol", NS_EXTERN, 1, Symbol::mu_symbol),
+        ("sy-name", NS_EXTERN, 1, Symbol::mu_name),
+        ("sy-ns", NS_EXTERN, 1, Symbol::mu_ns),
+        ("sy-val", NS_EXTERN, 1, Symbol::mu_value),
         // simple vectors
-        ("slice", 3, Vector::mu_slice),
-        ("make-sv", 2, Vector::mu_make_vector),
-        ("sv-len", 1, Vector::mu_length),
-        ("sv-ref", 2, Vector::mu_svref),
-        ("sv-type", 1, Vector::mu_type),
+        ("make-sv", NS_EXTERN, 2, Vector::mu_make_vector),
+        ("sv-len", NS_EXTERN, 1, Vector::mu_length),
+        ("sv-ref", NS_EXTERN, 2, Vector::mu_svref),
+        ("sv-type", NS_EXTERN, 1, Vector::mu_type),
         // streams
-        ("close", 1, Stream::mu_close),
-        ("eof", 1, Stream::mu_eof),
-        ("get-str", 1, Stream::mu_get_string),
-        ("open", 3, Stream::mu_open),
-        ("openp", 1, Stream::mu_openp),
-        ("rd-byte", 3, Stream::mu_read_byte),
-        ("rd-char", 3, Stream::mu_read_char),
-        ("un-char", 2, Stream::mu_unread_char),
-        ("wr-byte", 2, Stream::mu_write_byte),
-        ("wr-char", 2, Stream::mu_write_char),
+        ("close", NS_EXTERN, 1, Stream::mu_close),
+        ("eof", NS_EXTERN, 1, Stream::mu_eof),
+        ("get-str", NS_EXTERN, 1, Stream::mu_get_string),
+        ("open", NS_EXTERN, 3, Stream::mu_open),
+        ("openp", NS_EXTERN, 1, Stream::mu_openp),
+        ("rd-byte", NS_EXTERN, 3, Stream::mu_read_byte),
+        ("rd-char", NS_EXTERN, 3, Stream::mu_read_char),
+        ("un-char", NS_EXTERN, 2, Stream::mu_unread_char),
+        ("wr-byte", NS_EXTERN, 2, Stream::mu_write_byte),
+        ("wr-char", NS_EXTERN, 2, Stream::mu_write_char),
+        ("%if", NS_EXTERN, 3, Mu::mu_if),
+        ("%fr-ref", NS_EXTERN, 2, Frame::mu_fr_ref),
+        ("if", NS_INTERN, 3, Mu::mu_if),
+        ("fr-ref", NS_INTERN, 2, Frame::mu_fr_ref),
     ];
 }
+
 pub trait Core {
-    fn fnmap(_: usize) -> MuFunctionMap;
+    fn functionmap(_: usize) -> FunctionDesc;
     fn install_mu_symbols(_: &Mu);
 }
 
 impl Core for Mu {
-    fn fnmap(index: usize) -> MuFunctionMap {
-        FNMAP[index]
+    fn functionmap(index: usize) -> FunctionDesc {
+        FUNCTIONMAP[index]
     }
 
-    // populate the mu namespace
     fn install_mu_symbols(mu: &Mu) {
-        Namespace::intern(mu, mu.mu_ns, true, "version".to_string(), mu.version);
-        Namespace::intern(mu, mu.mu_ns, true, "std-in".to_string(), mu.stdin);
-        Namespace::intern(mu, mu.mu_ns, true, "std-out".to_string(), mu.stdout);
-        Namespace::intern(mu, mu.mu_ns, true, "err-out".to_string(), mu.errout);
+        Namespace::intern(mu, mu.mu_ns, NS_EXTERN, "version".to_string(), mu.version);
+        Namespace::intern(mu, mu.mu_ns, NS_EXTERN, "std-in".to_string(), mu.stdin);
+        Namespace::intern(mu, mu.mu_ns, NS_EXTERN, "std-out".to_string(), mu.stdout);
+        Namespace::intern(mu, mu.mu_ns, NS_EXTERN, "err-out".to_string(), mu.errout);
 
-        for (fn_id, fnmap) in FNMAP.iter().enumerate() {
-            let (fn_name, fn_nreqs, fn_fn) = fnmap;
-            let mut fn_ref: RefMut<Vec<MuFunctionType>> = mu.fnmap.borrow_mut();
+        for (id, fnmap) in FUNCTIONMAP.iter().enumerate() {
+            let (name, scope, nreqs, _) = fnmap;
 
             let func = Function::new(
-                Fixnum::as_tag(match fn_id.try_into().unwrap() {
+                Fixnum::as_tag(match id.try_into().unwrap() {
                     Some(n) => n as i64,
                     None => panic!("internal: mu function id inconsistency"),
                 }),
-                Fixnum::as_tag(*fn_nreqs as i64),
+                Fixnum::as_tag(*nreqs as i64),
                 Tag::nil(),
             )
             .evict(mu);
 
-            Namespace::intern(mu, mu.mu_ns, true, fn_name.to_string(), func);
-            fn_ref.push(*fn_fn);
+            Namespace::intern(mu, mu.mu_ns, *scope, name.to_string(), func);
         }
     }
 }

@@ -442,7 +442,6 @@ pub trait MuFunction {
     fn mu_type(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_length(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_make_vector(_: &Mu, _: &mut Frame) -> exception::Result<()>;
-    fn mu_slice(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_svref(_: &Mu, _: &mut Frame) -> exception::Result<()>;
 }
 
@@ -546,11 +545,6 @@ impl MuFunction for Vector {
             }
         };
 
-        Ok(())
-    }
-
-    fn mu_slice(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Tag::nil();
         Ok(())
     }
 

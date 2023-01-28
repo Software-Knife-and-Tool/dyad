@@ -242,13 +242,8 @@ impl Read for Mu {
             Err(_) => match token.parse::<f32>() {
                 Ok(fl) => Ok(Float::as_tag(fl)),
                 Err(_) => match token.find(':') {
-                    Some(0) =>
-                    // keyword
-                    {
-                        Ok(Symbol::new(mu, Tag::nil(), true, &token, *UNBOUND).evict(mu))
-                    }
+                    Some(0) => Ok(Symbol::new(mu, Tag::nil(), true, &token, *UNBOUND).evict(mu)),
                     Some(_) => {
-                        // qualified symbol
                         let sym: Vec<&str> = token.split(':').collect();
                         match sym.len() {
                             2 => {
@@ -289,11 +284,7 @@ impl Read for Mu {
                             )),
                         }
                     }
-                    None =>
-                    // unqualified symbol
-                    {
-                        Ok(Namespace::intern(mu, mu.nil_ns, true, token, *UNBOUND))
-                    }
+                    None => Ok(Namespace::intern(mu, mu.nil_ns, true, token, *UNBOUND)),
                 },
             },
         }

@@ -30,9 +30,7 @@ type SpecMap = (Tag, SpecFn);
 lazy_static! {
     static ref SPECMAP: Vec<SpecMap> = vec![
         (Symbol::keyword("if"), compile_if),
-        (Symbol::keyword("?"), compile_if),
         (Symbol::keyword("lambda"), compile_lambda),
-        (Symbol::keyword("l"), compile_lambda),
         (Symbol::keyword("quote"), compile_quote),
     ];
 }
