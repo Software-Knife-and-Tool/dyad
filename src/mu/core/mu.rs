@@ -36,6 +36,7 @@ pub type MuCondition = exception::Condition;
 
 // native functions
 pub type MuFunctionType = fn(&Mu, &mut Frame) -> exception::Result<()>;
+pub type FunctionDesc = (&'static str, bool, u16, MuFunctionType);
 
 // mu environment
 pub struct Mu {
@@ -57,7 +58,6 @@ pub struct Mu {
     pub lexical_env: RefCell<Vec<(Tag, Vec<Tag>)>>,
 
     // caches
-    pub fnmap: RefCell<Vec<MuFunctionType>>,
     #[allow(clippy::type_complexity)]
     pub ns_caches: RefCell<
         HashMap<
@@ -92,7 +92,6 @@ impl Core for Mu {
         let mut mu = Mu {
             config,
             errout: Tag::nil(),
-            fnmap: RefCell::new(Vec::new()),
             frames: RefCell::new(HashMap::new()),
             heap: RefCell::new(Heap::new(1024)),
             lexical_env: RefCell::new(Vec::new()),

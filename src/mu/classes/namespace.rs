@@ -25,6 +25,9 @@ use {
     },
 };
 
+pub const NS_EXTERN: bool = true;
+pub const NS_INTERN: bool = false;
+
 pub struct Namespace {
     name: Tag, // string
     #[allow(dead_code)]
