@@ -199,15 +199,21 @@ pub fn main() {
             );
         }
 
+        let eof_value = mu.read_string(":eof".to_string()).unwrap(); // need make_symbol here
+
         loop {
             if !pipe {
                 mu.write_string("mu> ".to_string(), mu.stdout).unwrap();
                 std::io::stdout().flush().unwrap();
             }
 
-            match mu.read(mu.stdin, false, mu.nil()) {
-                Ok(ptr) => {
-                    let form = mu.compile(ptr).unwrap();
+            match mu.read(mu.stdin, true, eof_value) {
+                Ok(tag) => {
+                    if mu.eq(tag, eof_value) {
+                        break;
+                    }
+
+                    let form = mu.compile(tag).unwrap();
                     if let Ok(eval) = mu.eval(form) {
                         mu.write(eval, false, mu.stdout).unwrap();
                     }
