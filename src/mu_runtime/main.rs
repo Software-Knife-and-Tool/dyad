@@ -110,22 +110,28 @@ fn load(mu: &Mu, path: &str) -> Option<()> {
     let istream = mu.eval(mu.read_string(load_form).unwrap()).unwrap();
     let eof_value = mu.read_string(":eof".to_string()).unwrap(); // need make_symbol here
 
+    #[allow(clippy::while_let_loop)]
     loop {
-        let form = mu.read(istream, true, eof_value).unwrap();
-
-        if mu.eq(form, eof_value) {
-            break;
-        }
-
-        match mu.compile(form) {
-            Ok(form) => match mu.eval(mu.compile(form).unwrap()) {
-                Ok(_) => (),
-                Err(_) => {
-                    return None;
+        match mu.read(istream, true, eof_value) {
+            Ok(form) => {
+                if mu.eq(form, eof_value) {
+                    break;
                 }
-            },
+
+                match mu.compile(form) {
+                    Ok(form) => match mu.eval(form) {
+                        Ok(_) => (),
+                        Err(_) => {
+                            break;
+                        }
+                    },
+                    Err(_) => {
+                        break;
+                    }
+                }
+            }
             Err(_) => {
-                return None;
+                break;
             }
         }
     }
@@ -213,9 +219,13 @@ pub fn main() {
                         break;
                     }
 
-                    let form = mu.compile(tag).unwrap();
-                    if let Ok(eval) = mu.eval(form) {
-                        mu.write(eval, false, mu.stdout).unwrap();
+                    #[allow(clippy::single_match)]
+                    match mu.compile(tag) {
+                        Ok(form) => match mu.eval(form) {
+                            Ok(eval) => mu.write(eval, false, mu.stdout).unwrap(),
+                            Err(_) => (),
+                        },
+                        Err(_) => (),
                     }
                 }
                 Err(e) => {
