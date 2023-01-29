@@ -176,7 +176,7 @@ impl Core for Stream {
     fn is_open(mu: &Mu, stream: Tag) -> bool {
         let image = Self::as_image(mu, stream);
 
-        !image.source.null_()
+        !image.source.eq_(Tag::t())
     }
 
     fn close(mu: &Mu, stream: Tag) {
@@ -187,7 +187,7 @@ impl Core for Stream {
             Fixnum::as_i64(mu, image.source) as usize,
         );
 
-        image.source = Tag::nil();
+        image.source = Tag::t();
         Self::update(mu, &image, stream);
     }
 
@@ -217,12 +217,11 @@ impl Core for Stream {
                                 let string = ConsIter::new(mu, source).fold(
                                     String::from(""),
                                     |mut acc, cons| {
-                                        let ch = Fixnum::as_i64(mu, Cons::car(mu, cons)) as u8;
-
-                                        acc.push(ch as char);
+                                        acc.push(Char::as_char(mu, Cons::car(mu, cons)));
                                         acc
                                     },
                                 );
+
                                 Ok(
                                     Vector::from_string(&string.chars().rev().collect::<String>())
                                         .evict(mu),
@@ -248,12 +247,18 @@ impl Core for Stream {
             Class::Stream => {
                 let image = Self::as_image(mu, tag);
                 match Tag::class_of(mu, image.source) {
+                    Class::Keyword => mu.write_string("#<stream: closed>".to_string(), stream),
                     Class::Fixnum => mu.write_string(
                         format!("#<stream: id: {}>", Fixnum::as_i64(mu, image.source)),
                         stream,
                     ),
-                    Class::Vector => mu.write_string("#<stream: string>".to_string(), stream),
-                    _ => panic!("internal: stream type inconsistency"),
+                    Class::Null | Class::Cons | Class::Vector => {
+                        mu.write_string("#<stream: string>".to_string(), stream)
+                    }
+                    _ => panic!(
+                        "internal: stream type inconsistency {:?}",
+                        Tag::class_of(mu, image.source)
+                    ),
                 }
             }
             _ => panic!("internal: stream type inconsistency"),
@@ -286,7 +291,13 @@ impl Core for Stream {
             source: if is_input {
                 Vector::from_string(str).evict(mu)
             } else {
-                Tag::nil()
+                let mut cons = Tag::nil();
+
+                for ch in str.chars() {
+                    cons = Cons::new(Char::as_tag(ch), cons).evict(mu);
+                }
+
+                cons
             },
             count: Fixnum::as_tag(0),
             direction: if is_input {
@@ -298,14 +309,7 @@ impl Core for Stream {
             unch: Tag::nil(),
         };
 
-        let stream = Stream::Indirect(image).evict(mu);
-        if !is_input && !str.is_empty() {
-            for ch in str.chars() {
-                Self::write_char(mu, stream, ch).unwrap();
-            }
-        }
-
-        Ok(stream)
+        Ok(Stream::Indirect(image).evict(mu))
     }
 
     fn open_stdin(mu: &Mu) -> exception::Result<Tag> {
@@ -471,7 +475,41 @@ impl Core for Stream {
     }
 
     fn write_char(mu: &Mu, stream: Tag, ch: char) -> exception::Result<Option<()>> {
-        Self::write_byte(mu, stream, ch as u8)
+        let system_stream = &mu.system.streams;
+        let mut image = Self::as_image(mu, stream);
+
+        if !Self::is_open(mu, stream) {
+            return Err(Except::raise(
+                mu,
+                Condition::Open,
+                "stream::write_char",
+                stream,
+            ));
+        }
+
+        if image.direction.eq_(Symbol::keyword("input")) {
+            return Err(Except::raise(
+                mu,
+                Condition::Stream,
+                "system::write_char",
+                stream,
+            ));
+        }
+
+        match Tag::class_of(mu, image.source) {
+            Class::Fixnum => {
+                let stream_id = Fixnum::as_i64(mu, image.source) as usize;
+                SystemStream::write_byte(system_stream, stream_id, ch as u8)
+            }
+            Class::Cons => {
+                image.source = Cons::new(Char::as_tag(ch), image.source).evict(mu);
+                image.count = Fixnum::as_tag(Fixnum::as_i64(mu, image.count) + 1);
+                Self::update(mu, &image, stream);
+
+                Ok(None)
+            }
+            _ => panic!("internal: stream state inconsistency"),
+        }
     }
 
     fn write_byte(mu: &Mu, stream: Tag, byte: u8) -> exception::Result<Option<()>> {
@@ -740,32 +778,39 @@ impl MuFunction for Stream {
     }
 
     fn mu_write_char(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
-        let ch = fp.argv[1];
+        let ch = fp.argv[0];
+        let stream = fp.argv[1];
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => match Self::write_char(mu, stream, Char::as_char(mu, ch)) {
-                Ok(_) => {
-                    fp.value = ch;
-                    Ok(())
-                }
-                Err(e) => Err(e),
+        match Tag::class_of(mu, ch) {
+            Class::Char => match Tag::class_of(mu, stream) {
+                Class::Stream => match Self::write_char(mu, stream, Char::as_char(mu, ch)) {
+                    Ok(_) => {
+                        fp.value = ch;
+                        Ok(())
+                    }
+                    Err(e) => Err(e),
+                },
+                _ => Err(Except::raise(mu, Condition::Type, "mu:write-char", stream)),
             },
             _ => Err(Except::raise(mu, Condition::Type, "mu:write-char", stream)),
         }
     }
 
     fn mu_write_byte(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
-        let byte = fp.argv[1];
+        let byte = fp.argv[0];
+        let stream = fp.argv[1];
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => match Self::write_byte(mu, stream, Fixnum::as_i64(mu, byte) as u8) {
-                Ok(_) => {
-                    fp.value = byte;
-                    Ok(())
-                }
-                Err(e) => Err(e),
+        match Tag::class_of(mu, byte) {
+            Class::Fixnum if Fixnum::as_i64(mu, byte) < 256 => match Tag::class_of(mu, stream) {
+                Class::Stream => match Self::write_byte(mu, stream, Fixnum::as_i64(mu, byte) as u8)
+                {
+                    Ok(_) => {
+                        fp.value = byte;
+                        Ok(())
+                    }
+                    Err(e) => Err(e),
+                },
+                _ => Err(Except::raise(mu, Condition::Type, "mu:write-char", stream)),
             },
             _ => Err(Except::raise(mu, Condition::Type, "mu:write-byte", stream)),
         }
