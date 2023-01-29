@@ -5,6 +5,7 @@
 use {
     crate::{
         classes::{
+            cons::{Cons, Core as _},
             indirect_vector::{TypedVec, VecType},
             symbol::{Core as _, Symbol},
             vector::{Core as _, Vector},
@@ -68,7 +69,7 @@ impl Namespace {
         )
     }
 
-    pub fn from_tag(mu: &Mu, tag: Tag) -> Self {
+    pub fn to_image(mu: &Mu, tag: Tag) -> Self {
         match Tag::class_of(mu, tag) {
             Class::Namespace => match tag {
                 Tag::Indirect(main) => {
@@ -159,7 +160,7 @@ impl Properties for Namespace {
     fn name_of(mu: &Mu, ns: Tag) -> Tag {
         match Tag::class_of(mu, ns) {
             Class::Namespace => match ns {
-                Tag::Indirect(_) => Self::from_tag(mu, ns).name,
+                Tag::Indirect(_) => Self::to_image(mu, ns).name,
                 _ => panic!("internal: namespace type inconsistency"),
             },
             _ => panic!("internal: namespace type inconsistency"),
@@ -169,7 +170,7 @@ impl Properties for Namespace {
     fn externs_of(mu: &Mu, ns: Tag) -> Tag {
         match Tag::class_of(mu, ns) {
             Class::Namespace => match ns {
-                Tag::Indirect(_) => Self::from_tag(mu, ns).externs,
+                Tag::Indirect(_) => Self::to_image(mu, ns).externs,
                 _ => panic!("internal: namespace type inconsistency"),
             },
             _ => panic!("internal: namespace type inconsistency"),
@@ -179,7 +180,7 @@ impl Properties for Namespace {
     fn interns_of(mu: &Mu, ns: Tag) -> Tag {
         match Tag::class_of(mu, ns) {
             Class::Namespace => match ns {
-                Tag::Indirect(_) => Self::from_tag(mu, ns).interns,
+                Tag::Indirect(_) => Self::to_image(mu, ns).interns,
                 _ => panic!("internal: namespace type inconsistency"),
             },
             _ => panic!("internal: namespace type inconsistency"),
@@ -189,7 +190,7 @@ impl Properties for Namespace {
     fn import_of(mu: &Mu, ns: Tag) -> Tag {
         match Tag::class_of(mu, ns) {
             Class::Namespace => match ns {
-                Tag::Indirect(_) => Self::from_tag(mu, ns).import,
+                Tag::Indirect(_) => Self::to_image(mu, ns).import,
                 _ => panic!("internal: namespace type inconsistency"),
             },
             _ => panic!("internal: namespace type inconsistency"),
@@ -285,6 +286,27 @@ impl Core for Namespace {
                     let symbol = Symbol::new(mu, ns, scope, &name, value).evict(mu);
                     hash.insert(name, symbol);
 
+                    let mut image = Self::to_image(mu, ns);
+                    match scope {
+                        Scope::Intern => image.interns = Cons::new(symbol, image.interns).evict(mu),
+                        Scope::Extern => image.externs = Cons::new(symbol, image.externs).evict(mu),
+                    };
+
+                    let slices: &[[u8; 8]] = &[
+                        image.name.as_slice(),
+                        image.externs.as_slice(),
+                        image.interns.as_slice(),
+                        image.import.as_slice(),
+                    ];
+
+                    let offset = match ns {
+                        Tag::Indirect(heap) => heap.offset(),
+                        _ => panic!("internal: tag format inconsistency"),
+                    } as usize;
+
+                    let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
+                    heap_ref.write_image(slices, offset);
+
                     symbol
                 }
                 _ => panic!("internal: tag format inconsistency"),
@@ -301,6 +323,8 @@ pub trait MuFunction {
     fn mu_ns_map(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_ns_import(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_ns_name(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+    fn mu_ns_interns(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+    fn mu_ns_externs(_: &Mu, _: &mut Frame) -> exception::Result<()>;
 }
 
 impl MuFunction for Namespace {
@@ -448,6 +472,30 @@ impl MuFunction for Namespace {
                 Ok(())
             }
             _ => Err(Except::raise(mu, Condition::Type, "mu:ns-name", ns)),
+        }
+    }
+
+    fn mu_ns_externs(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        let ns = fp.argv[0];
+
+        match Tag::class_of(mu, ns) {
+            Class::Namespace => {
+                fp.value = Namespace::externs_of(mu, fp.argv[0]);
+                Ok(())
+            }
+            _ => Err(Except::raise(mu, Condition::Type, "mu:ns-ext", ns)),
+        }
+    }
+
+    fn mu_ns_interns(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        let ns = fp.argv[0];
+
+        match Tag::class_of(mu, ns) {
+            Class::Namespace => {
+                fp.value = Namespace::interns_of(mu, fp.argv[0]);
+                Ok(())
+            }
+            _ => Err(Except::raise(mu, Condition::Type, "mu:ns-int", ns)),
         }
     }
 }

@@ -158,7 +158,7 @@ impl<'a> IVector for IndirectVector<'a> {
     }
 
     fn svref(mu: &Mu, vector: Tag, index: usize) -> Option<Tag> {
-        let image = Vector::from_tag(mu, vector);
+        let image = Vector::to_image(mu, vector);
 
         let len = Fixnum::as_i64(mu, image.length) as usize;
         if index >= len {

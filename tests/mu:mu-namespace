@@ -10,3 +10,5 @@ assert_eq '(mu:ns-imp (mu:map-ns "mu"))' ":nil"
 assert_eq '(mu:ns-map (mu:map-ns "mu") :extern "eq")' "mu:eq"
 assert_eq '(mu:ns-map (mu:map-ns "mu") :extern "foo")' ":nil"
 assert_eq '(mu:ns-name (mu:map-ns "mu"))' '"mu"'
+assert_eq '(mu:type-of (mu:ns-ext (mu:map-ns "mu")))' ':cons'
+assert_eq '(mu:type-of (mu:ns-int (mu:map-ns "mu")))' ':cons'

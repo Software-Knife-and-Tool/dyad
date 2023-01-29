@@ -77,8 +77,10 @@ lazy_static! {
         ("intern", Scope::Extern, 4, Namespace::mu_intern),
         ("make-ns", Scope::Extern, 2, Namespace::mu_make_ns),
         ("map-ns", Scope::Extern, 1, Namespace::mu_map_ns),
-        ("ns-map", Scope::Extern, 3, Namespace::mu_ns_map),
+        ("ns-ext", Scope::Extern, 1, Namespace::mu_ns_externs),
         ("ns-imp", Scope::Extern, 1, Namespace::mu_ns_import),
+        ("ns-int", Scope::Extern, 1, Namespace::mu_ns_interns),
+        ("ns-map", Scope::Extern, 3, Namespace::mu_ns_map),
         ("ns-name", Scope::Extern, 1, Namespace::mu_ns_name),
         // read/write
         ("read", Scope::Extern, 3, Stream::mu_read),

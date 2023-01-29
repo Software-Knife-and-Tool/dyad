@@ -10,6 +10,6 @@ pub mod frame; // needs to be public for mu native functions
 mod functions;
 mod image;
 pub mod mu; // core API interfaces
-pub mod namespaces; // needs to be public for function printing
+pub mod namespace; // needs to be public for function printing
 pub mod read;
 mod readtable; // needs to be public for type readers

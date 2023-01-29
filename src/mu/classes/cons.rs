@@ -36,7 +36,7 @@ impl Cons {
         Cons { car, cdr }
     }
 
-    pub fn from_tag(mu: &Mu, tag: Tag) -> Self {
+    pub fn to_image(mu: &Mu, tag: Tag) -> Self {
         match Tag::class_of(mu, tag) {
             Class::Cons => match tag {
                 Tag::Indirect(main) => {
@@ -68,7 +68,7 @@ impl Properties for Cons {
         match Tag::class_of(mu, cons) {
             Class::Null => cons,
             Class::Cons => match cons {
-                Tag::Indirect(_) => Self::from_tag(mu, cons).car,
+                Tag::Indirect(_) => Self::to_image(mu, cons).car,
                 _ => panic!("internal: tag format inconsistency"),
             },
             _ => panic!("internal: cons tag required"),
@@ -79,7 +79,7 @@ impl Properties for Cons {
         match Tag::class_of(mu, cons) {
             Class::Null => cons,
             Class::Cons => match cons {
-                Tag::Indirect(_) => Self::from_tag(mu, cons).cdr,
+                Tag::Indirect(_) => Self::to_image(mu, cons).cdr,
                 _ => panic!("internal: tag format inconsistency"),
             },
             _ => panic!("internal: cons tag required"),

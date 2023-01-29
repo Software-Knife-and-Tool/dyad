@@ -51,7 +51,7 @@ impl Vector {
             .map(|tab| tab.1)
     }
 
-    pub fn from_tag(mu: &Mu, tag: Tag) -> Image {
+    pub fn to_image(mu: &Mu, tag: Tag) -> Image {
         match Tag::class_of(mu, tag) {
             Class::Vector => match tag {
                 Tag::Indirect(image) => {
@@ -83,7 +83,7 @@ impl Properties for Vector {
         match vector {
             Tag::Direct(_) => Class::Char,
             Tag::Indirect(_) => {
-                let image = Self::from_tag(mu, vector);
+                let image = Self::to_image(mu, vector);
 
                 match VECTYPEMAP
                     .iter()
@@ -102,7 +102,7 @@ impl Properties for Vector {
         match vector {
             Tag::Direct(direct) => direct.length() as usize,
             Tag::Indirect(_) => {
-                let image = Self::from_tag(mu, vector);
+                let image = Self::to_image(mu, vector);
                 Fixnum::as_i64(mu, image.length) as usize
             }
             _ => panic!("internal: tag format inconsistency"),
@@ -174,7 +174,7 @@ impl<'a> Core<'a> for Vector {
                 },
                 Tag::Indirect(image) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
-                    let vec: Image = Self::from_tag(mu, tag);
+                    let vec: Image = Self::to_image(mu, tag);
 
                     str::from_utf8(
                         heap_ref
@@ -235,7 +235,7 @@ impl<'a> Core<'a> for Vector {
                         Ok(_) => (),
                         Err(e) => return Err(e),
                     }
-                    match mu.write(Self::from_tag(mu, vector).vtype, true, stream) {
+                    match mu.write(Self::to_image(mu, vector).vtype, true, stream) {
                         Ok(_) => (),
                         Err(e) => return Err(e),
                     }
