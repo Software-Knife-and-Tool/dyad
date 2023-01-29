@@ -124,6 +124,7 @@ impl Frame {
 }
 
 pub trait MuFunction {
+    fn mu_context(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_get(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_pop(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_push(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
@@ -132,6 +133,11 @@ pub trait MuFunction {
 }
 
 impl MuFunction for Frame {
+    fn mu_context(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        fp.value = Tag::nil();
+        Ok(())
+    }
+
     fn mu_fr_get(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
         fp.value = Tag::nil();
         Ok(())
