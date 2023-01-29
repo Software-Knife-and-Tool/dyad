@@ -72,7 +72,7 @@ impl Stream {
         }
     }
 
-    pub fn as_image(mu: &Mu, tag: Tag) -> Image {
+    pub fn to_image(mu: &Mu, tag: Tag) -> Image {
         match Tag::class_of(mu, tag) {
             Class::Stream => match tag {
                 Tag::Indirect(main) => {
@@ -144,7 +144,7 @@ pub trait Core {
 
 impl Core for Stream {
     fn view(mu: &Mu, stream: Tag) -> Tag {
-        let image = Self::as_image(mu, stream);
+        let image = Self::to_image(mu, stream);
         let vec = TypedVec::<Vec<Tag>> {
             vec: vec![
                 image.source,
@@ -159,7 +159,7 @@ impl Core for Stream {
     }
 
     fn is_eof(mu: &Mu, stream: Tag) -> bool {
-        let image = Self::as_image(mu, stream);
+        let image = Self::to_image(mu, stream);
 
         match Tag::class_of(mu, image.direction) {
             Class::Keyword if image.direction.eq_(Symbol::keyword("input")) => {
@@ -174,13 +174,13 @@ impl Core for Stream {
     }
 
     fn is_open(mu: &Mu, stream: Tag) -> bool {
-        let image = Self::as_image(mu, stream);
+        let image = Self::to_image(mu, stream);
 
         !image.source.eq_(Tag::t())
     }
 
     fn close(mu: &Mu, stream: Tag) {
-        let mut image = Self::as_image(mu, stream);
+        let mut image = Self::to_image(mu, stream);
 
         SystemStream::close(
             &mu.system.streams,
@@ -203,7 +203,7 @@ impl Core for Stream {
 
         match Tag::class_of(mu, tag) {
             Class::Stream => {
-                let mut image = Self::as_image(mu, tag);
+                let mut image = Self::to_image(mu, tag);
                 let source = image.source;
 
                 match Tag::class_of(mu, image.direction) {
@@ -245,7 +245,7 @@ impl Core for Stream {
     fn write(mu: &Mu, tag: Tag, _: bool, stream: Tag) -> exception::Result<()> {
         match Tag::class_of(mu, tag) {
             Class::Stream => {
-                let image = Self::as_image(mu, tag);
+                let image = Self::to_image(mu, tag);
                 match Tag::class_of(mu, image.source) {
                     Class::Keyword => mu.write_string("#<stream: closed>".to_string(), stream),
                     Class::Fixnum => mu.write_string(
@@ -358,7 +358,7 @@ impl Core for Stream {
 
     fn read_byte(mu: &Mu, stream: Tag) -> exception::Result<Option<u8>> {
         let system_stream = &mu.system.streams;
-        let mut image = Self::as_image(mu, stream);
+        let mut image = Self::to_image(mu, stream);
         let unch = image.unch;
 
         if !Self::is_open(mu, stream) {
@@ -439,7 +439,7 @@ impl Core for Stream {
     }
 
     fn unread_char(mu: &Mu, stream: Tag, ch: char) -> exception::Result<Option<()>> {
-        let mut image = Self::as_image(mu, stream);
+        let mut image = Self::to_image(mu, stream);
 
         if !Self::is_open(mu, stream) {
             return Err(Except::raise(
@@ -476,7 +476,7 @@ impl Core for Stream {
 
     fn write_char(mu: &Mu, stream: Tag, ch: char) -> exception::Result<Option<()>> {
         let system_stream = &mu.system.streams;
-        let mut image = Self::as_image(mu, stream);
+        let mut image = Self::to_image(mu, stream);
 
         if !Self::is_open(mu, stream) {
             return Err(Except::raise(
@@ -514,7 +514,7 @@ impl Core for Stream {
 
     fn write_byte(mu: &Mu, stream: Tag, byte: u8) -> exception::Result<Option<()>> {
         let system_stream = &mu.system.streams;
-        let mut image = Self::as_image(mu, stream);
+        let mut image = Self::to_image(mu, stream);
 
         if !Self::is_open(mu, stream) {
             return Err(Except::raise(

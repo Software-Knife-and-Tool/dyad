@@ -258,7 +258,28 @@ impl Core for Namespace {
                     };
 
                     if hash.contains_key(&name) {
-                        return hash[&name];
+                        let symbol = *hash.get(&name).unwrap();
+
+                        if Symbol::is_unbound(mu, symbol) {
+                            let image = Symbol::to_image(mu, symbol);
+
+                            let slices: &[[u8; 8]] = &[
+                                image.namespace.as_slice(),
+                                image.scope.as_slice(),
+                                image.name.as_slice(),
+                                value.as_slice(),
+                            ];
+
+                            let offset = match symbol {
+                                Tag::Indirect(heap) => heap.offset(),
+                                _ => panic!("internal: tag format inconsistency"),
+                            } as usize;
+
+                            let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
+                            heap_ref.write_image(slices, offset);
+                        }
+
+                        return symbol;
                     }
 
                     let symbol = Symbol::new(mu, ns, scope, &name, value).evict(mu);
