@@ -22,7 +22,7 @@ use {
             compile, exception,
             exception::{Condition, Except},
             frame::Frame,
-            namespaces::Core as _,
+            namespace::Core as _,
             read::Read,
         },
         image::heap::Heap,

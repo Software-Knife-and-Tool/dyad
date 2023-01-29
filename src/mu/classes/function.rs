@@ -13,7 +13,7 @@ use {
             classes::{Class, Tag, TagType, TagU64},
             exception,
             mu::{Core as _, Mu},
-            namespaces::Core as _,
+            namespace::Core as _,
         },
         image,
     },
@@ -47,7 +47,7 @@ impl Function {
         Tag::Indirect(ind)
     }
 
-    pub fn from_tag(mu: &Mu, tag: Tag) -> Self {
+    pub fn to_image(mu: &Mu, tag: Tag) -> Self {
         match Tag::class_of(mu, tag) {
             Class::Function => match tag {
                 Tag::Indirect(main) => {
@@ -81,7 +81,7 @@ impl Properties for Function {
     fn nreq_of(mu: &Mu, func: Tag) -> Tag {
         match Tag::class_of(mu, func) {
             Class::Function => match func {
-                Tag::Indirect(_) => Self::from_tag(mu, func).nreq,
+                Tag::Indirect(_) => Self::to_image(mu, func).nreq,
                 _ => panic!("internal: function type inconsistency"),
             },
             _ => panic!("internal: function type inconsistency"),
@@ -91,7 +91,7 @@ impl Properties for Function {
     fn func_of(mu: &Mu, func: Tag) -> Tag {
         match Tag::class_of(mu, func) {
             Class::Function => match func {
-                Tag::Indirect(_) => Self::from_tag(mu, func).func,
+                Tag::Indirect(_) => Self::to_image(mu, func).func,
                 _ => panic!("internal: function type inconsistency"),
             },
             _ => panic!("internal: function type inconsistency"),
@@ -101,7 +101,7 @@ impl Properties for Function {
     fn frame_of(mu: &Mu, func: Tag) -> Tag {
         match Tag::class_of(mu, func) {
             Class::Function => match func {
-                Tag::Indirect(_) => Self::from_tag(mu, func).frame,
+                Tag::Indirect(_) => Self::to_image(mu, func).frame,
                 _ => panic!("internal: function type inconsistency"),
             },
             _ => panic!("internal: function type inconsistency"),

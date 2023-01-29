@@ -20,7 +20,7 @@ use {
             exception,
             exception::{Condition, Except},
             mu::{Core as _, Mu},
-            namespaces::Core as _,
+            namespace::Core as _,
         },
     },
     std::{
