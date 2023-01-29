@@ -38,7 +38,7 @@ lazy_static! {
         // mu
         ("compile", Scope::Extern, 1, Mu::mu_compile),
         ("eval", Scope::Extern, 1, Mu::mu_eval),
-        ("exit", Scope::Extern, 1, Mu::mu_exit),
+        ("exit", Scope::Intern, 1, Mu::mu_exit),
         ("fix", Scope::Extern, 2, Mu::mu_fix),
         ("fix*", Scope::Extern, 2, Mu::mu_fix_env),
         ("funcall", Scope::Extern, 2, Mu::mu_funcall),
@@ -47,6 +47,7 @@ lazy_static! {
         // exceptions
         ("raise", Scope::Extern, 2, Exception::mu_raise),
         // frames
+        ("context", Scope::Intern, 0, Frame::mu_context),
         ("fr-get", Scope::Extern, 1, Frame::mu_fr_get),
         ("fr-pop", Scope::Extern, 1, Frame::mu_fr_pop),
         ("fr-push", Scope::Extern, 1, Frame::mu_fr_push),
