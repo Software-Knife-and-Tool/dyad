@@ -30,10 +30,10 @@ pub enum Symbol {
 }
 
 pub struct Image {
-    namespace: Tag,
-    scope: Tag,
-    name: Tag,
-    value: Tag,
+    pub namespace: Tag,
+    pub scope: Tag,
+    pub name: Tag,
+    pub value: Tag,
 }
 
 lazy_static! {
@@ -74,7 +74,7 @@ impl Symbol {
         }
     }
 
-    pub fn as_image(mu: &Mu, tag: Tag) -> Image {
+    pub fn to_image(mu: &Mu, tag: Tag) -> Image {
         let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
         match Tag::class_of(mu, tag) {
             Class::Symbol => match tag {
@@ -111,7 +111,7 @@ impl Properties for Symbol {
         match Tag::class_of(mu, symbol) {
             Class::Keyword => Tag::nil(),
             Class::Symbol => match symbol {
-                Tag::Indirect(_) => Self::as_image(mu, symbol).namespace,
+                Tag::Indirect(_) => Self::to_image(mu, symbol).namespace,
                 _ => panic!("internal: tag format inconsistency"),
             },
             _ => panic!("internal: symbol type required"),
@@ -125,7 +125,7 @@ impl Properties for Symbol {
                 _ => panic!("internal: tag format inconsistency"),
             },
             Class::Symbol => match symbol {
-                Tag::Indirect(_) => Self::as_image(mu, symbol).scope,
+                Tag::Indirect(_) => Self::to_image(mu, symbol).scope,
                 _ => panic!("internal: tag format inconsistency"),
             },
             _ => panic!("internal: symbol type required"),
@@ -139,7 +139,7 @@ impl Properties for Symbol {
                 _ => panic!("internal: tag format inconsistency"),
             },
             Class::Symbol => match symbol {
-                Tag::Indirect(_) => Self::as_image(mu, symbol).name,
+                Tag::Indirect(_) => Self::to_image(mu, symbol).name,
                 _ => panic!("internal: tag format inconsistency"),
             },
             _ => panic!("internal: symbol type required"),
@@ -150,7 +150,7 @@ impl Properties for Symbol {
         match Tag::class_of(mu, symbol) {
             Class::Keyword => symbol,
             Class::Symbol => match symbol {
-                Tag::Indirect(_) => Self::as_image(mu, symbol).value,
+                Tag::Indirect(_) => Self::to_image(mu, symbol).value,
                 _ => panic!("internal: symbol type inconsistency"),
             },
             _ => panic!("internal: symbol type required"),
