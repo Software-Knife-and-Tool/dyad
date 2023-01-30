@@ -1,0 +1,16 @@
+#
+# core format tests"
+#
+assert_eq "(mu:type-of core:format)" ":func"
+assert_eq "(core:format :t \"core:format\" ())" "core:format:nil"
+assert_eq "(core:format () \"core:format\" ())" "core:format"
+assert_eq "(core:stringp (core:format () \"core:format\" ()))" ":t"
+assert_eq "(core:format :t \"core:format unqualified ~A symbol arg\" '(a-symbol))" "core:format unqualified a-symbol symbol arg:nil"
+assert_eq "(core:format :t \"core:format unqualified ~S symbol arg\" '(a-symbol))" "core:format unqualified #:a-symbol symbol arg:nil"
+assert_eq "(core:format :t \"core:format qualified ~A symbol arg\" '(mu:fixnum+))" "core:format qualified fixnum+ symbol arg:nil"
+assert_eq "(core:format :t \"core:format qualified ~S symbol arg\" '(mu:fixnum+))" "core:format qualified mu:fixnum+ symbol arg:nil"
+assert_eq "(core:format :t \"core:format ~A string arg\" '(\"a-string\"))" "core:format a-string string arg:nil"
+assert_eq "(core:format :t \"core:format ~S string arg\" '(\"a-string\"))" "core:format \"a-string\" string arg:nil"
+assert_eq "(core:format :t \"core:format ~A fixnum arg\" '(1))" "core:format 1 fixnum arg:nil"
+assert_eq "(core:format :t \"core:format ~S fixnum arg\" '(1))" "core:format 1 fixnum arg:nil"
+#

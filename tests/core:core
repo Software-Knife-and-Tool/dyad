@@ -1,0 +1,26 @@
+#
+# general core tests
+#
+assert_eq "(mu:type-of core:1+)" ":func"
+assert_eq "(mu:type-of core:1-)" ":func"
+assert_eq "(mu:type-of core:rem)" ":func"
+assert_eq "(mu:type-of core:mod)" ":func"
+assert_eq "(mu:type-of core:truncate)" ":func"
+assert_eq "(mu:type-of core:floor)" ":func"
+assert_eq "(mu:type-of core:round)" ":func"
+assert_eq "(mu:type-of core:ceiling)" ":func"
+#
+assert_eq "(mu:type-of core:boundp)" ":func"
+assert_eq "(mu:type-of core:consp)" ":func"
+assert_eq "(mu:type-of core:fixnump)" ":func"
+assert_eq "(mu:type-of core:floatp)" ":func"
+assert_eq "(mu:type-of core:functionp)" ":func"
+assert_eq "(mu:type-of core:listp)" ":func"
+assert_eq "(mu:type-of core:namespacep)" ":func"
+assert_eq "(mu:type-of core:not)" ":func"
+assert_eq "(mu:type-of core:null)" ":func"
+assert_eq "(mu:type-of core:streamp)" ":func"
+assert_eq "(mu:type-of core:stringp)" ":func"
+assert_eq "(mu:type-of core:symbolp)" ":func"
+assert_eq "(mu:type-of core:vectorp)" ":func"
+#

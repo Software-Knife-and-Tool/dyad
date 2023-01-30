@@ -1,0 +1,31 @@
+#
+# core sequence tests
+#
+assert_eq "(mu:type-of core:length)" ":func"
+assert_eq "(mu:type-of core:elt)" ":func"
+assert_eq "(mu:type-of core:vector-type)" ":func"
+assert_eq "(mu:type-of core:svref)" ":func"
+assert_eq "(mu:type-of core:foldl)" ":func"
+assert_eq "(mu:type-of core:foldr)" ":func"
+assert_eq "(mu:type-of core:findl-if)" ":func"
+assert_eq "(mu:type-of core:findr-if)" ":func"
+assert_eq "(mu:type-of core:positionl)" ":func"
+assert_eq "(mu:type-of core:positionr)" ":func"
+#
+assert_eq "(core:positionl mu:eq 'foo '())" ":nil"
+assert_eq "(core:positionl mu:eq 'foo '(foo))" "0"
+assert_eq "(core:positionl mu:eq 'foo1 '(foo))" ":nil"
+assert_eq "(core:positionl mu:eq 'foo '(foo1 foo))" "1"
+assert_eq "(core:positionl mu:eq 'foo #(:t))" ":nil"
+assert_eq "(core:positionl mu:eq 'foo #(:t foo))" "0"
+assert_eq "(core:positionl mu:eq 'foo1 #(:t foo))" ":nil"
+assert_eq "(core:positionl mu:eq 'foo #(:t foo1 foo))" "1"
+assert_eq "(core:positionr mu:eq 'foo '())" ":nil"
+assert_eq "(core:positionr mu:eq 'foo '(foo))" "0"
+assert_eq "(core:positionr mu:eq 'foo1 '(foo))" ":nil"
+assert_eq "(core:positionr mu:eq 'foo '(foo1 foo))" "1"
+assert_eq "(core:positionr mu:eq 'foo #(:t))" ":nil"
+assert_eq "(core:positionr mu:eq 'foo #(:t foo foo))" "1"
+assert_eq "(core:positionr mu:eq 'foo1 #(:t foo))" ":nil"
+assert_eq "(core:positionr mu:eq 'foo #(:t foo1 foo))" "1"
+#

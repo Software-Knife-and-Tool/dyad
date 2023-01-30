@@ -1,0 +1,52 @@
+#! /bin/bash
+BASE_CORE=../src/core
+EXEC=../dist/mu-runtime
+LOAD_LIST=( \
+        -l $BASE_CORE/core.l            \
+        -l $BASE_CORE/compile.l         \
+        -l $BASE_CORE/exceptions.l      \
+	-l $BASE_CORE/fixnums.l         \
+	-l $BASE_CORE/functions.l  	\
+        -l $BASE_CORE/format.l     	\
+        -l $BASE_CORE/lambda.l     	\
+        -l $BASE_CORE/lists.l      	\
+        -l $BASE_CORE/load.l       	\
+        -l $BASE_CORE/macro.l      	\
+	-l $BASE_CORE/read.l       	\
+	-l $BASE_CORE/symbol-macro.l	\
+	-l $BASE_CORE/read-macro.l 	\
+        -l $BASE_CORE/quasiquote.l 	\
+	-l $BASE_CORE/sequences.l  	\
+        -l $BASE_CORE/streams.l    	\
+        -l $BASE_CORE/strings.l    	\
+	-l $BASE_CORE/symbols.l    	\
+	-l $BASE_CORE/vectors.l         \
+        )
+
+TMP=/var/tmp
+
+args=("$@")
+opts=("${args[@]:1}")
+
+function assert_eq () {
+    result=`$EXEC ${LOAD_LIST[@]} ${opts[@]} -s -e "$1"`
+
+    if [ $? -eq 0 ]
+    then
+       if [ "$result" != "$2" ]
+       then
+            echo "--" "$1" "--" "$2" "--" "$result" "-- " failed
+        fi
+    else
+        echo "--" "$1" "--" "$2" "-- test aborted --" failed
+    fi
+}
+
+source "$1" >> $TMP/core-test.$$.log 2>&1
+
+echo "core:" $1 `cat $1 | wc -l` `grep failed $TMP/core-test.$$.log | wc -l`
+cat $TMP/core-test.$$.log
+
+rm -f $TMP/core-test.$$.log
+
+exit 0

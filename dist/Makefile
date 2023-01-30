@@ -25,7 +25,6 @@ dist:
 
 	@install -m 755 $(RUNTIME) $(BASE)/bin
 	@install -m 755 ./dyad.sh $(BASE)/bin/dyad
-	@install -m 755 ./core.sh $(BASE)/bin/core
 
 	@install -d $(BASE)/doc/html
 	@install -m 644 $(DOCS)/refcards/*.pdf $(BASE)/doc
