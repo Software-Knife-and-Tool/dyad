@@ -10,12 +10,8 @@
 ;;;
 ;;; predicates
 ;;;
-;;;
-;;; generalized booleans
-;;;
 (mu:intern core::ns :extern "null" (:lambda (t) (mu:eq () t)))
 (mu:intern core::ns :extern "not" (:lambda (t) (core:null t)))
-
 (mu:intern core::ns :extern "charp" (:lambda (t) (mu:eq :char (mu:type-of t))))
 (mu:intern core::ns :extern "consp" (:lambda (t) (mu:eq :cons (mu:type-of t))))
 (mu:intern core::ns :extern "fixnump" (:lambda (t) (mu:eq :fixnum (mu:type-of t))))
@@ -30,48 +26,45 @@
 (mu:intern core::ns :extern "sequencep" (:lambda (t) (:if (core:listp t) :t (core:vectorp t))))
 
 (mu:intern core::ns :extern "atom"
-   (:lambda (t)
-     (core:null (core:consp t))))
+  (:lambda (t)
+    (core:not (core:consp t))))
 
 (mu:intern core::ns :extern "boundp" mu:boundp)
 (mu:intern core::ns :extern "fboundp"
-   (:lambda (symbol)
-     (:if (mu:boundp symbol)
-          (core:functionp (mu:sy-val symbol))
-          ())))
+  (:lambda (symbol)
+    (:if (core:boundp symbol)
+         (core:functionp (mu:sy-val symbol))
+         ())))
 
 (mu:intern core::ns :extern "uninternedp"
-   (:lambda (sym)
-     (core:null (mu:sy-ns sym))))
+  (:lambda (sym)
+    (core:null (mu:sy-ns sym))))
 
 (mu:intern core::ns :extern "zerop"
-   (:lambda (n)
-     (:if (mu:eq 0 n)
-          :t
-          (mu:eq 0.0 n))))
+  (:lambda (n)
+    (:if (mu:eq 0 n)
+         :t
+         (mu:eq 0.0 n))))
 
 (mu:intern core::ns :extern "numberp"
-   (:lambda (n)
-     (:if (core:fixnump n)
-          :t
-          (core:floatp n))))
+  (:lambda (n)
+    (:if (core:fixnump n) :t (core:floatp n))))
 
+;;;
+;;; syntactic sugar
+;;;
 (mu:intern core::ns :intern "logical-or"
-    (:lambda (arg arg1)
-      (:if arg
-           arg
-           arg1)))
+  (:lambda (arg arg1)
+    (:if arg arg arg1)))
 
 (mu:intern core::ns :intern "logical-and"
-    (:lambda (arg arg1)
-      (:if arg
-           arg1
-           ())))
-
-(mu:intern core::ns :intern "prog"
-    (:lambda (arg1 arg2)
-      arg2))
+  (:lambda (arg arg1)
+    (:if arg arg1 ())))
 
 (mu:intern core::ns :intern "prog1"
-    (:lambda (arg1 arg2)
-      arg1))
+  (:lambda (arg1 arg2)
+    arg1))
+
+(mu:intern core::ns :intern "prog2"
+  (:lambda (arg1 arg2)
+    arg2))

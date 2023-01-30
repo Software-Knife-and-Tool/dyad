@@ -19,31 +19,31 @@
 ;;;
 ;;; macro environment
 ;;;
-(mu::intern core::ns :intern "core-macro-env"
+(mu:intern core::ns :intern "core-macro-env"
    (:lambda (symbol macro-fn)
      ((:lambda (macro-ns symbol-ns symbol-name symbol-scope)
         (:if macro-ns
-             (mu::intern (mu:sy-val macro-ns) symbol-scope symbol-name macro-fn)
+             (mu:intern (mu:sy-val macro-ns) symbol-scope symbol-name macro-fn)
              ((:lambda (ns-sym)
-                (mu::intern (mu:sy-val ns-sym) symbol-scope symbol-name macro-fn))
-              (mu::intern
+                (mu:intern (mu:sy-val ns-sym) symbol-scope symbol-name macro-fn))
+              (mu:intern
                symbol-ns
                :intern
                (core::string-append (mu:ns-name symbol-ns) ":macrodefs")
-               (env:ns (mu:ns (core::string-append (mu:ns-name symbol-ns) ":macro-functions") ()))))))
-      (mu:ns-find (mu:sy-ns symbol) :intern (core::string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
+               (mu:make-ns (mu:make-ns (core::string-append (mu:ns-name symbol-ns) ":macro-functions") ()))))))
+      (mu:ns-map (mu:sy-ns symbol) :intern (core::string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
       (mu:sy-ns symbol)
       (mu:sy-name symbol)
       (mu:sy-ext symbol))))
 
-(mu::intern core::ns :intern "core-find-macro-env"
+(mu:intern core::ns :intern "core-find-macro-env"
    (:lambda (symbol env)
      (core:errorp-unless core:symbolp symbol "core-find-macro-env: is not a symbol")           
      ((:lambda (macro-ns symbol-ns symbol-name symbol-scope)
         (:if macro-ns
-             (mu:ns-find (mu:sy-val macro-ns) symbol-scope symbol-name)
+             (mu:ns-map (mu:sy-val macro-ns) symbol-scope symbol-name)
              ()))
-     (mu:ns-find (mu:sy-ns symbol) :intern (core::string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
+     (mu:ns-map (mu:sy-ns symbol) :intern (core::string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
      (mu:sy-ns symbol)
      (mu:sy-name symbol)
      (mu:sy-ext symbol))))
@@ -51,7 +51,7 @@
 ;;;
 ;;; core:macroexpand-1 expands a macro call once.
 ;;;
-(mu::intern core::ns :intern "macroexpand-1"
+(mu:intern core::ns :intern "macroexpand-1"
    (:lambda (form env)
      (:if (core:consp form)
           ((:lambda (fn-symbol args)
@@ -69,7 +69,7 @@
 ;;;
 ;;; core:macroexpand: expand a form until it is no longer a macro call
 ;;;
-(mu::intern core::ns :extern "macroexpand"
+(mu:intern core::ns :extern "macroexpand"
    (:lambda (form env)
      ((:lambda (expanded)
           (:if (mu:eq form expanded)
@@ -82,7 +82,7 @@
 ;;;
 ;;; acts as a predicate
 ;;;
-(mu::intern core::ns :extern "macro-function"
+(mu:intern core::ns :extern "macro-function"
   (:lambda (symbol env)
      (:if (core:symbolp symbol)            
           (:if (core:keywordp symbol)
@@ -99,7 +99,7 @@
 ;;;
 ;;; core::compile-macro compiles a macro expander function.
 ;;;
-(mu::intern core::ns :intern "core-macro"
+(mu:intern core::ns :intern "core-macro"
    (:lambda (form env)
       (:if (core:findl-if (:lambda (el) (core:null (core:symbolp el))) form)
          (core:error-if form "core::core-macro: lambda syntax")
@@ -124,7 +124,7 @@
             0
             form)))))
 
-(mu::intern core::ns :intern "compile-macro"
+(mu:intern core::ns :intern "compile-macro"
    (:lambda (form env)
      ((:lambda (lambda-desc body)
         (mu::compile

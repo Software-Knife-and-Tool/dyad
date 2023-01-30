@@ -9,16 +9,16 @@
 ;;; [*lambda descriptor*] #(:t lambda-syms req-syms rest-sym env closure)
 ;;;
 
-(mu::intern core::ns :intern "lambda-closure" (:lambda (desc) (mu:sv-ref desc 4)))
-(mu::intern core::ns :intern "lambda-env" (:lambda (desc) (mu:sv-ref desc 3)))
-(mu::intern core::ns :intern "lambda-frame-id" (:lambda (desc) (mu::tag-of (mu:sv-ref desc 0))))
-(mu::intern core::ns :intern "lambda-nreqs" (:lambda (desc) (mu:length (core::lambda-req-symbols desc))))
-(mu::intern core::ns :intern "lambda-req-symbols" (:lambda (desc) (mu:sv-ref desc 1)))
-(mu::intern core::ns :intern "lambda-rest-symbol" (:lambda (desc) (mu:sv-ref desc 2)))
-(mu::intern core::ns :intern "lambda-syms" (:lambda (desc) (mu:sv-ref desc 0)))
+(mu:intern core::ns :intern "lambda-closure" (:lambda (desc) (mu:sv-ref desc 4)))
+(mu:intern core::ns :intern "lambda-env" (:lambda (desc) (mu:sv-ref desc 3)))
+(mu:intern core::ns :intern "lambda-frame-id" (:lambda (desc) (mu::tag-of (mu:sv-ref desc 0))))
+(mu:intern core::ns :intern "lambda-nreqs" (:lambda (desc) (mu:length (core::lambda-req-symbols desc))))
+(mu:intern core::ns :intern "lambda-req-symbols" (:lambda (desc) (mu:sv-ref desc 1)))
+(mu:intern core::ns :intern "lambda-rest-symbol" (:lambda (desc) (mu:sv-ref desc 2)))
+(mu:intern core::ns :intern "lambda-syms" (:lambda (desc) (mu:sv-ref desc 0)))
 
 #|
-(mu::intern core::ns :intern "lambda-dump"
+(mu:intern core::ns :intern "lambda-dump"
    (:lambda (lambda-desc)
      (core:debug lambda-desc "-= lambda-dump =-")
      (core:debug (mu::tag-of lambda-desc) "tag")
@@ -38,7 +38,7 @@
 ;;; env: environment, list of lambda descriptors
 ;;; closure: closed symbol state, list of bindings
 ;;;
-(mu::intern core::ns :intern "lambda-descriptor"
+(mu:intern core::ns :intern "lambda-descriptor"
    (:lambda (lambda req-syms rest-sym env closure)
      (mu:list-sv :t
         (mu:cons lambda
@@ -57,7 +57,7 @@
 ;;;
 ;;; parse core lambda list
 ;;;
-(mu::intern core::ns :intern "core-lambda"
+(mu:intern core::ns :intern "core-lambda"
    (:lambda (form env)
       (:if (core:findl-if (:lambda (el) (core:null (core:symbolp el))) form)
          (core:error form "core::core-lambda: list syntax")
@@ -85,7 +85,7 @@
 ;;;
 ;;; compile a core lambda form
 ;;;
-(mu::intern core::ns :intern "compile-lambda"
+(mu:intern core::ns :intern "compile-lambda"
    (:lambda (form env)
      ((:lambda (lambda-desc body)
         (mu::compile
@@ -98,7 +98,7 @@
 ;;;
 ;;; compile a closure
 ;;;
-(mu::intern core::ns :intern "closure"
+(mu:intern core::ns :intern "closure"
    (:lambda (fn)
      ((:lambda (lambda-desc)
         (core:errorp-when core:null lambda-desc "core::closure: closing bare function")
@@ -113,7 +113,7 @@
           (core::lambda-req-symbols lambda-desc)
           (core::lambda-rest-symbol lambda-desc)
           (core::lambda-env lambda-desc)
-          (core:mapcar (:lambda (desc) (env:fp-get (core::lambda-frame-id desc)))
+          (core:mapcar (:lambda (desc) (mu:fr-get (core::lambda-frame-id desc)))
                        (core::lambda-env lambda-desc)))
          (mu:cdr (core::fn-form fn))))
         (core::fn-lambda-desc fn))))
@@ -121,7 +121,7 @@
 ;;;
 ;;; [*closure-descriptor*] `(function . values)` 
 ;;;
-(mu::intern core::ns :intern "compile-closure"
+(mu:intern core::ns :intern "compile-closure"
    (:lambda (form env)
      (core:maplist
       (:lambda (form-cons)
@@ -145,7 +145,7 @@
 ;;;
 ;;; `returns:` compiled body
 ;;;
-(mu::intern core::ns :intern "compile-lambda-body"
+(mu:intern core::ns :intern "compile-lambda-body"
   (:lambda (lambda-desc body env)
       (:if body
            ((:lambda (env)
@@ -170,12 +170,12 @@
 ;;;
 ;;; `returns:` qualified symbol or *frame-ref*
 ;;;
-(mu::intern core::ns :intern "compile-symbol"
+(mu:intern core::ns :intern "compile-symbol"
    (:lambda (symbol env)
       ((:lambda (env-ref)
           (:if env-ref
                (core::compile
-                (mu:cons 'env:lex-ref
+                (mu:cons 'mu::fr-ref
                    (mu:cons (mu:car env-ref)
                       (core::list (mu:cdr env-ref))))
                  env)
@@ -197,7 +197,7 @@
 ;;;
 ;;; `returns:` *frame-ref* or *nil*
 ;;;
-(mu::intern core::ns :intern "symbol-frame"
+(mu:intern core::ns :intern "symbol-frame"
    (:lambda (symbol env)
      (core:foldl
       (:lambda (frame acc)

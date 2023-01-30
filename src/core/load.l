@@ -4,17 +4,17 @@
 ;;;
 ;;; loader
 ;;;
-(mu::intern core::ns :extern "load"
+(mu:intern core::ns :extern "load"
    (:lambda (source verbose print)
       (core:errorp-unless core:stringp source "core:load not a file designator")
       ((:lambda (ifs)
          (core:errorp-unless core:streamp ifs "core:load cannot open input file")
          (:if verbose
-              (core::prog
+              (core::prog2
                  (core:write (core::string-append ";;; loading " source) mu:std-out ()) 
                  (core:terpri mu:std-out))
               ())
-         (mu::fix
+         (mu:fix
           (:lambda (loop)
             (:if (mu:eofp ifs)
                  :t
@@ -29,7 +29,7 @@
                    (:lambda ()
                      ((:lambda (form)
                         (:if print
-                             (core::prog
+                             (core::prog2
                                 (core:write form mu:std-out ())
                                 (core:terpri mu:std-out))
                              ())
@@ -41,24 +41,24 @@
 ;;;
 ;;; debugging repl - no amenities
 ;;;
-(mu::intern core::ns :intern "debug-repl"
+(mu:intern core::ns :intern "debug-repl"
    (:lambda ()
      ((:lambda (repl) (repl repl))
       (:lambda (repl)
         (mu:with-ex
            (:lambda (ex)
              (:if (core:eofp :t)
-                  (system:exit 0)
-                  (core::prog
+                  (mu::exit 0)
+                  (core::prog2
                      (core:print-except ex "core::debug-repl")
                      (core:break ex))))
           (:lambda ()
             (core:format :t "core> " ())
             ((:lambda (form)
                (:if (core:eofp :t)
-                    (core::prog
+                    (core::prog2
                        (core:format :t "sic transit gloria mundi~%" ())
-                       (system:exit 0))
+                       (mu::exit 0))
                     ((:lambda (form)
                        (core:format :t "[~A] ~A~%" (core::list2 (mu:type-of form) form)))
                      (mu:eval (core:compile form)))))

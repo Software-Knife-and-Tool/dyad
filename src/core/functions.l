@@ -4,7 +4,7 @@
 ;;;
 ;;; accessors
 ;;;
-(mu::intern core::ns :intern "fn-arity"
+(mu:intern core::ns :intern "fn-arity"
   (:lambda (fn)
     ((:lambda (lambda)                                      
       (:if (core:fixnump lambda)
@@ -12,19 +12,19 @@
            (mu:length lambda)))
      (mu::fn-int :lambda fn))))
 
-(mu::intern core::ns :intern "fn-lambda"
+(mu:intern core::ns :intern "fn-lambda"
   (:lambda (fn)
     (mu::fn-int :lambda fn)))
 
-(mu::intern core::ns :intern "fn-frame-id"
+(mu:intern core::ns :intern "fn-frame-id"
   (:lambda (fn)
     (mu::fn-int :frame fn)))
 
-(mu::intern core::ns :intern "fn-form"
+(mu:intern core::ns :intern "fn-form"
   (:lambda (fn)
     (mu::fn-int :form fn)))
 
-(mu::intern core::ns :intern "fn-lambda-desc"
+(mu:intern core::ns :intern "fn-lambda-desc"
    (:lambda (fn)
      ((:lambda (form)
         (:if (core:consp form)
@@ -34,7 +34,7 @@
              ()))
       (mu::fn-int :form fn))))
 
-(mu::intern core::ns :intern "fn-funcallp"
+(mu:intern core::ns :intern "fn-funcallp"
    (:lambda (fn)
      ((:lambda (desc)
         (:if desc
@@ -44,7 +44,7 @@
              ()))
       (core::fn-lambda-desc fn))))
     
-(mu::intern core::ns :intern "fn-nreqs"
+(mu:intern core::ns :intern "fn-nreqs"
   (:lambda (fn)
      ((:lambda (arity)
         (:if (core::fn-restp fn)
@@ -52,7 +52,7 @@
              arity))
       (core::fn-arity fn))))
 
-(mu::intern core::ns :intern "fn-restp"
+(mu:intern core::ns :intern "fn-restp"
   (:lambda (fn)
      ((:lambda (desc)
         (:if desc
@@ -60,7 +60,7 @@
              ()))
       (core::fn-lambda-desc fn))))
 
-(mu::intern core::ns :intern "fn-dump"
+(mu:intern core::ns :intern "fn-dump"
    (:lambda (fn)
      (core:errorp-unless core:functionp fn "fn-dump: not a function")           
      (core:debug fn "-= fn-dump =-")
@@ -76,7 +76,7 @@
 ;;;
 ;;; core argument lists
 ;;;
-(mu::intern core::ns :intern "flat-arg-list"
+(mu:intern core::ns :intern "flat-arg-list"
     (:lambda (args)
       (core:foldr
        (:lambda (elt acc)
@@ -84,7 +84,7 @@
        ()
        args)))
 
-(mu::intern core::ns :intern "lambda-arg-list"
+(mu:intern core::ns :intern "lambda-arg-list"
    (:lambda (fn args)
      (:if (core::fn-restp fn)
           (:if (core:zerop (core::fn-nreqs fn))
@@ -102,7 +102,7 @@
                    (core:dropl args (core::fn-nreqs fn))))
           (core::flat-arg-list args))))
 
-(mu::intern core::ns :intern "quoted-lambda-arg-list"
+(mu:intern core::ns :intern "quoted-lambda-arg-list"
    (:lambda (fn args)
      (:if (core::fn-restp fn)
           (:if (core:zerop (core::fn-nreqs fn))
@@ -118,7 +118,7 @@
 ;;;
 ;;; compiled argument lists
 ;;;
-(mu::intern core::ns :intern "compile-flat-arg-list"
+(mu:intern core::ns :intern "compile-flat-arg-list"
     (:lambda (args env)
       (core:foldr
        (:lambda (elt acc)
@@ -127,7 +127,7 @@
        args)))
 
 #|
-(mu::intern core::ns :intern "compile-lambda-arg-list"
+(mu:intern core::ns :intern "compile-lambda-arg-list"
    (:lambda (fn args env)
      (:if (core::fn-restp fn)
           (:if (core:zerop (core::fn-nreqs fn))
@@ -146,35 +146,35 @@
           (core::compile-flat-arg-list args env))))
 |#
 
-(mu::intern core::ns :intern "compile-quoted-lambda-arg-list"
+(mu:intern core::ns :intern "compile-quoted-lambda-arg-list"
    (:lambda (fn args env)
      (core::quoted-lambda-arg-list fn (core::compile-list args env))))
 
 ;;;
 ;;; core funcall
 ;;;
-(mu::intern core::ns :intern "enter-env"
+(mu:intern core::ns :intern "enter-env"
    (:lambda (fn)
      ((:lambda (lambda-desc)
         (:if lambda-desc
              (core:mapc
-              env:fp-push
+              mu:fr-push
               (core::lambda-closure lambda-desc))
              ()))
       (core::fn-lambda-desc fn))))
 
-(mu::intern core::ns :intern "exit-env"
+(mu:intern core::ns :intern "exit-env"
    (:lambda (fn)
      ((:lambda (lambda-desc)
         (:if lambda-desc
              (core:mapc
               (:lambda (frame)
-                (env:fp-pop (mu:car frame)))
+                (mu:fr-pop (mu:car frame)))
               (core::lambda-closure lambda-desc))
              ()))
       (core::fn-lambda-desc fn))))
 
-(mu::intern core::ns :intern "funcall"
+(mu:intern core::ns :intern "funcall"
    (:lambda (fn args)
      (core::enter-env fn)
      (core::prog1
@@ -183,7 +183,7 @@
            (mu:funcall fn args))
        (core::exit-env fn))))
 
-(mu::intern core::ns :extern "funcall"
+(mu:intern core::ns :extern "funcall"
    (:lambda (fn args)
      (core:errorp-unless core:functionp fn "core:funcall: not a function")
      (core:errorp-unless core:listp args "core:funcall: not a list")
@@ -200,7 +200,7 @@
 ;;; expand macros
 ;;; convert core lambdas to mu forms
 ;;;
-(mu::intern core::ns :intern "compile-function-application"
+(mu:intern core::ns :intern "compile-function-application"
    (:lambda (fn args env)
      ((:lambda (cons-call fn-call macro-call symbol-call)
         (:if (core:functionp fn)

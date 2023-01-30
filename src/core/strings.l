@@ -4,23 +4,23 @@
 ;;;
 ;;; strings
 ;;;
-(mu::intern core::ns :extern "stringp"
+(mu:intern core::ns :extern "stringp"
    (:lambda (v)
       (:if (core:vectorp v)
            (mu:eq :char (mu:sv-type v))
            ())))
 
-(mu::intern core::ns :extern "get-output-stream-string"
+(mu:intern core::ns :extern "get-output-stream-string"
    (:lambda (stream)
       (mu:get-buf :char stream)))
 
-(mu::intern core::ns :extern "schar"
+(mu:intern core::ns :extern "schar"
   (:lambda (str index)
     (core:errorp-unless core:stringp str "core:schar: not a string")
     (core:errorp-unless core:fixnump index "core:schar not a string")
     (mu:sv-ref str index)))
 
-(mu::intern core::ns :extern "string="
+(mu:intern core::ns :extern "string="
    (:lambda (str-1 str-2)
       (core:errorp-unless core:stringp str-1 "core:string= not a string")
       (core:errorp-unless core:stringp str-2 "core:string= not a string")
@@ -43,7 +43,7 @@
 ;;;
 ;;; string construction
 ;;;
-(mu::intern core::ns :extern "string"
+(mu:intern core::ns :extern "string"
    (:lambda (designator)
       (:if (core:stringp designator)
          designator
@@ -53,7 +53,7 @@
                    (mu:list-sv :char (core::list designator))
                    (core:error designator "core::string not a char"))))))
 
-(mu::intern core::ns :extern "string-append"
+(mu:intern core::ns :extern "string-append"
    (:lambda (list)
       (core:errorp-unless core:listp list "core:string: is not a list")
       (mu:list-sv
@@ -65,7 +65,7 @@
         ()
         list))))
 
-(mu::intern core::ns :intern "string-append"
+(mu:intern core::ns :intern "string-append"
    (:lambda (str-1 str-2)
       (core:errorp-unless core:stringp str-1 "is not a string (core::string)")
       (core:errorp-unless core:stringp str-2 "is not a string (core::string)")
@@ -74,7 +74,7 @@
         (core::append (core:sv-list str-1) (core:sv-list str-2)))))
 
 ;;; can use slice here?
-(mu::intern core::ns :extern "substr"
+(mu:intern core::ns :extern "substr"
   (:lambda (str start end)
      (core:errorp-unless core:stringp str "is not a string (core::substr)")
      (core:errorp-unless core:fixnump start "is not a fixnum (core::substr)")

@@ -94,7 +94,7 @@ lazy_static! {
         ("sy-ns", Scope::Extern, 1, Symbol::mu_ns),
         ("sy-val", Scope::Extern, 1, Symbol::mu_value),
         // simple vectors
-        ("make-sv", Scope::Extern, 2, Vector::mu_make_vector),
+        ("vector", Scope::Extern, 2, Vector::mu_make_vector),
         ("sv-len", Scope::Extern, 1, Vector::mu_length),
         ("sv-ref", Scope::Extern, 2, Vector::mu_svref),
         ("sv-type", Scope::Extern, 1, Vector::mu_type),
