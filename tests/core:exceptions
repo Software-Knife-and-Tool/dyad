@@ -1,0 +1,11 @@
+#
+# core exception tests
+#
+assert_eq "(mu:type-of core::print-frame)" ":func"
+assert_eq "(mu:type-of core:print-except)" ":func"
+assert_eq "(mu:type-of core:break)" ":func"
+assert_eq "(mu:type-of core:error-if)" ":func"
+assert_eq "(mu:type-of core:errorp-unless)" ":func"
+assert_eq "(mu:type-of core:errorp-when)" ":func"
+assert_eq "(mu:type-of core:warn)" ":func"
+#
