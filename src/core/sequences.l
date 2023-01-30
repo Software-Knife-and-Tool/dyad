@@ -4,14 +4,14 @@
 ;;;
 ;;; sequences
 ;;;
-(mu::intern core::ns :extern "length"
+(mu:intern core::ns :extern "length"
    (:lambda (seq)
       (core:errorp-unless core:sequencep seq "core:length: not a sequence")
       (:if (core:listp seq)
            (mu:length seq)
            (mu:sv-len seq))))
 
-(mu::intern core::ns :extern "elt"
+(mu:intern core::ns :extern "elt"
    (:lambda (seq nth)
       (core:errorp-unless core:sequencep seq "core:elt: not a sequence")
       (core:errorp-unless core:fixnump nth "core:elt: not a fixnum")
@@ -22,49 +22,49 @@
 ;;;
 ;;; folds
 ;;;
-(mu::intern core::ns :extern "foldl"
+(mu:intern core::ns :extern "foldl"
    (:lambda (fn init seq)
       (core:errorp-unless core:functionp fn "core:foldl: not a function")
       (core:errorp-unless core:sequencep seq "core:foldl: not a sequence")
       (:if (core::fn-funcallp fn)
            (:if (core:listp seq)
-                (mu::fix*
+                (mu:fix*
                  (:lambda (self fn acc list)
                    (:if (core:null list)
                         acc
-                        (core::prog
-                           (env:fp-setv (core::fn-frame-id self) 2
+                        (core::prog2
+                           (mu:fr-setv (core::fn-frame-id self) 2
                                         (core::funcall fn (core:list2 (mu:car list) acc)))
-                           (env:fp-setv (core::fn-frame-id self) 3 (mu:cdr list)))))
+                           (mu:fr-setv (core::fn-frame-id self) 3 (mu:cdr list)))))
                  (core::list3 fn init seq))
-                (mu::fix*
+                (mu:fix*
                  (:lambda (self fn acc nth vec)
                    (:if (mu:eq nth (mu:sv-len vec))
                         acc
                         (core:prog
-                           (env:fp-setv (core::fn-frame-id self) 2
+                           (mu:fr-setv (core::fn-frame-id self) 2
                                         (core::funcall fn (core::list2 (mu:sv-ref vec nth) acc)))
-                           (env:fp-setv (core::fn-frame-id self) 3 (core:1+ nth)))))
+                           (mu:fr-setv (core::fn-frame-id self) 3 (core:1+ nth)))))
                  (mu:cons fn (core::list3 init 0 seq))))
            (:if (core:listp seq)
-                (mu::fix*
+                (mu:fix*
                  (:lambda (self fn acc list)
                    (:if (core:null list)
                         acc
-                        (core::prog
-                           (env:fp-setv (core::fn-frame-id self) 2 (fn (mu:car list) acc))
-                           (env:fp-setv (core::fn-frame-id self) 3 (mu:cdr list)))))
+                        (core::prog2
+                           (mu:fr-setv (core::fn-frame-id self) 2 (fn (mu:car list) acc))
+                           (mu:fr-setv (core::fn-frame-id self) 3 (mu:cdr list)))))
                  (core::list3 fn init seq))
-                (mu::fix*
+                (mu:fix*
                  (:lambda (self fn acc nth vec)
                    (:if (mu:eq nth (mu:sv-len vec))
                         acc
-                        (core::prog
-                           (env:fp-setv (core::fn-frame-id self) 2 (fn (mu:sv-ref vec nth) acc))
-                           (env:fp-setv (core::fn-frame-id self) 3 (core:1+ nth)))))
+                        (core::prog2
+                           (mu:fr-setv (core::fn-frame-id self) 2 (fn (mu:sv-ref vec nth) acc))
+                           (mu:fr-setv (core::fn-frame-id self) 3 (core:1+ nth)))))
                  (mu:cons fn (core::list3 init 0 seq)))))))
 
-(mu::intern core::ns :extern "foldr"
+(mu:intern core::ns :extern "foldr"
    (:lambda (fn init seq)
      (core:errorp-unless core:functionp fn "core:foldr not a function")
      (core:errorp-unless core:sequencep seq "core:foldr not a sequence")
@@ -95,7 +95,7 @@
 ;;;
 ;;; finds
 ;;;
-(mu::intern core::ns :extern "findl-if"
+(mu:intern core::ns :extern "findl-if"
    (:lambda (fn seq)
      (core:errorp-unless core:functionp fn "core:findl-if: not a function")
      (core:errorp-unless core:sequencep seq "core:findl-if: not a sequence")
@@ -110,9 +110,9 @@
        ()
        seq))))
 
-(mu::intern core::ns :extern "findr-if"
+(mu:intern core::ns :extern "findr-if"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp predicate "core:findr-if not a function")
+     (core:errorp-unless core:functionp fn "core:findr-if not a function")
      (core:errorp-unless core:sequencep list "core:findr-if not a sequence")
      (:if (core::fn-funcallp fn)
           (core:foldr
@@ -128,7 +128,7 @@
 ;;;
 ;;; position
 ;;;
-(mu::intern core::ns :extern "positionl"
+(mu:intern core::ns :extern "positionl"
    (:lambda (fn item seq)
      (core:errorp-unless core:functionp fn "core:positionl: not a function")
      (core:errorp-unless core:sequencep seq "core:positionl: not a sequence")
@@ -140,7 +140,7 @@
                        (:if (core:null lst)
                             ()
                             (mu:fixnum- (mu:length seq) (mu:length lst))))
-                     (mu::fix
+                     (mu:fix
                       (:lambda (list)
                         (:if (core:null list)
                              ()
@@ -154,7 +154,7 @@
                        (:if (core:null nth)
                             ()
                             nth))
-                     (mu::fix
+                     (mu:fix
                       (:lambda (nth)
                         (:if (core:null nth)
                              ()
@@ -171,7 +171,7 @@
                        (:if (core:null lst)
                             ()
                             (mu:fixnum- (mu:length seq) (mu:length lst))))
-                     (mu::fix
+                     (mu:fix
                       (:lambda (list)
                         (:if (core:null list)
                              ()
@@ -185,7 +185,7 @@
                        (:if (core:null nth)
                             ()
                             nth))
-                     (mu::fix
+                     (mu:fix
                       (:lambda (nth)
                         (:if (core:null nth)
                              ()
@@ -196,7 +196,7 @@
                                   ())))
                       0)))))))
 
-(mu::intern core::ns :extern "positionr"
+(mu:intern core::ns :extern "positionr"
    (:lambda (fn item seq)
      (core:errorp-unless core:functionp fn "core:positionr: not a function")           
      (core:errorp-unless core:sequencep seq "core:positionr: not a sequence")
@@ -208,7 +208,7 @@
                        (:if (core:null nthcdr)
                             ()
                             (mu:fixnum- (mu:length seq) (mu:length nthcdr))))
-                     (mu::fix
+                     (mu:fix
                       (:lambda (nth)
                         (:if (core:listp nth)
                              nth
@@ -220,7 +220,7 @@
                       (core:1- (mu:length seq)))))
                (:if (core:zerop (core:length seq))
                     ()
-                    (mu::fix
+                    (mu:fix
                      (:lambda (nth)
                        (:if (core:null nth)
                             nth
@@ -237,7 +237,7 @@
                        (:if (core:null nthcdr)
                             ()
                             (mu:fixnum- (mu:length seq) (mu:length nthcdr))))
-                     (mu::fix
+                     (mu:fix
                       (:lambda (nth)
                         (:if (core:listp nth)
                              nth
@@ -249,7 +249,7 @@
                       (core:1- (mu:length seq)))))
                (:if (core:null seq)
                     ()
-                    (mu::fix
+                    (mu:fix
                      (:lambda (nth)
                        (:if (core:null nth)
                             nth

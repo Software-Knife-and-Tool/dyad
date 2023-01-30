@@ -4,19 +4,19 @@
 ;;;
 ;;; core reader
 ;;;
-(mu::intern core::ns :intern "reader-stream" (mu:open :buf :output ""))
-(mu::intern core::ns :intern "reader-ns-stream" (mu:open :buf :output "core"))
+(mu:intern core::ns :intern "reader-stream" (mu:open :string :output ""))
+(mu:intern core::ns :intern "reader-ns-stream" (mu:open :string :output "core"))
 
 ;;;
 ;;; readtable
 ;;;
-(mu::intern core::ns :intern "read-whitespace"
-    (mu:cons (mu:cons (system:ansi-ch #xa) 'wspace)
-      (mu:cons (mu:cons (system:ansi-ch #xd) 'wspace)
-        (mu:cons (mu:cons (system:ansi-ch #xc) 'wspace)
-          (core::list (mu:cons (system:ansi-ch #x20) 'wspace))))))
+(mu:intern core::ns :intern "read-whitespace"
+    (mu:cons (mu:cons (mu:coerce #xa :char) 'wspace)
+      (mu:cons (mu:cons (mu:coerce #xd :char) 'wspace)
+        (mu:cons (mu:cons (mu:coerce #xc :char) 'wspace)
+          (core::list (mu:cons (mu:coerce #x20 :char) 'wspace))))))
 
-(mu::intern core::ns :intern "read-char-syntax"
+(mu:intern core::ns :intern "read-char-syntax"
    (:lambda (ch)
      ((:lambda (read-table)
          (mu:cdr (core:assoc ch read-table)))
@@ -50,7 +50,7 @@
 ;;;
 ;;; number reader
 ;;;
-(mu::intern core::ns :intern "read-number"
+(mu:intern core::ns :intern "read-number"
    (:lambda (atom)
      ((:lambda (fx)
         (:if fx
@@ -61,22 +61,22 @@
 ;;;
 ;;; atom reader
 ;;;
-(mu::intern core::ns :intern "read-atom"
+(mu:intern core::ns :intern "read-atom"
    (:lambda (stream)
      (core:errorp-when mu:eofp stream "core::read-atom: unexpected eof")
-     (mu::fix*           
+     (mu:fix*           
       (:lambda (self end atom)
         (:if (core::logical-or (core:fixnump end) (mu:eofp stream))
              atom
              ((:lambda (ch)
                 (:if (mu:eq 'constituent (core::read-char-syntax ch))
-                     (core::prog
+                     (core::prog2
                         (core:write-char ch core::reader-stream)
-                        (env:fp-setv (core::fn-frame-id self) 1 (core:null end)))
+                        (mu:fr-setv (core::fn-frame-id self) 1 (core:null end)))
                      ((:lambda ()
                         (core:unread-char ch stream)
-                        (env:fp-setv (core::fn-frame-id self) 1 0)
-                        (env:fp-setv (core::fn-frame-id self) 2
+                        (mu:fr-setv (core::fn-frame-id self) 1 0)
+                        (mu:fr-setv (core::fn-frame-id self) 2
                                      ((:lambda (value)
                                         ((:lambda (number)
                                            (:if number
@@ -91,7 +91,7 @@
 ;;;
 ;;; parser
 ;;;
-(mu::intern core::ns :intern "read-dispatch"
+(mu:intern core::ns :intern "read-dispatch"
    (:lambda (ch stream)
      (core:unread-char ch stream)
      ((:lambda (dispatch-table)
@@ -107,9 +107,9 @@
 ;;;
 ;;; core reader
 ;;;
-(mu::intern core::ns :intern "read-consume-ws"
+(mu:intern core::ns :intern "read-consume-ws"
    (:lambda (stream)
-     (mu::fix
+     (mu:fix
       (:lambda (loop)
         (:if (core::logical-or (core:streamp loop) (core:charp loop))
              loop
@@ -121,22 +121,24 @@
                           (:if (mu:eq ch #\#)
                                ((:lambda (ch)
                                   (:if (mu:eq ch #\|)
-                                       (core::prog
+                                       (core::prog2
                                           (core::read-sharp-comment ch stream)
                                           (core:null loop))
-                                       (core::prog
+                                       (core::prog2
                                           (core:unread-char ch stream)
                                           #\#)))
                                 (core:read-char stream () ()))
                                (:if (mu:eq ch #\;)
-                                    (core::prog
+                                    (core::prog2
                                        (core::read-line-comment ch stream)
                                        (core:null loop))
                                     ch)))))
               (core:read-char stream () ()))))
       ())))
 
-(mu::intern core::ns :intern "read"
+
+
+(mu:intern core::ns :intern "read"
    (:lambda (stream)
      (core:errorp-unless core:streamp stream ":read: not a stream")
      ((:lambda (read-consume-ws)
@@ -150,7 +152,7 @@
                  (core:get-macro-character ch))))
          (read-consume-ws)))
       (:lambda ()
-        (mu::fix
+        (mu:fix
          (:lambda (loop)
            (:if (core::logical-or (core:streamp loop) (core:charp loop))
                 loop
@@ -162,15 +164,15 @@
                              (:if (mu:eq ch #\#)
                                   ((:lambda (ch)
                                      (:if (mu:eq ch #\|)
-                                          (core::prog
+                                          (core::prog2
                                              (core::read-sharp-comment ch stream)
                                              (core:null loop))
-                                          (core::prog
+                                          (core::prog2
                                              (core:unread-char ch stream)
                                              #\#)))
                                    (core:read-char stream () ()))
                                   (:if (mu:eq ch #\;)
-                                       (core::prog
+                                       (core::prog2
                                           (core::read-line-comment ch stream)
                                           (core:null loop))
                                        ch)))))

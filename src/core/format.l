@@ -4,7 +4,7 @@
 ;;;
 ;;; core format
 ;;;
-(mu::intern core::ns :extern "format"
+(mu:intern core::ns :extern "format"
    (:lambda (stream fmt args)
      (core:errorp-unless core:stringp fmt "core:format: not a string")
      (core:errorp-unless core:listp args "core:format: not a list")
@@ -14,7 +14,7 @@
                    ""
                    ())
               ((:lambda ()
-                 (mu::fix*
+                 (mu:fix*
                   (:lambda (self nth args)
                     (:if (mu:eq nth fmt-len)
                          dest
@@ -22,18 +22,18 @@
                             (:if (mu:eq ch #\~)
                                  ((:lambda ()
                                     (core:error-if (mu:eq (core:1+ nth) fmt-len) nth "core:format: end of string while processing directive")
-                                    (env:fp-setv (core::fn-frame-id self) 2 (fmt-op (core:schar fmt (core:1+ nth)) dest args))
-                                    (env:fp-setv (core::fn-frame-id self) 1 (mu:fixnum+ 2 nth))))
-                                 (core::prog
+                                    (mu:fr-setv (core::fn-frame-id self) 2 (fmt-op (core:schar fmt (core:1+ nth)) dest args))
+                                    (mu:fr-setv (core::fn-frame-id self) 1 (mu:fixnum+ 2 nth))))
+                                 (core::prog2
                                     (core:write-char ch dest)
-                                    (env:fp-setv (core::fn-frame-id self) 1 (core:1+ nth)))))
+                                    (mu:fr-setv (core::fn-frame-id self) 1 (core:1+ nth)))))
                           (core:schar fmt nth))))
                   (core::list2 0 args))
                  (:if (core:null stream)
                       (core:get-output-stream-string dest)
                       ())))))
        (:if (core:null stream)
-            (mu:open :buf :output "")
+            (mu:open :string :output "")
             (:if (mu:eq stream :t)
                  mu:std-out
                  (:if (core:streamp stream)
@@ -42,9 +42,9 @@
        (core:length fmt)
        (:lambda (dir dest args)
          (:if (mu:eq dir #\~)
-              (core::prog (core:write-char #\~ dest) args)
+              (core::prog2 (core:write-char #\~ dest) args)
               (:if (mu:eq dir #\%)
-                   (core::prog (core:terpri dest) args)
+                   (core::prog2 (core:terpri dest) args)
                    (:if (mu:eq dir #\D)
                         ((:lambda ()
                            (core:errorp-unless core:fixnump (mu:car args) "format: argument to ~D not a fixnum")
@@ -74,7 +74,7 @@
                                 (mu:cdr args))
                               (mu:car args))
                              (:if (mu:eq dir #\A)
-                                  (core::prog (core:write (mu:car args) dest ()) (mu:cdr args))
+                                  (core::prog2 (core:write (mu:car args) dest ()) (mu:cdr args))
                                   (:if (mu:eq dir #\S)
-                                       (core::prog (core:write (mu:car args) dest :t) (mu:cdr args))
+                                       (core::prog2 (core:write (mu:car args) dest :t) (mu:cdr args))
                                        (core:error dir "core:format: unrecognized format directive")))))))))))

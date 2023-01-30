@@ -9,16 +9,18 @@
 
 (mu:eval (core:compile '(defconst preface::require-path "/opt/dyad/lib")))
 
-(core:in-namespace (mu:ns "user" (env:find-ns "preface")))
+(core:in-namespace (mu:ns "user" (mu:map-ns "preface")))
 
+#|
 (:if (core:zerop (system:system "stat ~/.dyad > /dev/null 2>&1"))
      (core:load "~/.dyad" () ())
      ())
 
 (core:mapc
  (:lambda (fn) (core:load fn :t ()))
- (mu:read (mu:open :buf :input (system:getenv "DYAD_LOAD_LIST"))))
+ (mu:read (mu:open :string :input (system:getenv "DYAD_LOAD_LIST"))))
+|#
 
-(mu::intern (env:find-ns "preface") :intern "dyad-version" "0.0.1")
+(mu:intern (map:find-ns "preface") :intern "dyad-version" "0.0.1")
 
 (preface:repl (env:find-ns "user"))

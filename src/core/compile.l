@@ -18,7 +18,7 @@
 ;;;
 ;;; returns: augmented list of lambda descriptors
 ;;;
-(mu::intern core::ns :intern "compile-add-env"
+(mu:intern core::ns :intern "compile-add-env"
   (:lambda (lambda-desc env)
      (core:errorp-unless core:vectorp lambda-desc "compile-add-env: not a lambda descriptor")
      (core:errorp-unless core:listp env "compile-add-env: not a list") 
@@ -44,14 +44,14 @@
 ;;;
 ;;; returns: mu form
 ;;;
-(mu::intern core::ns :intern "quote" (:lambda (form env) form))
+(mu:intern core::ns :intern "quote" (:lambda (form env) form))
 
-(mu::intern core::ns :intern "lambda"
+(mu:intern core::ns :intern "lambda"
     (:lambda (form env)
       (core:error-if (mu:fixnum< (mu:length form) 2) form "lambda: malformed lambda expression")
       (core::compile-lambda (core::list2 (mu:nth 1 form) (mu:nthcdr 2 form)) env)))
 
-(mu::intern core::ns :intern "defconst"
+(mu:intern core::ns :intern "defconst"
    (:lambda (form env)
      ((:lambda (symbol value)
         (core:errorp-unless core:symbolp symbol "core::defconst: not a symbol")
@@ -65,7 +65,7 @@
       (mu:nth 1 form)
       (mu:nth 2 form))))
 
-(mu::intern core::ns :intern "defmacro"
+(mu:intern core::ns :intern "defmacro"
     (:lambda (form env)
       ((:lambda (symbol lambda)
          (core:errorp-unless core:symbolp symbol "core::defmacro: not a symbol")
@@ -80,7 +80,7 @@
        (mu:nth 1 form)
        (mu:nthcdr 2 form))))
 
-(mu::intern core::ns :intern "defun"
+(mu:intern core::ns :intern "defun"
    (:lambda (form env)
       ((:lambda (symbol lambda)
          (core:errorp-unless core:symbolp symbol "core::defun: not a symbol")
@@ -93,7 +93,7 @@
 ;;;
 ;;; this if form can take two or three arguments
 ;;;
-(mu::intern core::ns :intern "if"
+(mu:intern core::ns :intern "if"
    (:lambda (form env)
       (core:errorp-unless core:listp env "core::if: not an environment")
       (core:errorp-unless (:lambda (form) (mu:fixnum< 2 (mu:length form))) form "core:if: takes two or three arguments")
@@ -117,7 +117,7 @@
                  (core::funcall false-fn ()))))
         env)))
 
-(mu::intern core::ns :intern "special-table"
+(mu:intern core::ns :intern "special-table"
    (:lambda (symbol)
       (mu:cdr (core:assoc
         symbol
@@ -131,16 +131,16 @@
 ;;;
 ;;; compile
 ;;;
-(mu::intern core::ns :intern "compile-list"
+(mu:intern core::ns :intern "compile-list"
    (:lambda (list env)
      (core:mapcar (:lambda (elt) (core::compile elt env)) list)))
 
-(mu::intern core::ns :intern "compile"
+(mu:intern core::ns :intern "compile"
     (:lambda (form env)
       (core:errorp-unless core:listp env "compile: env not a list")
       (:if (core:consp form)
           ((:lambda (fn args)
-             (:if (mu:keysymp fn)
+             (:if (mu:keyp fn)
                   (mu::compile form)    ;;; libmu special form (:key ...)
                   (:if (core:consp fn)  ;;; application ((...) ...), native or core
 ;;;                       (core::compile-list form env)
@@ -156,6 +156,6 @@
                (core::compile-symbol form env)
                (mu::compile form)))))
 
-(mu::intern core::ns :extern "compile"
+(mu:intern core::ns :extern "compile"
    (:lambda (form)
      (core::compile form ())))
