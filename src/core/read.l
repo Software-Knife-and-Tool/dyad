@@ -63,10 +63,10 @@
 ;;;
 (mu:intern core::ns :intern "read-atom"
    (:lambda (stream)
-     (core:errorp-when mu:eofp stream "core::read-atom: unexpected eof")
+     (core:errorp-when mu:eof stream "core::read-atom: unexpected eof")
      (mu:fix*           
       (:lambda (self end atom)
-        (:if (core::logical-or (core:fixnump end) (mu:eofp stream))
+        (:if (core::logical-or (core:fixnump end) (mu:eof stream))
              atom
              ((:lambda (ch)
                 (:if (mu:eq 'constituent (core::read-char-syntax ch))
@@ -95,7 +95,7 @@
    (:lambda (ch stream)
      (core:unread-char ch stream)
      ((:lambda (dispatch-table)
-        (mu:funcall
+        (mu:apply
          (mu:sy-val (mu:cdr (core:assoc (core::read-char-syntax ch) dispatch-table)))
          (core::list stream)))
       '((constituent . core::read-atom)
@@ -114,7 +114,7 @@
         (:if (core::logical-or (core:streamp loop) (core:charp loop))
              loop
              ((:lambda (ch)
-                (:if (mu:eofp stream)
+                (:if (mu:eof stream)
                      stream
                      (:if (mu:eq 'wspace (core::read-char-syntax ch))
                           (core:null loop)
@@ -143,11 +143,11 @@
      (core:errorp-unless core:streamp stream ":read: not a stream")
      ((:lambda (read-consume-ws)
         ((:lambda (ch)
-           (:if (mu:eofp stream)
+           (:if (mu:eof stream)
                 ()
                 ((:lambda (macro)
                    (:if macro
-                        (core::funcall (mu:car macro) (core::list2 stream ch))
+                        (core::apply (mu:car macro) (core::list2 stream ch))
                         (core::read-dispatch ch stream)))
                  (core:get-macro-character ch))))
          (read-consume-ws)))
@@ -157,7 +157,7 @@
            (:if (core::logical-or (core:streamp loop) (core:charp loop))
                 loop
                 ((:lambda (ch)
-                   (:if (mu:eofp stream)
+                   (:if (mu:eof stream)
                         stream
                         (:if (mu:eq 'wspace (core::read-char-syntax ch))
                              (core:null loop)

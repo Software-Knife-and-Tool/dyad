@@ -3,7 +3,7 @@ from datetime import datetime
 
 labels = [
     "mu:",
-#    "core:",
+    "core:",
 #    "preface:",
 ]
 

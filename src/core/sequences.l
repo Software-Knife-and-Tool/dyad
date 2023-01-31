@@ -26,7 +26,7 @@
    (:lambda (fn init seq)
       (core:errorp-unless core:functionp fn "core:foldl: not a function")
       (core:errorp-unless core:sequencep seq "core:foldl: not a sequence")
-      (:if (core::fn-funcallp fn)
+      (:if (core::fn-applyp fn)
            (:if (core:listp seq)
                 (mu:fix*
                  (:lambda (self fn acc list)
@@ -34,7 +34,7 @@
                         acc
                         (core::prog2
                            (mu:fr-setv (core::fn-frame-id self) 2
-                                        (core::funcall fn (core:list2 (mu:car list) acc)))
+                                        (core::apply fn (core:list2 (mu:car list) acc)))
                            (mu:fr-setv (core::fn-frame-id self) 3 (mu:cdr list)))))
                  (core::list3 fn init seq))
                 (mu:fix*
@@ -43,7 +43,7 @@
                         acc
                         (core:prog
                            (mu:fr-setv (core::fn-frame-id self) 2
-                                        (core::funcall fn (core::list2 (mu:sv-ref vec nth) acc)))
+                                        (core::apply fn (core::list2 (mu:sv-ref vec nth) acc)))
                            (mu:fr-setv (core::fn-frame-id self) 3 (core:1+ nth)))))
                  (mu:cons fn (core::list3 init 0 seq))))
            (:if (core:listp seq)
@@ -68,17 +68,17 @@
    (:lambda (fn init seq)
      (core:errorp-unless core:functionp fn "core:foldr not a function")
      (core:errorp-unless core:sequencep seq "core:foldr not a sequence")
-     (:if (core::fn-funcallp fn)
+     (:if (core::fn-applyp fn)
           (:if (core:listp seq)
                ((:lambda (fold) (fold fold seq))
                 (:lambda (fold seq)
                   (:if (core:null seq)
                        init
-                       (core::funcall fn (core::list2 (mu:car seq) (fold fold (mu:cdr seq)))))))
+                       (core::apply fn (core::list2 (mu:car seq) (fold fold (mu:cdr seq)))))))
                ((:lambda (fold) (fold fold init (core:1- (mu:sv-len seq))))
                 (:lambda (fold acc index)
                   (:if (mu:fixnum< -1 index)
-                       (fold fold (core::funcall fn (core::list2 (mu:sv-ref seq index) acc)) (core:1- index))
+                       (fold fold (core::apply fn (core::list2 (mu:sv-ref seq index) acc)) (core:1- index))
                        acc))))
           (:if (core:listp seq)
                ((:lambda (fold) (fold fold seq))
@@ -99,10 +99,10 @@
    (:lambda (fn seq)
      (core:errorp-unless core:functionp fn "core:findl-if: not a function")
      (core:errorp-unless core:sequencep seq "core:findl-if: not a sequence")
-     (:if (core::fn-funcallp fn)
+     (:if (core::fn-applyp fn)
       (core:foldl
        (:lambda (el acc)
-         (:if (core::funcall fn (core::list el)) el acc))
+         (:if (core::apply fn (core::list el)) el acc))
        ()
        seq)
       (core:foldl
@@ -114,10 +114,10 @@
    (:lambda (fn list)
      (core:errorp-unless core:functionp fn "core:findr-if not a function")
      (core:errorp-unless core:sequencep list "core:findr-if not a sequence")
-     (:if (core::fn-funcallp fn)
+     (:if (core::fn-applyp fn)
           (core:foldr
            (:lambda (el acc)
-             (:if (core::funcall fn (core::list el)) el acc))
+             (:if (core::apply fn (core::list el)) el acc))
            ()
            list)
           (core:foldr
@@ -132,7 +132,7 @@
    (:lambda (fn item seq)
      (core:errorp-unless core:functionp fn "core:positionl: not a function")
      (core:errorp-unless core:sequencep seq "core:positionl: not a sequence")
-     (:if (core::fn-funcallp fn)
+     (:if (core::fn-applyp fn)
           (:if (core:listp seq)
                (:if (core:null seq)
                     ()
@@ -144,7 +144,7 @@
                       (:lambda (list)
                         (:if (core:null list)
                              ()
-                             (:if (core::funcall fn (mu:cons item (mu:cons (mu:car list) 0)))
+                             (:if (core::apply fn (mu:cons item (mu:cons (mu:car list) 0)))
                                   list
                                   (mu:cdr list))))
                       seq)))
@@ -159,7 +159,7 @@
                         (:if (core:null nth)
                              ()
                              (:if (mu:fixnum< nth (mu:sv-len seq))
-                                  (:if (core::funcall fn (core::list2 item (mu:sv-ref seq nth)))
+                                  (:if (core::apply fn (core::list2 item (mu:sv-ref seq nth)))
                                        nth
                                        (core:1+ nth))
                                   ())))
@@ -200,7 +200,7 @@
    (:lambda (fn item seq)
      (core:errorp-unless core:functionp fn "core:positionr: not a function")           
      (core:errorp-unless core:sequencep seq "core:positionr: not a sequence")
-     (:if (core::fn-funcallp fn)
+     (:if (core::fn-applyp fn)
           (:if (core:listp seq)
                (:if (core:null seq)
                     ()
@@ -214,7 +214,7 @@
                              nth
                              (:if (mu:fixnum< nth 0)
                                   ()
-                                  (:if (core::funcall fn (core::list2 item (mu:nth nth seq)))
+                                  (:if (core::apply fn (core::list2 item (mu:nth nth seq)))
                                        (mu:nthcdr nth seq)
                                        (core:1- nth)))))
                       (core:1- (mu:length seq)))))
@@ -226,7 +226,7 @@
                             nth
                             (:if (mu:fixnum< nth 0)
                                  ()
-                                 (:if (core::funcall fn (core::list2 item (mu:sv-ref seq nth)))
+                                 (:if (core::apply fn (core::list2 item (mu:sv-ref seq nth)))
                                       nth
                                       (core:1- nth)))))
                      (core:1- (mu:sv-len seq)))))

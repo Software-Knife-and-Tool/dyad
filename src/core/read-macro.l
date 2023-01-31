@@ -24,11 +24,11 @@
                          (:if (mu:eq ch #\#)
                               stream
                               (core:null loop)))
-                       (:if (mu:eofp stream)
+                       (:if (mu:eof stream)
                             (core:error stream "core::read-sharp-comment: unexpected end of file")
                             (core:read-char stream () ())))
                       (core:null loop)))
-               (:if (mu:eofp stream)
+               (:if (mu:eof stream)
                     (core:error stream "core::read-sharp-comment: unexpected end of file")
                     (core:read-char stream () ())))))
        ())))
@@ -51,7 +51,7 @@
    (:lambda (base stream)
      (mu:fix           
       (:lambda (loop)
-        (:if (core::logical-or (mu:eofp stream) (core:numberp loop))
+        (:if (core::logical-or (mu:eof stream) (core:numberp loop))
              loop
              ((:lambda (ch)
                 ((:lambda (syntax-type)
@@ -75,7 +75,7 @@
 (mu:intern core::ns :intern "read-sharp"
    (:lambda (ch stream)
       ((:lambda (ch sharp-table)
-          (mu:funcall
+          (mu:apply
             (mu:sy-val (mu:cdr (core:assoc ch sharp-table)))
             (core::list2 ch stream)))
        (core:read-char stream () ())
@@ -190,7 +190,7 @@
 (mu:intern core::ns :intern "read-macro"
    (:lambda (stream)
       ((:lambda (ch macro-table)
-          (mu:funcall
+          (mu:apply
             (mu:sy-val (mu:cdr (core:assoc ch macro-table)))
             (core::list2 ch stream)))
        (core:read-char stream () ())

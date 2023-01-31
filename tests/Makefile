@@ -38,7 +38,7 @@ report:
 
 summary:
 	@make tests > tests.out
-	@python3 summary.py tests.out
+	@python3 summary.py tests.out | sort | uniq
 	@rm -f tests.out
 
 clean:

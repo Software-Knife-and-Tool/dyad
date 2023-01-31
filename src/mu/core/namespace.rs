@@ -41,10 +41,11 @@ lazy_static! {
         ("exit", Scope::Intern, 1, Mu::mu_exit),
         ("fix", Scope::Extern, 2, Mu::mu_fix),
         ("fix*", Scope::Extern, 2, Mu::mu_fix_env),
-        ("funcall", Scope::Extern, 2, Mu::mu_funcall),
+        ("apply", Scope::Extern, 2, Mu::mu_apply),
         ("tag-of", Scope::Extern, 1, Mu::mu_tag_of),
         ("view", Scope::Extern, 1, Mu::mu_view),
         // exceptions
+        ("with-ex", Scope::Extern, 2, Exception::mu_with_ex),
         ("raise", Scope::Extern, 2, Exception::mu_raise),
         // frames
         ("context", Scope::Intern, 0, Frame::mu_context),
