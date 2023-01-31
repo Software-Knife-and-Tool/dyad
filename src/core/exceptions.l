@@ -78,7 +78,7 @@
      (core:write " " mu:err-out ())
      (core:write obj mu:err-out :t)
      (core:terpri mu:err-out)
-     (mu:raise (mu:except :co-err :error :cond obj))))
+     (mu:raise :error obj)))
 
 (mu:intern core::ns :extern "error-if"
    (:lambda (test obj msg)
@@ -89,7 +89,7 @@
              (core:write " " mu:err-out ())
              (core:write obj mu:err-out :t)
              (core:terpri mu:err-out)
-             (mu:raise (mu:except :co-err :error :cond obj))))
+             (mu:raise :error obj)))
           obj)))
 
 (mu:intern core::ns :extern "errorp-when"
@@ -101,12 +101,12 @@
              (core:write " " mu:err-out ())
              (core:write obj mu:err-out :t)
              (core:terpri mu:err-out)
-             (mu:raise (mu:except :co-err :error :cond obj))))
+             (mu:raise :error obj)))
           obj)))
 
 (mu:intern core::ns :extern "errorp-unless"
    (:lambda (fnp obj msg)
-     (:if (mu:funcall fnp (core::list obj))
+     (:if (mu:apply fnp (core::list obj))
           obj
           ((:lambda ()
              (core:write "error: " mu:err-out ())
@@ -114,7 +114,7 @@
              (core:write " " mu:err-out ())
              (core:write obj mu:err-out :t)
              (core:terpri mu:err-out)
-             (mu:raise (mu:except :co-err :error :cond obj)))))))
+             (mu:raise :error obj))))))
 
 (mu:intern core::ns :extern "warn"
    (:lambda (obj msg)

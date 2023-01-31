@@ -34,7 +34,7 @@
              ()))
       (mu::fn-int :form fn))))
 
-(mu:intern core::ns :intern "fn-funcallp"
+(mu:intern core::ns :intern "fn-applyp"
    (:lambda (fn)
      ((:lambda (desc)
         (:if desc
@@ -151,7 +151,7 @@
      (core::quoted-lambda-arg-list fn (core::compile-list args env))))
 
 ;;;
-;;; core funcall
+;;; core apply
 ;;;
 (mu:intern core::ns :intern "enter-env"
    (:lambda (fn)
@@ -174,24 +174,24 @@
              ()))
       (core::fn-lambda-desc fn))))
 
-(mu:intern core::ns :intern "funcall"
+(mu:intern core::ns :intern "apply"
    (:lambda (fn args)
      (core::enter-env fn)
      (core::prog1
        (:if (core::fn-restp fn)
-           (mu:funcall fn (core::quoted-lambda-arg-list fn args))
-           (mu:funcall fn args))
+           (mu:apply fn (core::quoted-lambda-arg-list fn args))
+           (mu:apply fn args))
        (core::exit-env fn))))
 
-(mu:intern core::ns :extern "funcall"
+(mu:intern core::ns :extern "apply"
    (:lambda (fn args)
-     (core:errorp-unless core:functionp fn "core:funcall: not a function")
-     (core:errorp-unless core:listp args "core:funcall: not a list")
+     (core:errorp-unless core:functionp fn "core:apply: not a function")
+     (core:errorp-unless core:listp args "core:apply: not a list")
      (core::enter-env fn)
      (core::prog1
          (:if (core::fn-restp fn)
-              (mu:funcall fn (core::lambda-arg-list fn args))
-              (mu:funcall fn args))
+              (mu:apply fn (core::lambda-arg-list fn args))
+              (mu:apply fn args))
        (core::exit-env fn))))
 
 ;;;
@@ -220,12 +220,12 @@
         ((:lambda (fn)
            (core:errorp-unless core:functionp fn "compile-function-application: lambda is not a function designator")
            (:if (core::fn-lambda-desc fn)
-                (core::list3 core::funcall fn (core::compile-flat-arg-list args env))
+                (core::list3 core::apply fn (core::compile-flat-arg-list args env))
                 (mu:cons fn (core::compile-quoted-lambda-arg-list fn args env))))
          (core::compile form env)))
       (:lambda (fn)        ;;; function call
         (:if (core::fn-lambda-desc fn)
-             (core::list3 core::funcall fn (core::compile-flat-arg-list args env))
+             (core::list3 core::apply fn (core::compile-flat-arg-list args env))
              (mu:cons fn (core::compile-quoted-lambda-arg-list fn args env))))
       (:lambda (macro-symbol)  ;;; macro call
         (core::compile
@@ -235,7 +235,7 @@
         (:if (core:boundp symbol)
              ((:lambda (fn)
                 (:if (core::fn-lambda-desc fn)
-                     (core::list3 core::funcall fn (core::compile-flat-arg-list args env))
+                     (core::list3 core::apply fn (core::compile-flat-arg-list args env))
                      (mu:cons fn (core::compile-quoted-lambda-arg-list fn args env))))
               (core:symbol-value (core::compile symbol env)))
-             (core::list3 core::funcall (core::compile symbol env) (core::compile-flat-arg-list args env)))))))
+             (core::list3 core::apply (core::compile symbol env) (core::compile-flat-arg-list args env)))))))

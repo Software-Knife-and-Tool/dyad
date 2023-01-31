@@ -72,10 +72,10 @@ pub struct Mu {
 }
 
 pub trait Core {
-    const VERSION: &'static str = "0.0.5";
+    const VERSION: &'static str = "0.0.6";
 
     fn new(config: String) -> Self;
-    fn funcall(&self, _: Tag, _: Tag) -> exception::Result<Tag>;
+    fn apply(&self, _: Tag, _: Tag) -> exception::Result<Tag>;
     fn eof(&self, _: Tag) -> bool;
     fn eval(&self, _: Tag) -> exception::Result<Tag>;
     fn eq(&self, _: Tag, _: Tag) -> bool;
@@ -143,7 +143,7 @@ impl Core for Mu {
         Tag::nil()
     }
 
-    fn funcall(&self, func: Tag, args: Tag) -> exception::Result<Tag> {
+    fn apply(&self, func: Tag, args: Tag) -> exception::Result<Tag> {
         let value = Tag::nil();
         let mut argv = Vec::new();
 
@@ -176,20 +176,18 @@ impl Core for Mu {
                         } else {
                             let fnc = Symbol::value_of(self, func);
                             match Tag::class_of(self, fnc) {
-                                Class::Function => self.funcall(fnc, args),
-                                _ => {
-                                    Err(Except::raise(self, Condition::Type, "eval::funcall", func))
-                                }
+                                Class::Function => self.apply(fnc, args),
+                                _ => Err(Except::raise(self, Condition::Type, "core::eval", func)),
                             }
                         }
                     }
-                    Class::Function => self.funcall(func, args),
-                    _ => Err(Except::raise(self, Condition::Type, "eval::funcall", func)),
+                    Class::Function => self.apply(func, args),
+                    _ => Err(Except::raise(self, Condition::Type, "core::eval", func)),
                 }
             }
             Class::Symbol => {
                 if Symbol::is_unbound(self, expr) {
-                    Err(Except::raise(self, Condition::Unbound, "symbol", expr))
+                    Err(Except::raise(self, Condition::Unbound, "core:eval", expr))
                 } else {
                     Ok(Symbol::value_of(self, expr))
                 }

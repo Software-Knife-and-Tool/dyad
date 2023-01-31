@@ -27,7 +27,7 @@ pub trait MuFunction {
     fn mu_compile(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_eval(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_exit(_: &Mu, _: &mut Frame) -> exception::Result<()>;
-    fn mu_funcall(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+    fn mu_apply(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_if(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_write(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_view(_: &Mu, _: &mut Frame) -> exception::Result<()>;
@@ -55,19 +55,19 @@ impl MuFunction for Mu {
         Ok(())
     }
 
-    fn mu_funcall(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+    fn mu_apply(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let func = fp.argv[0];
         let args = fp.argv[1];
 
         fp.value = match Tag::class_of(mu, func) {
             Class::Function => match Tag::class_of(mu, args) {
-                Class::Null | Class::Cons => match mu.funcall(func, args) {
+                Class::Null | Class::Cons => match mu.apply(func, args) {
                     Ok(tag) => tag,
                     Err(e) => return Err(e),
                 },
-                _ => return Err(Except::raise(mu, Condition::Type, "mu:funcall", args)),
+                _ => return Err(Except::raise(mu, Condition::Type, "mu:apply", args)),
             },
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:funcall", func)),
+            _ => return Err(Except::raise(mu, Condition::Type, "mu:apply", func)),
         };
 
         Ok(())
@@ -97,7 +97,7 @@ impl MuFunction for Mu {
         fp.value = match Tag::class_of(mu, true_fn) {
             Class::Function => match Tag::class_of(mu, false_fn) {
                 Class::Function => {
-                    match mu.funcall(if test.null_() { false_fn } else { true_fn }, Tag::nil()) {
+                    match mu.apply(if test.null_() { false_fn } else { true_fn }, Tag::nil()) {
                         Ok(tag) => tag,
                         Err(e) => return Err(e),
                     }

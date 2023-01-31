@@ -14,7 +14,7 @@ assert_eq "(mu:eq :func (mu:type-of core::symbol-frame))" ":t"
 assert_eq "(mu:eq :func (mu:type-of core:compile))" ":t"
 # special forms if, defconst
 assert_eq "(core:compile '(defconst foo ()))" "(:quote foo)"
-assert_eq "(mu:funcall (core:compile '(lambda () (defconst core:foo 'foo) core:foo)) ())" "foo"
+assert_eq "(mu:apply (core:compile '(lambda () (defconst core:foo 'foo) core:foo)) ())" "foo"
 assert_eq "(mu:eval (core:compile '(if :t :t ())))" ":t"
 assert_eq "(mu:eval (core:compile '(if () () :t)))" ":t"
 assert_eq "(mu:eval (core:compile '(if :t () :t)))" ":nil"

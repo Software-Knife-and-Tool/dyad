@@ -34,7 +34,7 @@
 
 (mu:intern core::ns :extern "eofp"
    (:lambda (designator)
-      (mu:eofp (core::read-stream-designator designator))))
+      (mu:eof (core::read-stream-designator designator))))
 
 (mu:intern core::ns :extern "open-file"
    (:lambda (dir path)
@@ -60,7 +60,7 @@
 (mu:intern core::ns :extern "read-char"
    (:lambda (designator error-eofp eof-value)
      ((:lambda (stream)
-        (:if (mu:eofp stream)
+        (:if (mu:eof stream)
              (:if error-eofp
                   (core:error stream "core:read-char: end of file")
                   eof-value)
@@ -74,7 +74,7 @@
 (mu:intern core::ns :extern "read-byte"
    (:lambda (designator error-eofp eof-value)
      ((:lambda (stream)
-        (:if (mu:eofp stream)
+        (:if (mu:eof stream)
              (:if error-eofp
                   (core:error stream "core:read-byte: end of file")
                   eof-value)
@@ -95,7 +95,7 @@
 (mu:intern core::ns :extern "read"
    (:lambda (designator eof-error eof-value)
      ((:lambda (stream)
-        (:if (mu:eofp stream)
+        (:if (mu:eof stream)
              (:if eof-error
                   (core::prog2
                      (core:error stream "core:read: unexpected end of file")

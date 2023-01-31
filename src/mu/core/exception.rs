@@ -124,11 +124,29 @@ fn map_condition(mu: &Mu, keyword: Tag) -> Result<Condition> {
 }
 
 pub trait MuFunction {
+    fn mu_with_ex(mu: &Mu, fp: &mut Frame) -> Result<()>;
     fn mu_raise(mu: &Mu, fp: &mut Frame) -> Result<()>;
 }
 
 impl MuFunction for Exception {
     fn mu_raise(mu: &Mu, fp: &mut Frame) -> Result<()> {
+        let condition = fp.argv[0];
+        let src = fp.argv[1];
+
+        fp.value = src;
+        match Tag::class_of(mu, condition) {
+            Class::Keyword => match map_condition(mu, condition) {
+                Ok(cond) => {
+                    Exception::raise(mu, cond, "mu:raise", src);
+                    Ok(())
+                }
+                Err(_) => Err(Except::raise(mu, Condition::Type, "mu:raise", condition)),
+            },
+            _ => Err(Except::raise(mu, Condition::Type, "mu:raise", condition)),
+        }
+    }
+
+    fn mu_with_ex(mu: &Mu, fp: &mut Frame) -> Result<()> {
         let condition = fp.argv[0];
         let src = fp.argv[1];
 
