@@ -9,7 +9,10 @@
 //!    raise
 use {
     crate::{
-        classes::symbol::{Core as _, Symbol},
+        classes::{
+            cons::{Cons, Core as _},
+            symbol::{Core as _, Symbol},
+        },
         core::{
             classes::{Class, Tag},
             frame::Frame,
@@ -147,20 +150,31 @@ impl MuFunction for Exception {
     }
 
     fn mu_with_ex(mu: &Mu, fp: &mut Frame) -> Result<()> {
-        let condition = fp.argv[0];
-        let src = fp.argv[1];
+        let handler = fp.argv[0];
+        let thunk = fp.argv[1];
 
-        fp.value = src;
-        match Tag::class_of(mu, condition) {
-            Class::Keyword => match map_condition(mu, condition) {
-                Ok(cond) => {
-                    Exception::raise(mu, cond, "mu:raise", src);
-                    Ok(())
-                }
-                Err(_) => Err(Except::raise(mu, Condition::Type, "mu:raise", condition)),
+        fp.value = match Tag::class_of(mu, thunk) {
+            Class::Function => match Tag::class_of(mu, handler) {
+                Class::Function => match mu.apply(thunk, Tag::nil()) {
+                    Ok(v) => v,
+                    Err(e) => match mu.apply(
+                        handler,
+                        Cons::new(
+                            Symbol::keyword("error"),
+                            Cons::new(e.tag, Tag::nil()).evict(mu),
+                        )
+                        .evict(mu),
+                    ) {
+                        Ok(v) => v,
+                        Err(e) => return Err(e),
+                    },
+                },
+                _ => return Err(Except::raise(mu, Condition::Type, "mu:with-ex", handler)),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:raise", condition)),
-        }
+            _ => return Err(Except::raise(mu, Condition::Type, "mu:with-ex", thunk)),
+        };
+
+        Ok(())
     }
 }
 
