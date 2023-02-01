@@ -39,6 +39,7 @@ pub trait Read {
     fn read(_: &Mu, _: Tag, _: bool, _: Tag, _: bool) -> exception::Result<Tag>;
     fn read_atom(_: &Mu, _: char, _: Tag) -> exception::Result<Tag>;
     fn read_block_comment(_: &Mu, _: Tag) -> exception::Result<Option<()>>;
+    fn read_char_literal(_: &Mu, _: Tag) -> exception::Result<Option<Tag>>;
     fn read_comment(_: &Mu, _: Tag) -> exception::Result<Option<()>>;
     fn read_ws(_: &Mu, _: Tag) -> exception::Result<Option<()>>;
     fn sharp_macro(_: &Mu, _: Tag) -> exception::Result<Option<Tag>>;
@@ -76,7 +77,7 @@ impl Read for Mu {
         Ok(Some(()))
     }
 
-    // read comment til end of line:
+    // read comment till end of line:
     //
     //     return Err exception for stream error
     //     return Ok(Some(())) for comment consumed
@@ -300,6 +301,72 @@ impl Read for Mu {
         }
     }
 
+    // read_char_literal returns:
+    //
+    //     Err exception if I/O problem or syntax error
+    //     Ok(tag) if the read succeeded,00
+    //
+    fn read_char_literal(mu: &Mu, stream: Tag) -> exception::Result<Option<Tag>> {
+        match Stream::read_char(mu, stream) {
+            Ok(Some(ch)) => match Stream::read_char(mu, stream) {
+                Ok(Some(ch_)) => match map_char_syntax(ch_) {
+                    Some(stype) => match stype {
+                        SyntaxType::Constituent => {
+                            Stream::unread_char(mu, stream, ch_).unwrap();
+                            match Self::read_token(mu, stream) {
+                                Ok(Some(str)) => {
+                                    let phrase = ch.to_string() + &str;
+                                    match phrase.as_str() {
+                                        "tab" => Ok(Some(Char::as_tag('\t'))),
+                                        "linefeed" => Ok(Some(Char::as_tag('\n'))),
+                                        "space" => Ok(Some(Char::as_tag(' '))),
+                                        "page" => Ok(Some(Char::as_tag('\x0c'))),
+                                        "return" => Ok(Some(Char::as_tag('\r'))),
+                                        _ => {
+                                            println!("erad_char_literal: {str}");
+                                            Err(Except::raise(
+                                                mu,
+                                                Condition::Range,
+                                                "read::read_char_literal",
+                                                stream,
+                                            ))
+                                        }
+                                    }
+                                }
+                                Ok(None) => Err(Except::raise(
+                                    mu,
+                                    Condition::Eof,
+                                    "read::read_char_literal",
+                                    stream,
+                                )),
+                                Err(e) => Err(e),
+                            }
+                        }
+                        _ => {
+                            Stream::unread_char(mu, stream, ch_).unwrap();
+                            Ok(Some(Char::as_tag(ch)))
+                        }
+                    },
+                    None => Err(Except::raise(
+                        mu,
+                        Condition::Syntax,
+                        "read::read_char_literal",
+                        stream,
+                    )),
+                },
+                Ok(None) => Ok(Some(Char::as_tag(ch))),
+                Err(e) => Err(e),
+            },
+            Ok(None) => Err(Except::raise(
+                mu,
+                Condition::Eof,
+                "read::read_char_literal",
+                stream,
+            )),
+            Err(e) => Err(e),
+        }
+    }
+
     // sharp_macro returns:
     //
     //     Err exception if I/O problem or syntax error
@@ -333,16 +400,7 @@ impl Read for Mu {
                     Ok(_) => Ok(None),
                     Err(e) => Err(e),
                 },
-                '\\' => match Stream::read_char(mu, stream) {
-                    Ok(Some(ch)) => Ok(Some(Char::as_tag(ch))),
-                    Ok(None) => Err(Except::raise(
-                        mu,
-                        Condition::Eof,
-                        "read::sharp_macro",
-                        stream,
-                    )),
-                    Err(e) => Err(e),
-                },
+                '\\' => Self::read_char_literal(mu, stream),
                 '(' => match Vector::read(mu, '(', stream) {
                     Ok(vec) => Ok(Some(vec)),
                     Err(e) => Err(e),

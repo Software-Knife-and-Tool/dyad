@@ -45,11 +45,25 @@ impl Core for Char {
                 Ok(_) => (),
                 Err(e) => return Err(e),
             }
-        }
 
-        match Stream::write_char(mu, stream, ch as char) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
+            let phrase = match ch {
+                0x20 => "space".to_string(),
+                0x9 => "tab".to_string(),
+                0xa => "linefeed".to_string(),
+                0xc => "page".to_string(),
+                0xd => "return".to_string(),
+                _ => (ch as char).to_string(),
+            };
+
+            match mu.write_string(phrase, stream) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e),
+            }
+        } else {
+            match Stream::write_char(mu, stream, ch as char) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e),
+            }
         }
     }
 
