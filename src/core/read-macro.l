@@ -178,7 +178,7 @@
          (:if (core:streamp loop)
               loop
               ((:lambda (ch)
-                 (:if (mu:eq ch (mu:coerce #xa :char))
+                 (:if (mu:eq ch #\linefeed)
                       stream
                       (core:null loop)))
                (core:read-char stream () ()))))

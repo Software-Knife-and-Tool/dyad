@@ -11,10 +11,11 @@
 ;;; readtable
 ;;;
 (mu:intern core::ns :intern "read-whitespace"
-    (mu:cons (mu:cons (mu:coerce #xa :char) :wspace)
-      (mu:cons (mu:cons (mu:coerce #xd :char) :wspace)
-        (mu:cons (mu:cons (mu:coerce #xc :char) :wspace)
-          (core::list (mu:cons (mu:coerce #x20 :char) :wspace))))))
+    (mu:cons (mu:cons #\linefeed :wspace)
+      (mu:cons (mu:cons #\return :wspace)
+        (mu:cons (mu:cons #\page :wspace)
+          (mu:cons (mu:cons #\tab :wspace)
+            (core::list (mu:cons #\space :wspace)))))))
 
 (mu:intern core::ns :intern "read-char-syntax"
    (:lambda (ch)
