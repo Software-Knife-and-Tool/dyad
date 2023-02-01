@@ -11,10 +11,10 @@
 ;;; readtable
 ;;;
 (mu:intern core::ns :intern "read-whitespace"
-    (mu:cons (mu:cons (mu:coerce #xa :char) 'wspace)
-      (mu:cons (mu:cons (mu:coerce #xd :char) 'wspace)
-        (mu:cons (mu:cons (mu:coerce #xc :char) 'wspace)
-          (core::list (mu:cons (mu:coerce #x20 :char) 'wspace))))))
+    (mu:cons (mu:cons (mu:coerce #xa :char) :wspace)
+      (mu:cons (mu:cons (mu:coerce #xd :char) :wspace)
+        (mu:cons (mu:cons (mu:coerce #xc :char) :wspace)
+          (core::list (mu:cons (mu:coerce #x20 :char) :wspace))))))
 
 (mu:intern core::ns :intern "read-char-syntax"
    (:lambda (ch)
@@ -22,30 +22,30 @@
          (mu:cdr (core:assoc ch read-table)))
       (core::append
        core::read-whitespace
-       '((#\0 . constituent)  (#\1 . constituent)  (#\2 . constituent)  (#\3 . constituent)
-         (#\4 . constituent)  (#\5 . constituent)  (#\6 . constituent)  (#\7 . constituent)
-         (#\8 . constituent)  (#\9 . constituent)  (#\: . constituent)  (#\< . constituent)
-         (#\> . constituent)  (#\= . constituent)  (#\? . constituent)  (#\! . constituent)
-         (#\@ . constituent)  (#\; . tmacro)       (#\" . tmacro)       (#\# . macro)
-         (#\' . tmacro)       (#\( . tmacro)       (#\) . tmacro)       (#\` . tmacro)
-         (#\, . tmacro)       (#\\ . escape)       (#\| . mescape)      (#\a . constituent)
-         (#\b . constituent)  (#\c . constituent)  (#\d . constituent)  (#\e . constituent)
-         (#\f . constituent)  (#\g . constituent)  (#\h . constituent)  (#\i . constituent)
-         (#\j . constituent)  (#\k . constituent)  (#\l . constituent)  (#\m . constituent)
-         (#\n . constituent)  (#\o . constituent)  (#\p . constituent)  (#\q . constituent)
-         (#\r . constituent)  (#\s . constituent)  (#\t . constituent)  (#\v . constituent)
-         (#\w . constituent)  (#\x . constituent)  (#\y . constituent)  (#\z . constituent)
-         (#\[ . constituent)  (#\] . constituent)  (#\$ . constituent)  (#\* . constituent)
-         (#\{ . constituent)  (#\} . constituent)  (#\+ . constituent)  (#\- . constituent)
-         (#\/ . constituent)  (#\~ . constituent)  (#\. . constituent)  (#\% . constituent)
-         (#\& . constituent)  (#\^ . constituent)  (#\_ . constituent)  (#\a . constituent)
-         (#\b . constituent)  (#\c . constituent)  (#\d . constituent)  (#\e . constituent)
-         (#\f . constituent)  (#\g . constituent)  (#\h . constituent)  (#\i . constituent)
-         (#\j . constituent)  (#\k . constituent)  (#\l . constituent)  (#\m . constituent)
-         (#\n . constituent)  (#\o . constituent)  (#\p . constituent)  (#\q . constituent)
-         (#\r . constituent)  (#\s . constituent)  (#\t . constituent)  (#\u . constituent)
-         (#\v . constituent)  (#\w . constituent)  (#\x . constituent)  (#\y . constituent)
-         (#\z . constituent))))))
+       '((#\0 . :const)  (#\1 . :const)  (#\2 . :const)  (#\3 . :const)
+         (#\4 . :const)  (#\5 . :const)  (#\6 . :const)  (#\7 . :const)
+         (#\8 . :const)  (#\9 . :const)  (#\: . :const)  (#\< . :const)
+         (#\> . :const)  (#\= . :const)  (#\? . :const)  (#\! . :const)
+         (#\@ . :const)  (#\; . :tmacro) (#\" . :tmacro) (#\# . :macro)
+         (#\' . :tmacro) (#\( . :tmacro) (#\) . :tmacro) (#\` . :tmacro)
+         (#\, . :tmacro) (#\\ . :escape) (#\| . :mescape) (#\a . :const)
+         (#\b . :const)  (#\c . :const)  (#\d . :const)  (#\e . :const)
+         (#\f . :const)  (#\g . :const)  (#\h . :const)  (#\i . :const)
+         (#\j . :const)  (#\k . :const)  (#\l . :const)  (#\m . :const)
+         (#\n . :const)  (#\o . :const)  (#\p . :const)  (#\q . :const)
+         (#\r . :const)  (#\s . :const)  (#\t . :const)  (#\v . :const)
+         (#\w . :const)  (#\x . :const)  (#\y . :const)  (#\z . :const)
+         (#\[ . :const)  (#\] . :const)  (#\$ . :const)  (#\* . :const)
+         (#\{ . :const)  (#\} . :const)  (#\+ . :const)  (#\- . :const)
+         (#\/ . :const)  (#\~ . :const)  (#\. . :const)  (#\% . :const)
+         (#\& . :const)  (#\^ . :const)  (#\_ . :const)  (#\a . :const)
+         (#\b . :const)  (#\c . :const)  (#\d . :const)  (#\e . :const)
+         (#\f . :const)  (#\g . :const)  (#\h . :const)  (#\i . :const)
+         (#\j . :const)  (#\k . :const)  (#\l . :const)  (#\m . :const)
+         (#\n . :const)  (#\o . :const)  (#\p . :const)  (#\q . :const)
+         (#\r . :const)  (#\s . :const)  (#\t . :const)  (#\u . :const)
+         (#\v . :const)  (#\w . :const)  (#\x . :const)  (#\y . :const)
+         (#\z . :const))))))
 
 ;;;
 ;;; number reader
@@ -69,7 +69,7 @@
         (:if (core::logical-or (core:fixnump end) (mu:eof stream))
              atom
              ((:lambda (ch)
-                (:if (mu:eq 'constituent (core::read-char-syntax ch))
+                (:if (mu:eq :const (core::read-char-syntax ch))
                      (core::prog2
                         (core:write-char ch core::reader-stream)
                         (mu:fr-setv (core::fn-frame-id self) 1 (core:null end)))
@@ -98,11 +98,11 @@
         (mu:apply
          (mu:sy-val (mu:cdr (core:assoc (core::read-char-syntax ch) dispatch-table)))
          (core::list stream)))
-      '((constituent . core::read-atom)
-        (macro       . core::read-macro)
-        (tmacro      . core::read-macro)
-        (escape      . core::read-atom)
-        (mescape     . core::read-atom)))))
+      '((:const . core::read-atom)
+        (:macro       . core::read-macro)
+        (:tmacro      . core::read-macro)
+        (:escape      . core::read-atom)
+        (:mescape     . core::read-atom)))))
 
 ;;;
 ;;; core reader
@@ -116,7 +116,7 @@
              ((:lambda (ch)
                 (:if (mu:eof stream)
                      stream
-                     (:if (mu:eq 'wspace (core::read-char-syntax ch))
+                     (:if (mu:eq :wspace (core::read-char-syntax ch))
                           (core:null loop)
                           (:if (mu:eq ch #\#)
                                ((:lambda (ch)
@@ -150,7 +150,7 @@
                         (core::apply (mu:car macro) (core::list2 stream ch))
                         (core::read-dispatch ch stream)))
                  (core:get-macro-character ch))))
-         (read-consume-ws)))
+         (mu:apply read-consume-ws ())))
       (:lambda ()
         (mu:fix
          (:lambda (loop)
@@ -159,7 +159,7 @@
                 ((:lambda (ch)
                    (:if (mu:eof stream)
                         stream
-                        (:if (mu:eq 'wspace (core::read-char-syntax ch))
+                        (:if (mu:eq :wspace (core::read-char-syntax ch))
                              (core:null loop)
                              (:if (mu:eq ch #\#)
                                   ((:lambda (ch)

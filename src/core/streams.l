@@ -68,7 +68,7 @@
                 (:if ch
                      (mu:coerce ch :char)
                      ()))
-              (mu:rd-byte stream))))
+              (mu:rd-byte stream () ()))))
       (core::read-stream-designator designator))))
 
 (mu:intern core::ns :extern "read-byte"
@@ -78,7 +78,7 @@
              (:if error-eofp
                   (core:error stream "core:read-byte: end of file")
                   eof-value)
-             (mu:rd-byte stream)))
+             (mu:rd-byte stream () ())))
       (core::read-stream-designator designator))))
 
 (mu:intern core::ns :extern "unread-char"
@@ -114,4 +114,4 @@
 
 (mu:intern core::ns :extern "terpri"
    (:lambda (designator)
-     (core:write-byte #xa designator)))
+     (core:write-char #\linefeed designator)))
