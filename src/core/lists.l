@@ -12,14 +12,6 @@
           (mu:fix (:lambda (arg) (core::apply fn (core::list arg))) list)
           (mu:fix fn list))))
 
-(mu:intern core::ns :extern "fix*"
-   (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:fix*: not a function")
-     (core:errorp-unless core:listp list "core:fix*: not a list")
-     (:if (core::fn-applyp fn)
-          (mu:fix* (:lambda (arg) (core::apply fn (core::list arg))) list)
-          (mu:fix* fn list))))
-
 ;;;
 ;;; lists
 ;;;
@@ -63,7 +55,7 @@
            (:lambda (list)
              (:if (mu:eq () list)
                   ()
-                  (core::prog2 (fn (mu:car list)) (mu:cdr list))))
+                  (core::prog2 (mu:apply fn (mu:car list)) (mu:cdr list))))
            list))
      list))
 
@@ -71,17 +63,11 @@
    (:lambda (fn list)
      (core:errorp-unless core:functionp fn "core:mapcar: not a function")
      (core:errorp-unless core:listp list "core:mapcar: not a list")
-     (:if (core::fn-applyp fn)
-          (core:foldl
-           (:lambda (elt acc)
-             (core::append acc (core::list (fn elt))))
-           ()
-           list)
-          (core:foldl
-           (:lambda (elt acc)
-             (core::append acc (core::list (core::apply fn (core::list elt)))))
-           ()
-           list))))
+     (core:foldl
+      (:lambda (elt acc)
+        (core::append acc (core::list (core:apply fn (core:list elt)))))
+      ()
+      list)))
    
 (mu:intern core::ns :extern "mapl"
    (:lambda (fn list)

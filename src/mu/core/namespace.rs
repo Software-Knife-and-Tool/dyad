@@ -20,13 +20,13 @@ use crate::{
         frame::{Frame, MuFunction as _},
         functions::MuFunction as _,
         image::MuFunction as _,
-        mu::{FunctionDesc, Mu},
+        mu::{Mu, MuFunctionType},
     },
 };
 
 // mu function dispatch table
 lazy_static! {
-    static ref FUNCTIONMAP: Vec<FunctionDesc> = vec![
+    static ref FUNCTIONMAP: Vec<<Mu as Core>::FunctionDesc> = vec![
         // conses and lists
         ("append", Scope::Extern, 2, Cons::mu_append),
         ("car", Scope::Extern, 1, Cons::mu_car),
@@ -40,7 +40,6 @@ lazy_static! {
         ("eval", Scope::Extern, 1, Mu::mu_eval),
         ("exit", Scope::Intern, 1, Mu::mu_exit),
         ("fix", Scope::Extern, 2, Mu::mu_fix),
-        ("fix*", Scope::Extern, 2, Mu::mu_fix_env),
         ("apply", Scope::Extern, 2, Mu::mu_apply),
         ("tag-of", Scope::Extern, 1, Mu::mu_tag_of),
         ("view", Scope::Extern, 1, Mu::mu_view),
@@ -49,10 +48,8 @@ lazy_static! {
         ("raise", Scope::Extern, 2, Exception::mu_raise),
         // frames
         ("context", Scope::Intern, 0, Frame::mu_context),
-        ("fr-get", Scope::Extern, 1, Frame::mu_fr_get),
         ("fr-pop", Scope::Extern, 1, Frame::mu_fr_pop),
         ("fr-push", Scope::Extern, 1, Frame::mu_fr_push),
-        ("fr-setv", Scope::Extern, 3, Frame::mu_fr_setv),
         // types
         ("eq", Scope::Extern, 2, Tag::mu_eq),
         ("type-of", Scope::Extern, 1, Tag::mu_typeof),
@@ -116,12 +113,15 @@ lazy_static! {
 }
 
 pub trait Core {
-    fn functionmap(_: usize) -> FunctionDesc;
+    type FunctionDesc;
+    fn functionmap(_: usize) -> <Mu as Core>::FunctionDesc;
     fn install_mu_symbols(_: &Mu);
 }
 
 impl Core for Mu {
-    fn functionmap(index: usize) -> FunctionDesc {
+    type FunctionDesc = (&'static str, Scope, u16, MuFunctionType);
+
+    fn functionmap(index: usize) -> <Mu as Core>::FunctionDesc {
         FUNCTIONMAP[index]
     }
 

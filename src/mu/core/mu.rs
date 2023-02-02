@@ -12,7 +12,7 @@ use {
             fixnum::{Core as _, Fixnum},
             float::{Core as _, Float},
             function::{Core as _, Function},
-            namespace::{Core as _, Namespace, Scope},
+            namespace::{Core as _, Namespace},
             stream::{Core as _, Stream},
             symbol::{Core as _, Properties as _, Symbol},
             vector::{Core as _, Vector},
@@ -36,7 +36,6 @@ pub type MuCondition = exception::Condition;
 
 // native functions
 pub type MuFunctionType = fn(&Mu, &mut Frame) -> exception::Result<()>;
-pub type FunctionDesc = (&'static str, Scope, u16, MuFunctionType);
 
 // mu environment
 pub struct Mu {
@@ -45,19 +44,21 @@ pub struct Mu {
     pub heap: RefCell<Heap>,
     pub system: system::System,
 
-    // standard streams
-    pub stdin: Tag,
-    pub stdout: Tag,
-    pub errout: Tag,
+    // environments
+    pub compile: RefCell<Vec<(Tag, Vec<Tag>)>>,
+    pub dynamic: RefCell<Vec<Frame>>,
+    pub lexical: RefCell<HashMap<u64, RefCell<Vec<Frame>>>>,
 
     // namespaces
     pub nil_ns: Tag,
     pub mu_ns: Tag,
 
-    // compiler
-    pub lexical_env: RefCell<Vec<(Tag, Vec<Tag>)>>,
+    // standard streams
+    pub stdin: Tag,
+    pub stdout: Tag,
+    pub errout: Tag,
 
-    // caches
+    // symbol caches
     #[allow(clippy::type_complexity)]
     pub ns_caches: RefCell<
         HashMap<
@@ -68,11 +69,10 @@ pub struct Mu {
             ),
         >,
     >,
-    pub frames: RefCell<HashMap<u64, RefCell<Vec<Frame>>>>,
 }
 
 pub trait Core {
-    const VERSION: &'static str = "0.0.6";
+    const VERSION: &'static str = "0.0.7";
 
     fn new(config: String) -> Self;
     fn apply(&self, _: Tag, _: Tag) -> exception::Result<Tag>;
@@ -90,11 +90,12 @@ pub trait Core {
 impl Core for Mu {
     fn new(config: String) -> Self {
         let mut mu = Mu {
+            compile: RefCell::new(Vec::new()),
             config,
+            dynamic: RefCell::new(Vec::new()),
             errout: Tag::nil(),
-            frames: RefCell::new(HashMap::new()),
             heap: RefCell::new(Heap::new(1024)),
-            lexical_env: RefCell::new(Vec::new()),
+            lexical: RefCell::new(HashMap::new()),
             mu_ns: Tag::nil(),
             nil_ns: Tag::nil(),
             ns_caches: RefCell::new(HashMap::new()),

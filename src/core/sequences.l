@@ -23,46 +23,15 @@
 ;;; folds
 ;;;
 (mu:intern core::ns :extern "foldl"
-   (:lambda (fn init seq)
+  (:lambda (fn init list)
       (core:errorp-unless core:functionp fn "core:foldl: not a function")
       (core:errorp-unless core:sequencep seq "core:foldl: not a sequence")
-      (:if (core::fn-applyp fn)
-           (:if (core:listp seq)
-                (mu:fix*
-                 (:lambda (self fn acc list)
-                   (:if (core:null list)
-                        acc
-                        (core::prog2
-                           (mu:fr-setv (core::fn-frame-id self) 2
-                                        (core::apply fn (core:list2 (mu:car list) acc)))
-                           (mu:fr-setv (core::fn-frame-id self) 3 (mu:cdr list)))))
-                 (core::list3 fn init seq))
-                (mu:fix*
-                 (:lambda (self fn acc nth vec)
-                   (:if (mu:eq nth (mu:sv-len vec))
-                        acc
-                        (core:prog
-                           (mu:fr-setv (core::fn-frame-id self) 2
-                                        (core::apply fn (core::list2 (mu:sv-ref vec nth) acc)))
-                           (mu:fr-setv (core::fn-frame-id self) 3 (core:1+ nth)))))
-                 (mu:cons fn (core::list3 init 0 seq))))
-           (:if (core:listp seq)
-                (mu:fix*
-                 (:lambda (self fn acc list)
-                   (:if (core:null list)
-                        acc
-                        (core::prog2
-                           (mu:fr-setv (core::fn-frame-id self) 2 (fn (mu:car list) acc))
-                           (mu:fr-setv (core::fn-frame-id self) 3 (mu:cdr list)))))
-                 (core::list3 fn init seq))
-                (mu:fix*
-                 (:lambda (self fn acc nth vec)
-                   (:if (mu:eq nth (mu:sv-len vec))
-                        acc
-                        (core::prog2
-                           (mu:fr-setv (core::fn-frame-id self) 2 (fn (mu:sv-ref vec nth) acc))
-                           (mu:fr-setv (core::fn-frame-id self) 3 (core:1+ nth)))))
-                 (mu:cons fn (core::list3 init 0 seq)))))))
+      (mu:fix
+       (:lambda (acc list)
+         (:if (core:null list)
+              acc
+              (core::apply fn (core:list2 (mu:car list) acc))))
+       (core::list2 init list))))
 
 (mu:intern core::ns :extern "foldr"
    (:lambda (fn init seq)
