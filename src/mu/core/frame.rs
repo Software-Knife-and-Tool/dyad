@@ -58,10 +58,14 @@ impl Frame {
                     let fn_off = Fixnum::as_i64(mu, Function::func_of(mu, func)) as usize;
                     let (_, _, _, fnc) = Mu::functionmap(fn_off);
 
+                    // Self::stack_push(mu, self);
+
                     match fnc(mu, &mut self) {
                         Ok(_) => Ok(self.value),
                         Err(e) => Err(e),
                     }
+
+                    // Self::stack_pop(mu);
                 }
                 Class::Cons => {
                     let nreqs = Fixnum::as_i64(mu, Function::nreq_of(mu, func)) as usize;
@@ -73,7 +77,8 @@ impl Frame {
 
                     let mut value = Tag::nil();
 
-                    self.frame_push(mu);
+                    self.lexical_push(mu);
+                    // Self::stack_push(mu, self);
 
                     for cons in ConsIter::new(mu, Function::func_of(mu, func)) {
                         value = match mu.eval(Cons::car(mu, cons)) {
@@ -82,7 +87,9 @@ impl Frame {
                         };
                     }
 
-                    Self::frame_pop(mu, Function::frame_of(mu, func));
+                    // Self::stack_pop(mu);
+                    Self::lexical_pop(mu, Function::frame_of(mu, func));
+
                     Ok(value)
                 }
                 _ => Err(Except::raise(
@@ -96,49 +103,54 @@ impl Frame {
         }
     }
 
-    pub fn frame_push(self, mu: &Mu) {
+    pub fn lexical_push(self, mu: &Mu) {
         let id = Function::frame_of(mu, self.func).as_u64();
-        let mut frames_ref: RefMut<HashMap<u64, RefCell<Vec<Frame>>>> = mu.frames.borrow_mut();
+        let mut lexical_ref: RefMut<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow_mut();
 
-        if let std::collections::hash_map::Entry::Vacant(e) = frames_ref.entry(id) {
+        if let std::collections::hash_map::Entry::Vacant(e) = lexical_ref.entry(id) {
             e.insert(RefCell::new(vec![self]));
         } else {
-            let mut vec_ref: RefMut<Vec<Frame>> = frames_ref[&id].borrow_mut();
+            let mut vec_ref: RefMut<Vec<Frame>> = lexical_ref[&id].borrow_mut();
             vec_ref.push(self);
         }
     }
 
-    pub fn frame_ref(mu: &Mu, id: u64, offset: usize) -> Option<Tag> {
-        let frames_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.frames.borrow();
-        let vec_ref: Ref<Vec<Frame>> = frames_ref[&id].borrow();
-
-        Some(vec_ref[vec_ref.len() - 1].argv[offset])
-    }
-
-    pub fn frame_pop(mu: &Mu, frame: Tag) {
-        let frames_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.frames.borrow();
-        let mut vec_ref: RefMut<Vec<Frame>> = frames_ref[&frame.as_u64()].borrow_mut();
+    pub fn lexical_pop(mu: &Mu, frame: Tag) {
+        let lexical_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow();
+        let mut vec_ref: RefMut<Vec<Frame>> = lexical_ref[&frame.as_u64()].borrow_mut();
 
         vec_ref.pop();
+    }
+
+    pub fn dynamic_push(mu: &Mu, frame: Frame) {
+        let mut dynamic_ref: RefMut<Vec<Frame>> = mu.dynamic.borrow_mut();
+
+        dynamic_ref.push(frame);
+    }
+
+    pub fn dynamic_pop(mu: &Mu) {
+        let mut dynamic_ref: RefMut<Vec<Frame>> = mu.dynamic.borrow_mut();
+
+        dynamic_ref.pop();
+    }
+
+    pub fn frame_ref(mu: &Mu, id: u64, offset: usize) -> Option<Tag> {
+        let lexical_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow();
+        let vec_ref: Ref<Vec<Frame>> = lexical_ref[&id].borrow();
+
+        Some(vec_ref[vec_ref.len() - 1].argv[offset])
     }
 }
 
 pub trait MuFunction {
     fn mu_context(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
-    fn mu_fr_get(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_pop(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_push(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
-    fn mu_fr_setv(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_ref(mu: &Mu, fp: &mut Frame) -> exception::Result<()>;
 }
 
 impl MuFunction for Frame {
     fn mu_context(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Tag::nil();
-        Ok(())
-    }
-
-    fn mu_fr_get(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
         fp.value = Tag::nil();
         Ok(())
     }
@@ -149,11 +161,6 @@ impl MuFunction for Frame {
     }
 
     fn mu_fr_push(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Tag::nil();
-        Ok(())
-    }
-
-    fn mu_fr_setv(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
         fp.value = Tag::nil();
         Ok(())
     }

@@ -5,7 +5,7 @@
 use crate::{
     classes::{
         char::{Char, Core as _},
-        cons::{Cons, ConsIter, Core as _, Properties},
+        cons::{Cons, Core as _},
         fixnum::{Core as _, Fixnum},
         float::{Core as _, Float},
         function::{Core as _, Function},
@@ -33,7 +33,6 @@ pub trait MuFunction {
     fn mu_view(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_tag_of(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_fix(_: &Mu, _: &mut Frame) -> exception::Result<()>;
-    fn mu_fix_env(_: &Mu, _: &mut Frame) -> exception::Result<()>;
 }
 
 impl MuFunction for Mu {
@@ -171,51 +170,6 @@ impl MuFunction for Mu {
                 Ok(())
             }
             _ => Err(Except::raise(mu, Condition::Type, "mu:fix", func)),
-        }
-    }
-
-    // visit this later
-    fn mu_fix_env(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let func = fp.argv[0];
-        let env = fp.argv[1];
-
-        fp.value = fp.argv[1];
-
-        match Tag::class_of(mu, env) {
-            Class::Cons => match Tag::class_of(mu, func) {
-                Class::Function => {
-                    loop {
-                        let mut argv = vec![fp.value];
-
-                        for cons in ConsIter::new(mu, env) {
-                            argv.push(Cons::car(mu, cons));
-                        }
-
-                        let opt_tag = Frame {
-                            func,
-                            argv,
-                            value: Tag::nil(),
-                        }
-                        .apply(mu, func);
-
-                        match opt_tag {
-                            Ok(value) => {
-                                if value.eq_(fp.value) {
-                                    break;
-                                }
-
-                                fp.value = value;
-                            }
-                            Err(e) => return Err(e),
-                        }
-                    }
-
-                    Ok(())
-                }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fix", func)),
-            },
-
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fix", env)),
         }
     }
 }

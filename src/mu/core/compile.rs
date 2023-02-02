@@ -151,7 +151,7 @@ fn compile_frame_symbols(mu: &Mu, lambda: Tag) -> exception::Result<Vec<Tag>> {
 }
 
 fn compile_lexical(mu: &Mu, symbol: Tag) -> Result<Tag> {
-    let lexenv_ref: Ref<Vec<(Tag, Vec<Tag>)>> = mu.lexical_env.borrow();
+    let lexenv_ref: Ref<Vec<(Tag, Vec<Tag>)>> = mu.compile.borrow();
 
     for frame in lexenv_ref.iter().rev() {
         let (tag, symbols) = frame;
@@ -210,7 +210,7 @@ fn compile_lambda(mu: &Mu, args: Tag) -> exception::Result<Tag> {
 
     match compile_frame_symbols(mu, lambda) {
         Ok(lexicals) => {
-            let mut lexenv_ref: RefMut<Vec<(Tag, Vec<Tag>)>> = mu.lexical_env.borrow_mut();
+            let mut lexenv_ref: RefMut<Vec<(Tag, Vec<Tag>)>> = mu.compile.borrow_mut();
             lexenv_ref.push((frame_tag, lexicals));
         }
         Err(e) => return Err(e),
