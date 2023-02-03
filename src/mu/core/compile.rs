@@ -126,7 +126,7 @@ fn compile_frame_symbols(mu: &Mu, lambda: Tag) -> exception::Result<Vec<Tag>> {
     for cons in ConsIter::new(mu, lambda) {
         let symbol = Cons::car(mu, cons);
         if Tag::class_of(mu, symbol) == Class::Symbol {
-            match symv.iter().position(|lex| symbol.eq_(*lex)) {
+            match symv.iter().rev().position(|lex| symbol.eq_(*lex)) {
                 Some(_) => {
                     return Err(Except::raise(
                         mu,
