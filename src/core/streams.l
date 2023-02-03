@@ -109,8 +109,8 @@
       (core::read-stream-designator designator))))
 
 (mu:intern core::ns :extern "write"
-  (:lambda (object designator escape)
-     (mu:write object (core::write-stream-designator designator) escape)))
+  (:lambda (object escape designator)
+     (mu:write object escape (core::write-stream-designator designator))))
 
 (mu:intern core::ns :extern "terpri"
    (:lambda (designator)

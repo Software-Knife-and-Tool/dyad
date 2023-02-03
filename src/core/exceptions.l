@@ -6,13 +6,13 @@
 ;;;
 (mu:intern core::ns :extern "print-except"
    (:lambda (ex by)
-     (core:write ";;; exception raised by " mu:err-out ())
-     (core:write by mu:err-out ())
-     (core:write " with " mu:err-out ())
-     (core:write (mu::view ex) mu:err-out ())
+     (core:write ";;; exception raised by " ()  mu:err-out)
+     (core:write by () mu:err-out)
+     (core:write " with " () mu:err-out)
+     (core:write (mu:view ex) () mu:err-out)
      (core:terpri mu:err-out)
-     (core:write ";;;     in " mu:err-out ())
-     (core:write (mu::view ex) mu:err-out ())
+     (core:write ";;;     in " () mu:err-out)
+     (core:write (mu::view ex) () mu:err-out)
      (core:terpri mu:err-out)))
 
 (mu:intern core::ns :intern "print-frame"
@@ -26,6 +26,79 @@
                              (core:sv-list args))))
        (mu:car frame)
        (mu:cdr frame))))
+
+;;;
+;;; utilities
+;;;
+(mu:intern core::ns :intern "eprinc"
+  (:lambda (obj)
+    (mu:write obj () mu:err-out)))           
+
+(mu:intern core::ns :intern "eprint"
+  (:lambda (obj)
+    (mu:write obj :t mu:err-out)))           
+
+(mu:intern core::ns :intern "princ"
+  (:lambda (obj)
+    (mu:write obj () mu:std-out)))           
+
+(mu:intern core::ns :intern "print"
+  (:lambda (obj)
+    (mu:write obj :t mu:std-out)))           
+
+(mu:intern core::ns :extern "error"
+   (:lambda (obj msg)
+     (core::eprinc "error: ")
+     (core::eprinc msg)
+     (core::eprinc " ")
+     (core::eprint obj)
+     (core:terpri mu:err-out)
+     (mu:raise :error obj)))
+
+(mu:intern core::ns :extern "error-if"
+   (:lambda (test obj msg)
+     (:if test
+          ((:lambda ()
+             (core::eprinc "error-if: ")
+             (core::eprinc msg)
+             (core::eprinc " ")
+             (core::eprint obj)
+             (core:terpri mu:err-out)
+             (mu:raise :error obj)))
+          obj)))
+
+(mu:intern core::ns :extern "errorp-when"
+   (:lambda (fn obj msg)
+     (:if (mu:apply fn (core:list obj))
+          ((:lambda ()
+             (core::eprinc "errorp-when: ")
+             (core::eprinc msg)
+             (core::eprinc " ")
+             (core::eprint obj)
+             (core:terpri mu:err-out)
+             (mu:raise :error obj)))
+          obj)))
+
+(mu:intern core::ns :extern "errorp-unless"
+   (:lambda (fnp obj msg)
+     (:if (mu:apply fnp (core::list obj))
+          obj
+          ((:lambda ()
+             (core::eprinc "errorp-unless: ")
+             (core::eprinc msg)
+             (core::eprinc " ")
+             (core::eprint obj)
+             (core:terpri mu:err-out)
+             (mu:raise :error obj))))))
+
+(mu:intern core::ns :extern "warn"
+   (:lambda (obj msg)
+     (core::eprinc "warning: ")
+     (core::eprinc msg)
+     (core::eprinc " ")
+     (core::eprint obj)
+     (core:terpri mu:err-out)
+     obj))
 
 ;;;
 ;;; break loop
@@ -67,69 +140,3 @@
                       (core:write "break> " () ())
                       (core:read :t () ())))))))
      ())))
-
-;;;
-;;; utilities
-;;;
-(mu:intern core::ns :extern "error"
-   (:lambda (obj msg)
-     (core:write "error: " mu:err-out ())
-     (core:write msg mu:err-out ())
-     (core:write " " mu:err-out ())
-     (core:write obj mu:err-out :t)
-     (core:terpri mu:err-out)
-     (mu:raise :error obj)))
-
-(mu:intern core::ns :extern "error-if"
-   (:lambda (test obj msg)
-     (:if test
-          ((:lambda ()
-             (core:write "error: " mu:err-out ())
-             (core:write msg mu:err-out ())
-             (core:write " " mu:err-out ())
-             (core:write obj mu:err-out :t)
-             (core:terpri mu:err-out)
-             (mu:raise :error obj)))
-          obj)))
-
-(mu:intern core::ns :extern "errorp-when"
-   (:lambda (fn obj msg)
-     (:if (fn obj)
-          ((:lambda ()
-             (core:write "error: " mu:err-out ())
-             (core:write msg mu:err-out ())
-             (core:write " " mu:err-out ())
-             (core:write obj mu:err-out :t)
-             (core:terpri mu:err-out)
-             (mu:raise :error obj)))
-          obj)))
-
-(mu:intern core::ns :extern "errorp-unless"
-   (:lambda (fnp obj msg)
-     (:if (mu:apply fnp (core::list obj))
-          obj
-          ((:lambda ()
-             (core:write "error: " mu:err-out ())
-             (core:write msg mu:err-out ())
-             (core:write " " mu:err-out ())
-             (core:write obj mu:err-out :t)
-             (core:terpri mu:err-out)
-             (mu:raise :error obj))))))
-
-(mu:intern core::ns :extern "warn"
-   (:lambda (obj msg)
-     (core:write "warn: " mu:err-out ())
-     (core:write msg mu:err-out ())
-     (core:write " " mu:err-out ())
-     (core:write obj mu:err-out :t)
-     (core:terpri mu:err-out)
-     obj))
-
-(mu:intern core::ns :extern "debug"
-   (:lambda (obj msg)
-     (core:write "    " mu:err-out ())           
-     (core:write msg mu:err-out ())
-     (core:write " " mu:err-out ())
-     (core:write obj mu:err-out :t)
-     (core:terpri mu:err-out)
-     obj))

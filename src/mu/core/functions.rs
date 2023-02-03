@@ -5,7 +5,7 @@
 use crate::{
     classes::{
         char::{Char, Core as _},
-        cons::{Cons, Core as _},
+        cons::{Cons, ConsIter, Core as _, Properties},
         fixnum::{Core as _, Fixnum},
         float::{Core as _, Float},
         function::{Core as _, Function},
@@ -60,10 +60,19 @@ impl MuFunction for Mu {
 
         fp.value = match Tag::class_of(mu, func) {
             Class::Function => match Tag::class_of(mu, args) {
-                Class::Null | Class::Cons => match mu.apply(func, args) {
-                    Ok(tag) => tag,
-                    Err(e) => return Err(e),
-                },
+                Class::Null | Class::Cons => {
+                    let value = Tag::nil();
+                    let mut argv = Vec::new();
+
+                    for cons in ConsIter::new(mu, args) {
+                        argv.push(Cons::car(mu, cons))
+                    }
+
+                    match (Frame { func, argv, value }).apply(mu, func) {
+                        Ok(value) => value,
+                        Err(e) => return Err(e),
+                    }
+                }
                 _ => return Err(Except::raise(mu, Condition::Type, "mu:apply", args)),
             },
             _ => return Err(Except::raise(mu, Condition::Type, "mu:apply", func)),
