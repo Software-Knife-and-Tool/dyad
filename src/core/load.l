@@ -11,7 +11,7 @@
        (core:errorp-unless core:streamp ifs "core:load cannot open input file")
        (:if verbose
             (core::prog2
-                (core:write (core::string-append ";;; loading " source) mu:std-out ()) 
+                (core:write (core::string-append ";;; loading " source) () ()) 
                 (core:terpri mu:std-out))
             ())
        (mu:fix
@@ -20,11 +20,11 @@
                :t
                (mu:with-ex
                    (:lambda (cond obj)
-                     (core:write "load exception" mu:err-out ())
+                     (core:write "load exception" () mu:err-out)
                      (core:terpri mu:err-out)
                      (core:print-except cond "core:load")
-                     (core:write ";;; in file " mu:err-out ())
-                     (core:write source mu:err-out ())
+                     (core:write ";;; in file " () mu:err-out)
+                     (core:write source () mu:err-out)
                      (core:terpri mu:err-out))
                  (:lambda ()
                    ((:lambda (form)

@@ -160,6 +160,7 @@
               list))
          (mu:length list)))))
 
+;;; why isn't this a fold?
 (mu:intern core::ns :extern "assoc"
    (:lambda (item list)
      (mu:car
