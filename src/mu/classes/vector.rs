@@ -32,7 +32,7 @@ pub enum Vector {
 }
 
 lazy_static! {
-    static ref VECTYPEMAP: Vec<(Tag, Class)> = vec![
+    static ref VTYPEMAP: Vec<(Tag, Class)> = vec![
         (Symbol::keyword("t"), Class::T),
         (Symbol::keyword("char"), Class::Char),
         (Symbol::keyword("byte"), Class::Byte),
@@ -44,7 +44,7 @@ lazy_static! {
 
 impl Vector {
     pub fn to_type(keyword: Tag) -> Option<Class> {
-        VECTYPEMAP
+        VTYPEMAP
             .iter()
             .copied()
             .find(|tab| keyword.eq_(tab.0))
@@ -85,7 +85,7 @@ impl Properties for Vector {
             Tag::Indirect(_) => {
                 let image = Self::to_image(mu, vector);
 
-                match VECTYPEMAP
+                match VTYPEMAP
                     .iter()
                     .copied()
                     .find(|desc| image.vtype.eq_(desc.0))
@@ -297,7 +297,7 @@ impl<'a> Core<'a> for Vector {
 
                 let vec_type = Cons::car(mu, vec_list);
 
-                match VECTYPEMAP.iter().copied().find(|tab| vec_type.eq_(tab.0)) {
+                match VTYPEMAP.iter().copied().find(|tab| vec_type.eq_(tab.0)) {
                     Some(tab) => match tab.1 {
                         Class::T => {
                             let mut vec = Vec::new();
