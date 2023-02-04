@@ -2,7 +2,7 @@
 # dyad makefile
 #
 .PHONY: world run clean doc dist format tests runtime release
-RUNTIME=target/debug/mu-runtime
+RUNTIME=target/debug/runtime
 
 help:
 	@echo "dyad top-level makefile -----------------"
@@ -36,11 +36,11 @@ tags:
 
 release:
 	@cargo build --release
-	@cp target/release/mu-runtime dist
+	@cp target/release/runtime dist
 
 debug:
 	@cargo build
-	@cp target/debug/mu-runtime dist
+	@cp target/debug/runtime dist
 
 dist:
 	@make -C ./dist --no-print-directory
@@ -68,6 +68,6 @@ commit:
 	@cargo clippy
 
 clean:
-	@rm -f TAGS
+	@rm -f TAGS ETAGS
 	@make -C dist clean --no-print-directory
 	@make -C tests clean --no-print-directory

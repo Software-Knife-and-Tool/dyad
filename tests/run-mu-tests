@@ -1,5 +1,5 @@
 #! /bin/bash
-EXEC=../dist/mu-runtime
+EXEC=../dist/runtime
 TMP=/var/tmp
 
 args=("$@")

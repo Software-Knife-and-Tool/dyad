@@ -1,7 +1,7 @@
 //  SPDX-FileCopyrightText: Copyright 2022-2023 James M. Putnam (putnamjm.design@gmail.com)
 //  SPDX-License-Identifier: MIT
 
-//! mu-runtime loader/repl
+//! runtime loader/repl
 extern crate mu;
 
 use {
@@ -32,7 +32,7 @@ fn options(mut argv: Vec<String>) -> Option<Vec<OptDef>> {
         match opt {
             Err(_) => {
                 if let Err(error) = opt {
-                    eprintln!("mu-runtime: option {error:?}")
+                    eprintln!("runtime: option {error:?}")
                 };
                 usage();
                 std::process::exit(0);
@@ -44,7 +44,7 @@ fn options(mut argv: Vec<String>) -> Option<Vec<OptDef>> {
                 Some(opt) => match opt {
                     Opt('h', None) | Opt('?', None) => usage(),
                     Opt('v', None) => {
-                        print!("mu-runtime: {} ", <Mu as Core>::VERSION);
+                        print!("runtime: {} ", <Mu as Core>::VERSION);
                         return None;
                     }
                     Opt('p', None) => {
@@ -82,10 +82,7 @@ fn options(mut argv: Vec<String>) -> Option<Vec<OptDef>> {
 }
 
 fn usage() {
-    eprintln!(
-        "mu-runtime: {}: [-h?psvcelq] [file...]",
-        <Mu as Core>::VERSION
-    );
+    eprintln!("runtime: {}: [-h?psvcelq] [file...]", <Mu as Core>::VERSION);
     eprintln!("?: usage message");
     eprintln!("h: usage message");
     eprintln!("c: [name:value,...]");
@@ -179,7 +176,7 @@ pub fn main() {
                     OptType::Load => match load(&mu, &opt.1) {
                         Some(_) => (),
                         None => {
-                            eprintln!("mu-runtime: failed to load {}", &opt.1);
+                            eprintln!("runtime: failed to load {}", &opt.1);
                             std::process::exit(0);
                         }
                     },
@@ -199,7 +196,7 @@ pub fn main() {
     if !script {
         if !pipe {
             println!(
-                "mu-runtime: v{}; config [{}]",
+                "runtime: v{}; config [{}]",
                 <Mu as Core>::VERSION,
                 if mu.config.is_empty() { "" } else { &mu.config },
             );

@@ -6,7 +6,7 @@
 BASE = dyad
 DOCS = ../doc
 DIST = ../dist
-RUNTIME = ./mu-runtime
+RUNTIME = ./runtime
 
 dist:
 	@install -d $(BASE)
@@ -34,5 +34,4 @@ dist:
 	@rm -rf $(BASE)
 
 clean:
-	@make -f $(BASE).mk clean
 	@rm -rf $(BASE).tgz $(BASE) $(RUNTIME)

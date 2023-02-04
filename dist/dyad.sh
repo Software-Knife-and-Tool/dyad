@@ -88,7 +88,7 @@ while getopts "$optspec" optchar; do
                     usage
                     ;;
                 version)
-                    $BASE/bin/mu-runtime -v
+                    $BASE/bin/runtime -v
                     exit 2
                     ;;
                 *)
@@ -110,9 +110,8 @@ done
 
 len="${#@}"
 
-SOURCES="("
+SOURCES=""
 for (( i=${OPTIND}; i<="${#@}"; i++ )); do SOURCES+=" \"${!i}\"" ; done
-SOURCES+=")"
 
 export DYAD_LOAD_LIST=SOURCES
-$BASE/bin/mu-runtime ${ENVIRONMENT} ${CORE[@]} $BASE/dyad/dyad.l
+$BASE/bin/runtime ${ENVIRONMENT} ${CORE[@]} $BASE/dyad/dyad.l ${SOURCES[@]}

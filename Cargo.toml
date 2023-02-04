@@ -5,8 +5,8 @@ edition = "2021"
 authors = ["me <putnamjm.design@gmail.com>"]
 
 [[bin]]
-name = "mu-runtime"
-path = "src/mu_runtime/main.rs"
+name = "runtime"
+path = "src/runtime/main.rs"
 
 [lib]
 name = "mu"

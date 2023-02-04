@@ -173,14 +173,14 @@ For convenience, the *eko* Makefile provides
 The *dyad* binaries, libraries, and source files are installed in `/opt/dyad` . The `bin` directory contains the binaries and shell scripts for running the system.
 
 ```
-mu-runtime    runtime binary, minimal repl
+runtime      runtime binary, minimal repl
 dyad         shell script for running the extended repl
 ```
 
 
 ```
-OVERVIEW: mu-runtime - posix platform mu interface
-USAGE: mu-runtime [options] [src-file...]
+OVERVIEW: runtime - posix platform mu interface
+USAGE: runtime [options] [src-file...]
 
 OPTIONS:
   -h                   print this message
@@ -204,10 +204,10 @@ An interactive session for the extended *dyad* system is invoked by the`dyad` sh
 user>
 ```
 
-*rlwrap* makes the *eko* and *mu-runtime* repls much more useful, with command history and line editing.
+*rlwrap* makes the *dyad* and *runtime* repls much more useful, with command history and line editing.
 
 ```
-% alias ,dyad='rlwrap -m /opt/dyad/bin/dyad $*'
+% alias ,dyad='rlwrap -m /opt/dyad/bin/dyad'
 ```
 
 Depending on your version *rlwrap*, may exhibit odd echoing behavior. Adding
