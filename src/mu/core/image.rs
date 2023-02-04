@@ -7,7 +7,6 @@ use {
         classes::{
             cons::{Cons, Core as _},
             fixnum::Fixnum,
-            // float::Float,
             symbol::{Core as _, Symbol},
         },
         core::{
@@ -23,7 +22,7 @@ use {
 };
 
 lazy_static! {
-    static ref INFOTYPEMAP: Vec<(Tag, Class)> = vec![
+    static ref TYPEMAP: Vec<(Tag, Class)> = vec![
         (Symbol::keyword("cons"), Class::Cons),
         (Symbol::keyword("func"), Class::Function),
         (Symbol::keyword("nil"), Class::Null),
@@ -35,12 +34,35 @@ lazy_static! {
     ];
 }
 
-fn to_type(keyword: Tag) -> Option<Class> {
-    INFOTYPEMAP
-        .iter()
-        .copied()
-        .find(|tab| keyword.eq_(tab.0))
-        .map(|tab| tab.1)
+pub trait Core {
+    fn to_type(_: Tag) -> Option<Class>;
+    fn hp_info(_: &Mu) -> (usize, usize);
+    fn hp_type(_: &Mu, _: Class) -> (u8, usize, usize, usize, usize);
+}
+
+impl Core for Mu {
+    fn to_type(keyword: Tag) -> Option<Class> {
+        TYPEMAP
+            .iter()
+            .copied()
+            .find(|tab| keyword.eq_(tab.0))
+            .map(|tab| tab.1)
+    }
+
+    fn hp_info(mu: &Mu) -> (usize, usize) {
+        let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
+
+        (heap_ref.page_size, heap_ref.npages)
+    }
+
+    fn hp_type(mu: &Mu, htype: Class) -> (u8, usize, usize, usize, usize) {
+        let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
+
+        #[allow(clippy::type_complexity)]
+        let alloc_ref: Ref<Vec<(u8, usize, usize, usize, usize)>> = heap_ref.alloc_map.borrow();
+
+        alloc_ref[htype as usize]
+    }
 }
 
 pub trait MuFunction {
@@ -50,13 +72,7 @@ pub trait MuFunction {
 
 impl MuFunction for Mu {
     fn mu_hp_info(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let hp: (usize, usize);
-
-        {
-            let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
-
-            hp = (heap_ref.page_size, heap_ref.npages);
-        }
+        let hp = Self::hp_info(mu);
 
         fp.value = Cons::list(
             mu,
@@ -74,20 +90,10 @@ impl MuFunction for Mu {
         let of_key = fp.argv[1];
 
         match Tag::class_of(mu, type_key) {
-            Class::Keyword => match to_type(type_key) {
+            Class::Keyword => match Self::to_type(type_key) {
                 Some(htype) => match Tag::class_of(mu, of_key) {
                     Class::Keyword => {
-                        let type_info;
-
-                        {
-                            let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
-                            #[allow(clippy::type_complexity)]
-                            let alloc_ref: Ref<
-                                Vec<(u8, usize, usize, usize, usize)>,
-                            > = heap_ref.alloc_map.borrow();
-
-                            type_info = alloc_ref[htype as usize];
-                        }
+                        let type_info = Self::hp_type(mu, htype);
 
                         fp.value = if of_key.eq_(Symbol::keyword("alloc")) {
                             Fixnum::as_tag(type_info.1 as i64)
