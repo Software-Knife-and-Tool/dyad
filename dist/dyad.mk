@@ -42,5 +42,3 @@ PREFACE = \
 dyad:
 	@cp -r $(SRC)/core dyad/dyad
 	@cp -r $(SRC)/preface dyad/dyad
-
-clean:

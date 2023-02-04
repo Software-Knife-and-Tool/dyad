@@ -1,6 +1,6 @@
 #! /bin/bash
 BASE_CORE=../src/core
-EXEC=../dist/mu-runtime
+EXEC=../dist/runtime
 LOAD_LIST=( \
         -l $BASE_CORE/core.l            \
         -l $BASE_CORE/compile.l         \
