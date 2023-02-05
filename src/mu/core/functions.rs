@@ -3,7 +3,14 @@
 
 //! mu functions
 use crate::{
-    classes::{
+    core::{
+        classes::{Tag, Type},
+        exception,
+        exception::{Condition, Except},
+        frame::Frame,
+        mu::{Core as _, Mu},
+    },
+    types::{
         char::{Char, Core as _},
         cons::{Cons, ConsIter, Core as _, Properties},
         fixnum::{Core as _, Fixnum},
@@ -13,13 +20,6 @@ use crate::{
         stream::{Core as _, Stream},
         symbol::{Core as _, Symbol},
         vector::{Core as _, Vector},
-    },
-    core::{
-        classes::{Class, Tag},
-        exception,
-        exception::{Condition, Except},
-        frame::Frame,
-        mu::{Core as _, Mu},
     },
 };
 
@@ -58,9 +58,9 @@ impl MuFunction for Mu {
         let func = fp.argv[0];
         let args = fp.argv[1];
 
-        fp.value = match Tag::class_of(mu, func) {
-            Class::Function => match Tag::class_of(mu, args) {
-                Class::Null | Class::Cons => {
+        fp.value = match Tag::type_of(mu, func) {
+            Type::Function => match Tag::type_of(mu, args) {
+                Type::Null | Type::Cons => {
                     let value = Tag::nil();
                     let mut argv = Vec::new();
 
@@ -88,8 +88,8 @@ impl MuFunction for Mu {
 
         fp.value = form;
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => match mu.write(form, !escape.null_(), stream) {
+        match Tag::type_of(mu, stream) {
+            Type::Stream => match mu.write(form, !escape.null_(), stream) {
                 Ok(_) => Ok(()),
                 Err(e) => Err(e),
             },
@@ -102,9 +102,9 @@ impl MuFunction for Mu {
         let true_fn = fp.argv[1];
         let false_fn = fp.argv[2];
 
-        fp.value = match Tag::class_of(mu, true_fn) {
-            Class::Function => match Tag::class_of(mu, false_fn) {
-                Class::Function => {
+        fp.value = match Tag::type_of(mu, true_fn) {
+            Type::Function => match Tag::type_of(mu, false_fn) {
+                Type::Function => {
                     match mu.apply(if test.null_() { false_fn } else { true_fn }, Tag::nil()) {
                         Ok(tag) => tag,
                         Err(e) => return Err(e),
@@ -121,8 +121,8 @@ impl MuFunction for Mu {
     fn mu_exit(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let rc = fp.argv[0];
 
-        match Tag::class_of(mu, rc) {
-            Class::Fixnum => std::process::exit(Fixnum::as_i64(mu, rc) as i32),
+        match Tag::type_of(mu, rc) {
+            Type::Fixnum => std::process::exit(Fixnum::as_i64(mu, rc) as i32),
             _ => Err(Except::raise(mu, Condition::Type, "mu:exit", rc)),
         }
     }
@@ -130,16 +130,16 @@ impl MuFunction for Mu {
     fn mu_view(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let tag = fp.argv[0];
 
-        fp.value = match Tag::class_of(mu, tag) {
-            Class::Char => Char::view(mu, tag),
-            Class::Cons => Cons::view(mu, tag),
-            Class::Fixnum => Fixnum::view(mu, tag),
-            Class::Float => Float::view(mu, tag),
-            Class::Function => Function::view(mu, tag),
-            Class::Namespace => Namespace::view(mu, tag),
-            Class::Null | Class::Symbol | Class::Keyword => Symbol::view(mu, tag),
-            Class::Stream => Stream::view(mu, tag),
-            Class::Vector => Vector::view(mu, tag),
+        fp.value = match Tag::type_of(mu, tag) {
+            Type::Char => Char::view(mu, tag),
+            Type::Cons => Cons::view(mu, tag),
+            Type::Fixnum => Fixnum::view(mu, tag),
+            Type::Float => Float::view(mu, tag),
+            Type::Function => Function::view(mu, tag),
+            Type::Namespace => Namespace::view(mu, tag),
+            Type::Null | Type::Symbol | Type::Keyword => Symbol::view(mu, tag),
+            Type::Stream => Stream::view(mu, tag),
+            Type::Vector => Vector::view(mu, tag),
             _ => return Err(Except::raise(mu, Condition::Type, "mu:view", tag)),
         };
 
@@ -157,8 +157,8 @@ impl MuFunction for Mu {
 
         fp.value = fp.argv[1];
 
-        match Tag::class_of(mu, func) {
-            Class::Function => {
+        match Tag::type_of(mu, func) {
+            Type::Function => {
                 loop {
                     let value = Tag::nil();
                     let argv = vec![fp.value];

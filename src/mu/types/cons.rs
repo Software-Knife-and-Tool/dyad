@@ -1,18 +1,12 @@
 //  SPDX-FileCopyrightText: Copyright 2022-2023 James M. Putnam (putnamjm.design@gmail.com)
 //  SPDX-License-Identifier: MIT
 
-//! mu cons type
+//! mu cons class
 
 use {
     crate::{
-        classes::{
-            fixnum::Fixnum,
-            indirect_vector::{TypedVec, VecType},
-            symbol::{Properties as _, Symbol},
-            vector::Core as _,
-        },
         core::{
-            classes::{Class, DirectClass},
+            classes::{DirectType, Type},
             classes::{Tag, TagType, TagU64},
             exception,
             exception::{Condition, Except},
@@ -21,6 +15,12 @@ use {
             read::{Read, EOL},
         },
         image,
+        types::{
+            fixnum::Fixnum,
+            indirect_vector::{TypedVec, VecType},
+            symbol::{Properties as _, Symbol},
+            vector::Core as _,
+        },
     },
     std::cell::RefMut,
 };
@@ -37,8 +37,8 @@ impl Cons {
     }
 
     pub fn to_image(mu: &Mu, tag: Tag) -> Self {
-        match Tag::class_of(mu, tag) {
-            Class::Cons => match tag {
+        match Tag::type_of(mu, tag) {
+            Type::Cons => match tag {
                 Tag::Indirect(main) => {
                     let heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                     Cons {
@@ -65,9 +65,9 @@ pub trait Properties {
 
 impl Properties for Cons {
     fn car(mu: &Mu, cons: Tag) -> Tag {
-        match Tag::class_of(mu, cons) {
-            Class::Null => cons,
-            Class::Cons => match cons {
+        match Tag::type_of(mu, cons) {
+            Type::Null => cons,
+            Type::Cons => match cons {
                 Tag::Indirect(_) => Self::to_image(mu, cons).car,
                 _ => panic!("internal: tag format inconsistency"),
             },
@@ -76,9 +76,9 @@ impl Properties for Cons {
     }
 
     fn cdr(mu: &Mu, cons: Tag) -> Tag {
-        match Tag::class_of(mu, cons) {
-            Class::Null => cons,
-            Class::Cons => match cons {
+        match Tag::type_of(mu, cons) {
+            Type::Null => cons,
+            Type::Cons => match cons {
                 Tag::Indirect(_) => Self::to_image(mu, cons).cdr,
                 _ => panic!("internal: tag format inconsistency"),
             },
@@ -115,22 +115,22 @@ impl Core for Cons {
 
         let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
         let ind = TagU64::new()
-            .with_offset(heap_ref.alloc(image, Class::Cons as u8) as u64)
+            .with_offset(heap_ref.alloc(image, Type::Cons as u8) as u64)
             .with_tag(TagType::Cons);
 
         Tag::Indirect(ind)
     }
 
     fn read(mu: &Mu, stream: Tag) -> exception::Result<Tag> {
-        let dot = Tag::to_direct('.' as u64, 1, DirectClass::Byte);
+        let dot = Tag::to_direct('.' as u64, 1, DirectType::Byte);
 
         match <Mu as Read>::read(mu, stream, false, Tag::nil(), true) {
             Ok(car) => {
                 if EOL.eq_(car) {
                     Ok(Tag::nil())
                 } else {
-                    match Tag::class_of(mu, car) {
-                        Class::Symbol if dot.eq_(Symbol::name_of(mu, car)) => {
+                    match Tag::type_of(mu, car) {
+                        Type::Symbol if dot.eq_(Symbol::name_of(mu, car)) => {
                             match <Mu as Read>::read(mu, stream, false, Tag::nil(), true) {
                                 Ok(cdr) if EOL.eq_(cdr) => Ok(Tag::nil()),
                                 Ok(cdr) => {
@@ -166,8 +166,8 @@ impl Core for Cons {
 
         // this is ugly, but it might be worse with a for loop
         loop {
-            match Tag::class_of(mu, tail) {
-                Class::Cons => {
+            match Tag::type_of(mu, tail) {
+                Type::Cons => {
                     mu.write_string(" ".to_string(), stream).unwrap();
                     mu.write(Self::car(mu, tail), escape, stream).unwrap();
                     tail = Self::cdr(mu, tail);
@@ -185,9 +185,9 @@ impl Core for Cons {
     }
 
     fn append(mu: &Mu, cons0: Tag, cons1: Tag) -> Tag {
-        match Tag::class_of(mu, cons0) {
-            Class::Null => cons1,
-            Class::Cons => Self::new(
+        match Tag::type_of(mu, cons0) {
+            Type::Null => cons1,
+            Type::Cons => Self::new(
                 Self::car(mu, cons0),
                 Self::append(mu, Cons::cdr(mu, cons0), cons1),
             )
@@ -197,9 +197,9 @@ impl Core for Cons {
     }
 
     fn length(mu: &Mu, cons: Tag) -> usize {
-        match Tag::class_of(mu, cons) {
-            Class::Null => 0,
-            Class::Cons => ConsIter::new(mu, cons).count(),
+        match Tag::type_of(mu, cons) {
+            Type::Null => 0,
+            Type::Cons => ConsIter::new(mu, cons).count(),
             _ => panic!("interal: cons type inconsistency"),
         }
     }
@@ -217,12 +217,12 @@ impl Core for Cons {
         let mut nth = n;
         let mut tail = cons;
 
-        match Tag::class_of(mu, cons) {
-            Class::Null => Some(Tag::nil()),
-            Class::Cons => loop {
-                match Tag::class_of(mu, tail) {
+        match Tag::type_of(mu, cons) {
+            Type::Null => Some(Tag::nil()),
+            Type::Cons => loop {
+                match Tag::type_of(mu, tail) {
                     _ if tail.null_() => return Some(Tag::nil()),
-                    Class::Cons => {
+                    Type::Cons => {
                         if nth == 0 {
                             return Some(Self::car(mu, tail));
                         }
@@ -243,12 +243,12 @@ impl Core for Cons {
         let mut nth = n;
         let mut tail = cons;
 
-        match Tag::class_of(mu, cons) {
-            Class::Null => Some(Tag::nil()),
-            Class::Cons => loop {
-                match Tag::class_of(mu, tail) {
+        match Tag::type_of(mu, cons) {
+            Type::Null => Some(Tag::nil()),
+            Type::Cons => loop {
+                match Tag::type_of(mu, tail) {
                     _ if tail.null_() => return Some(Tag::nil()),
-                    Class::Cons => {
+                    Type::Cons => {
                         if nth == 0 {
                             return Some(tail);
                         }
@@ -287,9 +287,9 @@ impl MuFunction for Cons {
     fn mu_car(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let list = fp.argv[0];
 
-        fp.value = match Tag::class_of(mu, list) {
-            Class::Null => list,
-            Class::Cons => Self::car(mu, list),
+        fp.value = match Tag::type_of(mu, list) {
+            Type::Null => list,
+            Type::Cons => Self::car(mu, list),
             _ => return Err(Except::raise(mu, Condition::Type, "mu:car", list)),
         };
 
@@ -299,9 +299,9 @@ impl MuFunction for Cons {
     fn mu_cdr(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let list = fp.argv[0];
 
-        fp.value = match Tag::class_of(mu, list) {
-            Class::Null => list,
-            Class::Cons => Self::cdr(mu, list),
+        fp.value = match Tag::type_of(mu, list) {
+            Type::Null => list,
+            Type::Cons => Self::cdr(mu, list),
             _ => return Err(Except::raise(mu, Condition::Type, "mu:cdr", list)),
         };
 
@@ -316,9 +316,9 @@ impl MuFunction for Cons {
     fn mu_length(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let list = fp.argv[0];
 
-        match Tag::class_of(mu, list) {
-            Class::Null => fp.value = Fixnum::as_tag(0),
-            Class::Cons => fp.value = Fixnum::as_tag(Cons::length(mu, list) as i64),
+        match Tag::type_of(mu, list) {
+            Type::Null => fp.value = Fixnum::as_tag(0),
+            Type::Cons => fp.value = Fixnum::as_tag(Cons::length(mu, list) as i64),
             _ => return Err(Except::raise(mu, Condition::Type, "mu:length", list)),
         }
 
@@ -326,16 +326,16 @@ impl MuFunction for Cons {
     }
 
     fn mu_nth(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        if Tag::class_of(mu, fp.argv[0]) != Class::Fixnum || Fixnum::as_i64(mu, fp.argv[0]) < 0 {
+        if Tag::type_of(mu, fp.argv[0]) != Type::Fixnum || Fixnum::as_i64(mu, fp.argv[0]) < 0 {
             return Err(Except::raise(mu, Condition::Type, "mu:nth", fp.argv[0]));
         }
 
-        match Tag::class_of(mu, fp.argv[1]) {
-            Class::Null => {
+        match Tag::type_of(mu, fp.argv[1]) {
+            Type::Null => {
                 fp.value = Tag::nil();
                 Ok(())
             }
-            Class::Cons => {
+            Type::Cons => {
                 fp.value =
                     Self::nth(mu, Fixnum::as_i64(mu, fp.argv[0]) as usize, fp.argv[1]).unwrap();
                 Ok(())
@@ -345,16 +345,16 @@ impl MuFunction for Cons {
     }
 
     fn mu_nthcdr(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        if Tag::class_of(mu, fp.argv[0]) != Class::Fixnum || Fixnum::as_i64(mu, fp.argv[0]) < 0 {
+        if Tag::type_of(mu, fp.argv[0]) != Type::Fixnum || Fixnum::as_i64(mu, fp.argv[0]) < 0 {
             return Err(Except::raise(mu, Condition::Type, "mu:nthcdr", fp.argv[0]));
         }
 
-        match Tag::class_of(mu, fp.argv[1]) {
-            Class::Null => {
+        match Tag::type_of(mu, fp.argv[1]) {
+            Type::Null => {
                 fp.value = Tag::nil();
                 Ok(())
             }
-            Class::Cons => {
+            Type::Cons => {
                 fp.value =
                     Self::nthcdr(mu, Fixnum::as_i64(mu, fp.argv[0]) as usize, fp.argv[1]).unwrap();
                 Ok(())
@@ -392,8 +392,8 @@ impl<'a> Iterator for ConsIter<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::classes::cons::Cons;
     use crate::core::classes::Tag;
+    use crate::types::cons::Cons;
 
     #[test]
     fn cons() {

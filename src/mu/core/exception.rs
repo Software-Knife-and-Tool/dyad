@@ -9,14 +9,14 @@
 //!    raise
 use {
     crate::{
-        classes::{
-            cons::{Cons, Core as _},
-            symbol::{Core as _, Symbol},
-        },
         core::{
-            classes::{Class, Tag},
+            classes::{Tag, Type},
             frame::Frame,
             mu::{Core as _, Mu},
+        },
+        types::{
+            cons::{Cons, Core as _},
+            symbol::{Core as _, Symbol},
         },
     },
     std::fmt,
@@ -137,8 +137,8 @@ impl MuFunction for Exception {
         let src = fp.argv[1];
 
         fp.value = src;
-        match Tag::class_of(mu, condition) {
-            Class::Keyword => match map_condition(mu, condition) {
+        match Tag::type_of(mu, condition) {
+            Type::Keyword => match map_condition(mu, condition) {
                 Ok(cond) => {
                     Exception::raise(mu, cond, "mu:raise", src);
                     Ok(())
@@ -153,9 +153,9 @@ impl MuFunction for Exception {
         let handler = fp.argv[0];
         let thunk = fp.argv[1];
 
-        fp.value = match Tag::class_of(mu, thunk) {
-            Class::Function => match Tag::class_of(mu, handler) {
-                Class::Function => match mu.apply(thunk, Tag::nil()) {
+        fp.value = match Tag::type_of(mu, thunk) {
+            Type::Function => match Tag::type_of(mu, handler) {
+                Type::Function => match mu.apply(thunk, Tag::nil()) {
                     Ok(v) => v,
                     Err(e) => match mu.apply(
                         handler,

@@ -6,18 +6,18 @@
 //!     special forms
 use {
     crate::{
-        classes::{
+        core::{
+            classes::{Tag, Type},
+            exception,
+            exception::{Condition, Except, Result},
+            mu::Mu,
+        },
+        types::{
             cons::{Cons, ConsIter, Core as _, Properties as _},
             fixnum::Fixnum,
             function::Function,
             namespace::{Core as _, Namespace, Scope},
             symbol::{Core as _, Symbol},
-        },
-        core::{
-            classes::{Class, Tag},
-            exception,
-            exception::{Condition, Except, Result},
-            mu::Mu,
         },
     },
     std::cell::{Ref, RefMut},
@@ -125,7 +125,7 @@ fn compile_frame_symbols(mu: &Mu, lambda: Tag) -> exception::Result<Vec<Tag>> {
 
     for cons in ConsIter::new(mu, lambda) {
         let symbol = Cons::car(mu, cons);
-        if Tag::class_of(mu, symbol) == Class::Symbol {
+        if Tag::type_of(mu, symbol) == Type::Symbol {
             match symv.iter().rev().position(|lex| symbol.eq_(*lex)) {
                 Some(_) => {
                     return Err(Except::raise(
@@ -180,12 +180,12 @@ fn compile_lexical(mu: &Mu, symbol: Tag) -> Result<Tag> {
 }
 
 fn compile_lambda(mu: &Mu, args: Tag) -> exception::Result<Tag> {
-    let (lambda, body) = match Tag::class_of(mu, args) {
-        Class::Cons => {
+    let (lambda, body) = match Tag::type_of(mu, args) {
+        Type::Cons => {
             let lambda = Cons::car(mu, args);
 
-            match Tag::class_of(mu, lambda) {
-                Class::Null | Class::Cons => (lambda, Cons::cdr(mu, args)),
+            match Tag::type_of(mu, lambda) {
+                Type::Null | Type::Cons => (lambda, Cons::cdr(mu, args)),
                 _ => {
                     return Err(Except::raise(
                         mu,
@@ -228,24 +228,24 @@ fn compile_lambda(mu: &Mu, args: Tag) -> exception::Result<Tag> {
 }
 
 pub fn compile(mu: &Mu, expr: Tag) -> exception::Result<Tag> {
-    match Tag::class_of(mu, expr) {
-        Class::Symbol => compile_lexical(mu, expr),
-        Class::Cons => {
+    match Tag::type_of(mu, expr) {
+        Type::Symbol => compile_lexical(mu, expr),
+        Type::Cons => {
             let func = Cons::car(mu, expr);
             let args = Cons::cdr(mu, expr);
-            match Tag::class_of(mu, func) {
-                Class::Keyword => match compile_special_form(mu, func, args) {
+            match Tag::type_of(mu, func) {
+                Type::Keyword => match compile_special_form(mu, func, args) {
                     Ok(form) => Ok(form),
                     Err(e) => Err(e),
                 },
-                Class::Symbol | Class::Function => match compile_list(mu, args) {
+                Type::Symbol | Type::Function => match compile_list(mu, args) {
                     Ok(arglist) => Ok(Cons::new(func, arglist).evict(mu)),
                     Err(e) => Err(e),
                 },
-                Class::Cons => match compile_list(mu, args) {
+                Type::Cons => match compile_list(mu, args) {
                     Ok(arglist) => match compile(mu, func) {
-                        Ok(fnc) => match Tag::class_of(mu, fnc) {
-                            Class::Function => Ok(Cons::new(fnc, arglist).evict(mu)),
+                        Ok(fnc) => match Tag::type_of(mu, fnc) {
+                            Type::Function => Ok(Cons::new(fnc, arglist).evict(mu)),
                             _ => Err(Except::raise(mu, Condition::Type, "compile::compile", func)),
                         },
                         Err(e) => Err(e),
@@ -262,7 +262,7 @@ pub fn compile(mu: &Mu, expr: Tag) -> exception::Result<Tag> {
 #[cfg(test)]
 mod tests {
     use crate::core::{
-        classes::{Class, Tag},
+        classes::{Tag, Type},
         compile,
         mu::{Core, Mu},
     };
@@ -272,15 +272,15 @@ mod tests {
         let mu: &Mu = &Core::new("".to_string());
 
         match compile::compile(mu, Tag::nil()) {
-            Ok(form) => match Tag::class_of(mu, form) {
-                Class::Null => assert!(true),
+            Ok(form) => match Tag::type_of(mu, form) {
+                Type::Null => assert!(true),
                 _ => assert!(false),
             },
             _ => assert!(false),
         }
         match compile::compile_list(mu, Tag::nil()) {
-            Ok(form) => match Tag::class_of(mu, form) {
-                Class::Null => assert!(true),
+            Ok(form) => match Tag::type_of(mu, form) {
+                Type::Null => assert!(true),
                 _ => assert!(false),
             },
             _ => assert!(false),

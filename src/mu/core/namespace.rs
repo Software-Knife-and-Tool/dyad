@@ -3,16 +3,6 @@
 
 //! mu namespace symbols
 use crate::{
-    classes::{
-        cons::{Cons, MuFunction as _},
-        fixnum::{Fixnum, MuFunction as _},
-        float::{Float, MuFunction as _},
-        function::Function,
-        namespace::{Core as _, MuFunction as _, Namespace, Scope},
-        stream::{MuFunction as _, Stream},
-        symbol::{MuFunction as _, Symbol},
-        vector::{MuFunction as _, Vector},
-    },
     core::{
         classes::{MuFunction as _, Tag},
         coerce::MuFunction as _,
@@ -21,6 +11,16 @@ use crate::{
         functions::MuFunction as _,
         image::MuFunction as _,
         mu::{Mu, MuFunctionType},
+    },
+    types::{
+        cons::{Cons, MuFunction as _},
+        fixnum::{Fixnum, MuFunction as _},
+        float::{Float, MuFunction as _},
+        function::{Function, MuFunction as _},
+        namespace::{Core as _, MuFunction as _, Namespace, Scope},
+        stream::{MuFunction as _, Stream},
+        symbol::{MuFunction as _, Symbol},
+        vector::{MuFunction as _, Vector},
     },
 };
 
@@ -68,6 +68,8 @@ lazy_static! {
         ("fl-lt", Scope::Extern, 2, Float::mu_fllt),
         ("fl-mul", Scope::Extern, 2, Float::mu_flmul),
         ("fl-div", Scope::Extern, 2, Float::mu_fldiv),
+        // functions
+        ("fn-prop", Scope::Extern, 2, Function::mu_fn_prop),
         // heap
         ("hp-info", Scope::Extern, 0, Mu::mu_hp_info),
         ("hp-type", Scope::Extern, 2, Mu::mu_hp_type),

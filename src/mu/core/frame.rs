@@ -9,18 +9,18 @@
 //!    frame_ref
 use {
     crate::{
-        classes::{
-            cons::{Cons, ConsIter, Properties as _},
-            fixnum::Fixnum,
-            function::{Function, Properties as _},
-            symbol::{Core as _, Properties as _, Symbol},
-        },
         core::{
-            classes::{Class, Tag},
+            classes::{Tag, Type},
             exception,
             exception::{Condition, Except},
             mu::{Core as _, Mu},
             namespace::Core as _,
+        },
+        types::{
+            cons::{Cons, ConsIter, Properties as _},
+            fixnum::Fixnum,
+            function::{Function, Properties as _},
+            symbol::{Core as _, Properties as _, Symbol},
         },
     },
     std::{
@@ -37,17 +37,17 @@ pub struct Frame {
 
 impl Frame {
     pub fn apply(mut self, mu: &Mu, func: Tag) -> exception::Result<Tag> {
-        match Tag::class_of(mu, func) {
-            Class::Symbol => {
+        match Tag::type_of(mu, func) {
+            Type::Symbol => {
                 if Symbol::is_unbound(mu, func) {
                     Err(Except::raise(mu, Condition::Unbound, "frame::apply", func))
                 } else {
                     self.apply(mu, Symbol::value_of(mu, func))
                 }
             }
-            Class::Function => match Tag::class_of(mu, Function::func_of(mu, func)) {
-                Class::Null => Ok(Tag::nil()),
-                Class::Fixnum => {
+            Type::Function => match Tag::type_of(mu, Function::func_of(mu, func)) {
+                Type::Null => Ok(Tag::nil()),
+                Type::Fixnum => {
                     let nreqs = Fixnum::as_i64(mu, Function::nreq_of(mu, func)) as usize;
                     let nargs = self.argv.len();
 
@@ -67,7 +67,7 @@ impl Frame {
 
                     // Self::stack_pop(mu);
                 }
-                Class::Cons => {
+                Type::Cons => {
                     let nreqs = Fixnum::as_i64(mu, Function::nreq_of(mu, func)) as usize;
                     let nargs = self.argv.len();
 
@@ -169,9 +169,9 @@ impl MuFunction for Frame {
         let frame = fp.argv[0];
         let offset = fp.argv[1];
 
-        match Tag::class_of(mu, frame) {
-            Class::Fixnum => match Tag::class_of(mu, offset) {
-                Class::Fixnum => match Frame::frame_ref(
+        match Tag::type_of(mu, frame) {
+            Type::Fixnum => match Tag::type_of(mu, offset) {
+                Type::Fixnum => match Frame::frame_ref(
                     mu,
                     Fixnum::as_i64(mu, frame) as u64,
                     Fixnum::as_i64(mu, offset) as usize,

@@ -6,9 +6,9 @@
 #![allow(clippy::identity_op)]
 use {
     crate::{
-        classes::symbol::{Core as _, Symbol},
         core::{exception, frame::Frame, mu::Mu},
         image,
+        types::symbol::{Core as _, Symbol},
     },
     modular_bitfield::specifiers::{B3, B56, B61},
     num_enum::TryFromPrimitive,
@@ -26,7 +26,7 @@ pub enum Tag {
 // classes
 #[derive(Eq, PartialEq, Copy, Clone, Debug, TryFromPrimitive)]
 #[repr(u8)]
-pub enum Class {
+pub enum Type {
     Byte,
     Char,
     Cons,
@@ -66,7 +66,7 @@ pub struct TagU64 {
 }
 
 #[derive(BitfieldSpecifier, Copy, Clone)]
-pub enum DirectClass {
+pub enum DirectType {
     Char = 0,
     Byte = 1,
     Keyword = 2,
@@ -81,32 +81,32 @@ pub struct Direct {
     #[bits = 3]
     pub tag: TagType,
     #[bits = 2]
-    pub dtype: DirectClass,
+    pub dtype: DirectType,
     pub length: B3,
     pub data: B56,
 }
 
 lazy_static! {
-    pub static ref T: Tag = Tag::to_direct('t' as u64, 1, DirectClass::Keyword);
+    pub static ref T: Tag = Tag::to_direct('t' as u64, 1, DirectType::Keyword);
     pub static ref NIL: Tag = Tag::to_direct(
         (('l' as u64) << 16) | (('i' as u64) << 8) | ('n' as u64),
         3,
-        DirectClass::Keyword
+        DirectType::Keyword
     );
-    pub static ref TYPEKEYMAP: Vec::<(Class, Tag)> = vec![
-        (Class::Byte, Symbol::keyword("byte")),
-        (Class::Char, Symbol::keyword("char")),
-        (Class::Cons, Symbol::keyword("cons")),
-        (Class::Fixnum, Symbol::keyword("fixnum")),
-        (Class::Float, Symbol::keyword("float")),
-        (Class::Function, Symbol::keyword("func")),
-        (Class::Keyword, Symbol::keyword("keyword")),
-        (Class::Namespace, Symbol::keyword("ns")),
-        (Class::Null, Symbol::keyword("null")),
-        (Class::Stream, Symbol::keyword("stream")),
-        (Class::Symbol, Symbol::keyword("symbol")),
-        (Class::T, Symbol::keyword("t")),
-        (Class::Vector, Symbol::keyword("vector")),
+    pub static ref TYPEKEYMAP: Vec::<(Type, Tag)> = vec![
+        (Type::Byte, Symbol::keyword("byte")),
+        (Type::Char, Symbol::keyword("char")),
+        (Type::Cons, Symbol::keyword("cons")),
+        (Type::Fixnum, Symbol::keyword("fixnum")),
+        (Type::Float, Symbol::keyword("float")),
+        (Type::Function, Symbol::keyword("func")),
+        (Type::Keyword, Symbol::keyword("keyword")),
+        (Type::Namespace, Symbol::keyword("ns")),
+        (Type::Null, Symbol::keyword("null")),
+        (Type::Stream, Symbol::keyword("stream")),
+        (Type::Symbol, Symbol::keyword("symbol")),
+        (Type::T, Symbol::keyword("t")),
+        (Type::Vector, Symbol::keyword("vector")),
     ];
 }
 
@@ -130,7 +130,7 @@ impl Tag {
             Tag::Fixnum(fx) => (*fx >> 2) as u64,
             Tag::Direct(tag) => tag.data(),
             Tag::Indirect(heap) => match heap_ref.info(heap.offset() as usize) {
-                Some(info) => match Class::try_from(info.tag_type()) {
+                Some(info) => match Type::try_from(info.tag_type()) {
                     Ok(etype) => etype as u64,
                     Err(_) => panic!("internal: tag format inconsistency"),
                 },
@@ -182,7 +182,7 @@ impl Tag {
         *NIL
     }
 
-    pub fn to_direct(data: u64, len: u8, tag: DirectClass) -> Tag {
+    pub fn to_direct(data: u64, len: u8, tag: DirectType) -> Tag {
         let dir = Direct::new()
             .with_data(data)
             .with_length(len)
@@ -207,27 +207,27 @@ impl Tag {
         }
     }
 
-    pub fn class_of(mu: &Mu, tag: Tag) -> Class {
+    pub fn type_of(mu: &Mu, tag: Tag) -> Type {
         let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
 
         if tag.null_() {
-            Class::Null
+            Type::Null
         } else {
             match tag {
-                Tag::Fixnum(_) => Class::Fixnum,
+                Tag::Fixnum(_) => Type::Fixnum,
                 Tag::Direct(direct) => match direct.dtype() {
-                    DirectClass::Char => Class::Char,
-                    DirectClass::Byte => Class::Vector,
-                    DirectClass::Keyword => Class::Keyword,
-                    DirectClass::Float => Class::Float,
+                    DirectType::Char => Type::Char,
+                    DirectType::Byte => Type::Vector,
+                    DirectType::Keyword => Type::Keyword,
+                    DirectType::Float => Type::Float,
                 },
                 Tag::Indirect(main) => match main.tag() {
-                    TagType::Float => Class::Float,
-                    TagType::Symbol => Class::Symbol,
-                    TagType::Function => Class::Function,
-                    TagType::Cons => Class::Cons,
+                    TagType::Float => Type::Float,
+                    TagType::Symbol => Type::Symbol,
+                    TagType::Function => Type::Function,
+                    TagType::Cons => Type::Cons,
                     TagType::Heap => match heap_ref.info(main.offset() as usize) {
-                        Some(info) => match Class::try_from(info.tag_type()) {
+                        Some(info) => match Type::try_from(info.tag_type()) {
                             Ok(etype) => etype,
                             Err(_) => panic!("internal: tag format inconsistency"),
                         },
@@ -239,7 +239,7 @@ impl Tag {
         }
     }
 
-    pub fn type_key(ttype: Class) -> Option<Tag> {
+    pub fn type_key(ttype: Type) -> Option<Tag> {
         TYPEKEYMAP
             .iter()
             .copied()
@@ -247,7 +247,7 @@ impl Tag {
             .map(|map| map.1)
     }
 
-    pub fn key_type(tag: Tag) -> Option<Class> {
+    pub fn key_type(tag: Tag) -> Option<Type> {
         TYPEKEYMAP
             .iter()
             .copied()
@@ -273,9 +273,9 @@ impl MuFunction for Tag {
     }
 
     fn mu_typeof(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = match Self::type_key(Self::class_of(mu, fp.argv[0])) {
+        fp.value = match Self::type_key(Self::type_of(mu, fp.argv[0])) {
             Some(type_key) => type_key,
-            None => panic!("internal: class_of inconsistency"),
+            None => panic!("internal: type_of inconsistency"),
         };
 
         Ok(())

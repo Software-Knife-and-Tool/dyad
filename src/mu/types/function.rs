@@ -4,18 +4,22 @@
 //! mu function type
 use {
     crate::{
-        classes::{
-            fixnum::Fixnum,
-            indirect_vector::{TypedVec, VecType},
-            vector::Core as _,
-        },
         core::{
-            classes::{Class, Tag, TagType, TagU64},
+            classes::{Tag, TagType, TagU64, Type},
             exception,
+            exception::{Condition, Except},
+            frame::Frame,
             mu::{Core as _, Mu},
             namespace::Core as _,
         },
         image,
+        types::{
+            cons::{Cons, Properties as _},
+            fixnum::Fixnum,
+            indirect_vector::{TypedVec, VecType},
+            symbol::{Core as _, Symbol},
+            vector::Core as _,
+        },
     },
     std::cell::RefMut,
 };
@@ -41,15 +45,15 @@ impl Function {
 
         let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
         let ind = TagU64::new()
-            .with_offset(heap_ref.alloc(image, Class::Function as u8) as u64)
+            .with_offset(heap_ref.alloc(image, Type::Function as u8) as u64)
             .with_tag(TagType::Function);
 
         Tag::Indirect(ind)
     }
 
     pub fn to_image(mu: &Mu, tag: Tag) -> Self {
-        match Tag::class_of(mu, tag) {
-            Class::Function => match tag {
+        match Tag::type_of(mu, tag) {
+            Type::Function => match tag {
                 Tag::Indirect(main) => {
                     let heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                     Function {
@@ -79,8 +83,8 @@ pub trait Properties {
 
 impl Properties for Function {
     fn nreq_of(mu: &Mu, func: Tag) -> Tag {
-        match Tag::class_of(mu, func) {
-            Class::Function => match func {
+        match Tag::type_of(mu, func) {
+            Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).nreq,
                 _ => panic!("internal: function type inconsistency"),
             },
@@ -89,8 +93,8 @@ impl Properties for Function {
     }
 
     fn func_of(mu: &Mu, func: Tag) -> Tag {
-        match Tag::class_of(mu, func) {
-            Class::Function => match func {
+        match Tag::type_of(mu, func) {
+            Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).func,
                 _ => panic!("internal: function type inconsistency"),
             },
@@ -99,8 +103,8 @@ impl Properties for Function {
     }
 
     fn frame_of(mu: &Mu, func: Tag) -> Tag {
-        match Tag::class_of(mu, func) {
-            Class::Function => match func {
+        match Tag::type_of(mu, func) {
+            Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).frame,
                 _ => panic!("internal: function type inconsistency"),
             },
@@ -128,15 +132,15 @@ impl Core for Function {
     }
 
     fn write(mu: &Mu, func: Tag, _: bool, stream: Tag) -> exception::Result<()> {
-        match Tag::class_of(mu, func) {
-            Class::Function => {
+        match Tag::type_of(mu, func) {
+            Type::Function => {
                 match mu.write_string("#<function: ".to_string(), stream) {
                     Ok(_) => (),
                     Err(e) => return Err(e),
                 }
                 let form = Function::func_of(mu, func);
-                match Tag::class_of(mu, form) {
-                    Class::Null | Class::Cons => match mu.write_string(
+                match Tag::type_of(mu, form) {
+                    Type::Null | Type::Cons => match mu.write_string(
                         format!(
                             ":lambda [req:{}, tag:{:x}]",
                             Fixnum::as_i64(mu, Function::nreq_of(mu, func)),
@@ -147,7 +151,7 @@ impl Core for Function {
                         Ok(_) => (),
                         Err(e) => return Err(e),
                     },
-                    Class::Fixnum => {
+                    Type::Fixnum => {
                         let (name, _, nreqs, _) =
                             Mu::functionmap(Fixnum::as_i64(mu, form) as usize);
                         match mu.write_string(format!(":native [req:{nreqs}] mu:{name}"), stream) {
@@ -164,10 +168,46 @@ impl Core for Function {
     }
 }
 
+pub trait MuFunction {
+    fn mu_fn_prop(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+}
+
+impl MuFunction for Function {
+    fn mu_fn_prop(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        let prop_key = fp.argv[0];
+        let func = fp.argv[1];
+
+        match Tag::type_of(mu, func) {
+            Type::Function => (),
+            _ => return Err(Except::raise(mu, Condition::Type, "mu:fn-prop", func)),
+        }
+
+        fp.value = if prop_key.eq_(Symbol::keyword("lambda")) {
+            let fnc = Self::func_of(mu, func);
+            match Tag::type_of(mu, fnc) {
+                Type::Cons => Cons::car(mu, fnc),
+                _ => return Err(Except::raise(mu, Condition::Type, "mu:fn-prop", fnc)),
+            }
+        } else if prop_key.eq_(Symbol::keyword("frame")) {
+            Self::frame_of(mu, func)
+        } else if prop_key.eq_(Symbol::keyword("form")) {
+            let fnc = Self::func_of(mu, func);
+            match Tag::type_of(mu, fnc) {
+                Type::Cons => Cons::cdr(mu, fnc),
+                _ => func,
+            }
+        } else {
+            return Err(Except::raise(mu, Condition::Type, "mu:fn-prop", prop_key));
+        };
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::classes::function::Function;
     use crate::core::classes::Tag;
+    use crate::types::function::Function;
 
     #[test]
     fn as_tag() {

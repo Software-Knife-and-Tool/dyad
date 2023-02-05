@@ -3,21 +3,21 @@
 //
 use {
     crate::{
-        classes::{
-            indirect_vector::{TypedVec, VecType},
-            namespace::{Namespace, Properties as _, Scope},
-            stream::{Core as _, Stream},
-            vector::{Core as _, Vector},
-        },
         core::{
-            classes::DirectClass,
-            classes::{Class, Tag, TagType, TagU64},
+            classes::DirectType,
+            classes::{Tag, TagType, TagU64, Type},
             exception,
             exception::{Condition, Except},
             frame::Frame,
             mu::{Core as _, Mu},
         },
         image,
+        types::{
+            indirect_vector::{TypedVec, VecType},
+            namespace::{Namespace, Properties as _, Scope},
+            stream::{Core as _, Stream},
+            vector::{Core as _, Vector},
+        },
     },
     std::{
         cell::{Ref, RefMut},
@@ -38,7 +38,7 @@ pub struct Image {
 }
 
 lazy_static! {
-    pub static ref UNBOUND: Tag = Tag::to_direct(0, 0, DirectClass::Keyword);
+    pub static ref UNBOUND: Tag = Tag::to_direct(0, 0, DirectType::Keyword);
 }
 
 impl Symbol {
@@ -60,7 +60,7 @@ impl Symbol {
                 Symbol::Keyword(Tag::to_direct(
                     u64::from_le_bytes(data),
                     (len - 1) as u8,
-                    DirectClass::Keyword,
+                    DirectType::Keyword,
                 ))
             }
             _ => Symbol::Symbol(Image {
@@ -77,8 +77,8 @@ impl Symbol {
 
     pub fn to_image(mu: &Mu, tag: Tag) -> Image {
         let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
-        match Tag::class_of(mu, tag) {
-            Class::Symbol => match tag {
+        match Tag::type_of(mu, tag) {
+            Type::Symbol => match tag {
                 Tag::Indirect(main) => Image {
                     namespace: Tag::from_slice(
                         heap_ref.of_length(main.offset() as usize, 8).unwrap(),
@@ -109,9 +109,9 @@ pub trait Properties {
 
 impl Properties for Symbol {
     fn namespace_of(mu: &Mu, symbol: Tag) -> Tag {
-        match Tag::class_of(mu, symbol) {
-            Class::Keyword => Tag::nil(),
-            Class::Symbol => match symbol {
+        match Tag::type_of(mu, symbol) {
+            Type::Keyword => Tag::nil(),
+            Type::Symbol => match symbol {
                 Tag::Indirect(_) => Self::to_image(mu, symbol).namespace,
                 _ => panic!("internal: tag format inconsistency"),
             },
@@ -120,12 +120,12 @@ impl Properties for Symbol {
     }
 
     fn scope_of(mu: &Mu, symbol: Tag) -> Tag {
-        match Tag::class_of(mu, symbol) {
-            Class::Keyword => match symbol {
+        match Tag::type_of(mu, symbol) {
+            Type::Keyword => match symbol {
                 Tag::Direct(_) => Symbol::keyword("extern"),
                 _ => panic!("internal: tag format inconsistency"),
             },
-            Class::Symbol => match symbol {
+            Type::Symbol => match symbol {
                 Tag::Indirect(_) => Self::to_image(mu, symbol).scope,
                 _ => panic!("internal: tag format inconsistency"),
             },
@@ -134,12 +134,12 @@ impl Properties for Symbol {
     }
 
     fn name_of(mu: &Mu, symbol: Tag) -> Tag {
-        match Tag::class_of(mu, symbol) {
-            Class::Keyword => match symbol {
-                Tag::Direct(dir) => Tag::to_direct(dir.data(), dir.length(), DirectClass::Byte),
+        match Tag::type_of(mu, symbol) {
+            Type::Keyword => match symbol {
+                Tag::Direct(dir) => Tag::to_direct(dir.data(), dir.length(), DirectType::Byte),
                 _ => panic!("internal: tag format inconsistency"),
             },
-            Class::Symbol => match symbol {
+            Type::Symbol => match symbol {
                 Tag::Indirect(_) => Self::to_image(mu, symbol).name,
                 _ => panic!("internal: tag format inconsistency"),
             },
@@ -148,9 +148,9 @@ impl Properties for Symbol {
     }
 
     fn value_of(mu: &Mu, symbol: Tag) -> Tag {
-        match Tag::class_of(mu, symbol) {
-            Class::Keyword => symbol,
-            Class::Symbol => match symbol {
+        match Tag::type_of(mu, symbol) {
+            Type::Keyword => symbol,
+            Type::Symbol => match symbol {
                 Tag::Indirect(_) => Self::to_image(mu, symbol).value,
                 _ => panic!("internal: symbol type inconsistency"),
             },
@@ -199,7 +199,7 @@ impl Core for Symbol {
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
                     TagU64::new()
-                        .with_offset(heap_ref.alloc(slices, Class::Symbol as u8) as u64)
+                        .with_offset(heap_ref.alloc(slices, Type::Symbol as u8) as u64)
                         .with_tag(TagType::Symbol),
                 )
             }
@@ -219,22 +219,25 @@ impl Core for Symbol {
         for (src, dst) in str.as_bytes().iter().zip(data.iter_mut()) {
             *dst = *src
         }
-        Tag::to_direct(u64::from_le_bytes(data), len as u8, DirectClass::Keyword)
+        Tag::to_direct(u64::from_le_bytes(data), len as u8, DirectType::Keyword)
     }
 
     fn write(mu: &Mu, symbol: Tag, escape: bool, stream: Tag) -> exception::Result<()> {
-        match Tag::class_of(mu, symbol) {
-            Class::Null | Class::Keyword => match str::from_utf8(&symbol.data(mu).to_le_bytes()) {
+        match Tag::type_of(mu, symbol) {
+            Type::Null | Type::Keyword => match str::from_utf8(&symbol.data(mu).to_le_bytes()) {
                 Ok(s) => {
                     Stream::write_char(mu, stream, ':').unwrap();
                     for nth in 0..symbol.length() {
-                        Stream::write_char(mu, stream, s.as_bytes()[nth as usize] as char).unwrap();
+                        match Stream::write_char(mu, stream, s.as_bytes()[nth as usize] as char) {
+                            Ok(_) => (),
+                            Err(e) => return Err(e),
+                        }
                     }
                     Ok(())
                 }
                 Err(_) => panic!("internal: symbol content inconsistency"),
             },
-            Class::Symbol => {
+            Type::Symbol => {
                 let name = Self::name_of(mu, symbol);
 
                 if escape {
@@ -287,8 +290,8 @@ impl MuFunction for Symbol {
     fn mu_name(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let symbol = fp.argv[0];
 
-        fp.value = match Tag::class_of(mu, symbol) {
-            Class::Keyword | Class::Symbol => Symbol::name_of(mu, symbol),
+        fp.value = match Tag::type_of(mu, symbol) {
+            Type::Keyword | Type::Symbol => Symbol::name_of(mu, symbol),
             _ => return Err(Except::raise(mu, Condition::Type, "mu:sy-name", symbol)),
         };
 
@@ -298,9 +301,9 @@ impl MuFunction for Symbol {
     fn mu_ns(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let symbol = fp.argv[0];
 
-        fp.value = match Tag::class_of(mu, symbol) {
-            Class::Symbol => Symbol::namespace_of(mu, symbol),
-            Class::Keyword => Self::keyword("keyword"),
+        fp.value = match Tag::type_of(mu, symbol) {
+            Type::Symbol => Symbol::namespace_of(mu, symbol),
+            Type::Keyword => Self::keyword("keyword"),
             _ => return Err(Except::raise(mu, Condition::Type, "mu:sy-ns", symbol)),
         };
 
@@ -310,15 +313,15 @@ impl MuFunction for Symbol {
     fn mu_value(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let symbol = fp.argv[0];
 
-        fp.value = match Tag::class_of(mu, symbol) {
-            Class::Symbol => {
+        fp.value = match Tag::type_of(mu, symbol) {
+            Type::Symbol => {
                 if Symbol::is_unbound(mu, symbol) {
                     return Err(Except::raise(mu, Condition::Type, "mu:sy-value", symbol));
                 } else {
                     Symbol::value_of(mu, symbol)
                 }
             }
-            Class::Keyword => symbol,
+            Type::Keyword => symbol,
             _ => return Err(Except::raise(mu, Condition::Type, "mu:sy-ns", symbol)),
         };
 
@@ -328,9 +331,9 @@ impl MuFunction for Symbol {
     fn mu_boundp(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let symbol = fp.argv[0];
 
-        fp.value = match Tag::class_of(mu, symbol) {
-            Class::Keyword => symbol,
-            Class::Symbol => {
+        fp.value = match Tag::type_of(mu, symbol) {
+            Type::Keyword => symbol,
+            Type::Symbol => {
                 if Self::is_unbound(mu, symbol) {
                     Tag::nil()
                 } else {
@@ -346,8 +349,8 @@ impl MuFunction for Symbol {
     fn mu_keywordp(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let symbol = fp.argv[0];
 
-        fp.value = match Tag::class_of(mu, symbol) {
-            Class::Keyword => symbol,
+        fp.value = match Tag::type_of(mu, symbol) {
+            Type::Keyword => symbol,
             _ => Tag::nil(),
         };
 
@@ -357,12 +360,12 @@ impl MuFunction for Symbol {
     fn mu_keyword(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let symbol = fp.argv[0];
 
-        match Tag::class_of(mu, symbol) {
-            Class::Keyword => {
+        match Tag::type_of(mu, symbol) {
+            Type::Keyword => {
                 fp.value = symbol;
                 Ok(())
             }
-            Class::Vector => {
+            Type::Vector => {
                 let str = Vector::as_string(mu, symbol);
                 fp.value = Self::keyword(&str);
                 Ok(())
@@ -374,8 +377,8 @@ impl MuFunction for Symbol {
     fn mu_symbol(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let symbol = fp.argv[0];
 
-        match Tag::class_of(mu, symbol) {
-            Class::Vector => {
+        match Tag::type_of(mu, symbol) {
+            Type::Vector => {
                 let str = Vector::as_string(mu, symbol);
                 fp.value = Self::new(mu, mu.nil_ns, Scope::Extern, &str, *UNBOUND).evict(mu);
                 Ok(())

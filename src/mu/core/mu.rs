@@ -6,7 +6,17 @@
 //!    Mu
 use {
     crate::{
-        classes::{
+        core::{
+            classes::{Tag, Type},
+            compile, exception,
+            exception::{Condition, Except},
+            frame::Frame,
+            namespace::Core as _,
+            read::Read,
+        },
+        image::heap::Heap,
+        system::sys as system,
+        types::{
             char::{Char, Core as _},
             cons::{Cons, ConsIter, Core as _, Properties as _},
             fixnum::{Core as _, Fixnum},
@@ -17,16 +27,6 @@ use {
             symbol::{Core as _, Properties as _, Symbol},
             vector::{Core as _, Vector},
         },
-        core::{
-            classes::{Class, Tag},
-            compile, exception,
-            exception::{Condition, Except},
-            frame::Frame,
-            namespace::Core as _,
-            read::Read,
-        },
-        image::heap::Heap,
-        system::sys as system,
     },
     std::{cell::RefCell, collections::HashMap},
 };
@@ -72,7 +72,7 @@ pub struct Mu {
 }
 
 pub trait Core {
-    const VERSION: &'static str = "0.0.7";
+    const VERSION: &'static str = "0.0.8";
 
     fn new(config: String) -> Self;
     fn apply(&self, _: Tag, _: Tag) -> exception::Result<Tag>;
@@ -163,30 +163,30 @@ impl Core for Mu {
     }
 
     fn eval(&self, expr: Tag) -> exception::Result<Tag> {
-        match Tag::class_of(self, expr) {
-            Class::Cons => {
+        match Tag::type_of(self, expr) {
+            Type::Cons => {
                 let func = Cons::car(self, expr);
                 let args = Cons::cdr(self, expr);
-                match Tag::class_of(self, func) {
-                    Class::Keyword if func.eq_(Symbol::keyword("quote")) => {
+                match Tag::type_of(self, func) {
+                    Type::Keyword if func.eq_(Symbol::keyword("quote")) => {
                         Ok(Cons::car(self, args))
                     }
-                    Class::Symbol => {
+                    Type::Symbol => {
                         if Symbol::is_unbound(self, func) {
                             Err(Except::raise(self, Condition::Unbound, "core::eval", func))
                         } else {
                             let fnc = Symbol::value_of(self, func);
-                            match Tag::class_of(self, fnc) {
-                                Class::Function => self.apply(fnc, args),
+                            match Tag::type_of(self, fnc) {
+                                Type::Function => self.apply(fnc, args),
                                 _ => Err(Except::raise(self, Condition::Type, "core::eval", func)),
                             }
                         }
                     }
-                    Class::Function => self.apply(func, args),
+                    Type::Function => self.apply(func, args),
                     _ => Err(Except::raise(self, Condition::Type, "core::eval", func)),
                 }
             }
-            Class::Symbol => {
+            Type::Symbol => {
                 if Symbol::is_unbound(self, expr) {
                     Err(Except::raise(self, Condition::Unbound, "core:eval", expr))
                 } else {
@@ -217,18 +217,16 @@ impl Core for Mu {
     }
 
     fn write(&self, tag: Tag, escape: bool, stream: Tag) -> exception::Result<()> {
-        match Tag::class_of(self, tag) {
-            Class::Char => Char::write(self, tag, escape, stream),
-            Class::Cons => Cons::write(self, tag, escape, stream),
-            Class::Fixnum => Fixnum::write(self, tag, escape, stream),
-            Class::Float => Float::write(self, tag, escape, stream),
-            Class::Function => Function::write(self, tag, escape, stream),
-            Class::Namespace => Namespace::write(self, tag, escape, stream),
-            Class::Null | Class::Symbol | Class::Keyword => {
-                Symbol::write(self, tag, escape, stream)
-            }
-            Class::Stream => Stream::write(self, tag, escape, stream),
-            Class::Vector => Vector::write(self, tag, escape, stream),
+        match Tag::type_of(self, tag) {
+            Type::Char => Char::write(self, tag, escape, stream),
+            Type::Cons => Cons::write(self, tag, escape, stream),
+            Type::Fixnum => Fixnum::write(self, tag, escape, stream),
+            Type::Float => Float::write(self, tag, escape, stream),
+            Type::Function => Function::write(self, tag, escape, stream),
+            Type::Namespace => Namespace::write(self, tag, escape, stream),
+            Type::Null | Type::Symbol | Type::Keyword => Symbol::write(self, tag, escape, stream),
+            Type::Stream => Stream::write(self, tag, escape, stream),
+            Type::Vector => Vector::write(self, tag, escape, stream),
             _ => panic!("internal: write type inconsistency"),
         }
     }

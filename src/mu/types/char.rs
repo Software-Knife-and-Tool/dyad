@@ -1,17 +1,17 @@
 //  SPDX-FileCopyrightText: Copyright 2022-2023 James M. Putnam (putnamjm.design@gmail.com)
 //  SPDX-License-Identifier: MIT
 
-//! mu char type
+//! mu character class
 use crate::{
-    classes::{
+    core::{
+        classes::{DirectType, Tag},
+        exception,
+        mu::{Core as _, Mu},
+    },
+    types::{
         indirect_vector::{TypedVec, VecType as _},
         stream::{Core as _, Stream},
         vector::Core as _,
-    },
-    core::{
-        classes::{DirectClass, Tag},
-        exception,
-        mu::{Core as _, Mu},
     },
 };
 
@@ -27,7 +27,7 @@ impl Char {
     }
 
     pub fn as_tag(ch: char) -> Tag {
-        Tag::to_direct(ch as u64, 1, DirectClass::Char)
+        Tag::to_direct(ch as u64, 1, DirectType::Char)
     }
 }
 
@@ -76,7 +76,7 @@ impl Core for Char {
 
 #[cfg(test)]
 mod tests {
-    use crate::classes::char::Char;
+    use crate::types::char::Char;
 
     #[test]
     fn as_tag() {

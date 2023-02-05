@@ -4,44 +4,44 @@
 //! mu image
 use {
     crate::{
-        classes::{
-            cons::{Cons, Core as _},
-            fixnum::Fixnum,
-            symbol::{Core as _, Symbol},
-        },
         core::{
-            classes::{Class, Tag},
+            classes::{Tag, Type},
             exception,
             exception::{Condition, Except},
             frame::Frame,
             mu::Mu,
         },
         image,
+        types::{
+            cons::{Cons, Core as _},
+            fixnum::Fixnum,
+            symbol::{Core as _, Symbol},
+        },
     },
     std::cell::Ref,
 };
 
 lazy_static! {
-    static ref TYPEMAP: Vec<(Tag, Class)> = vec![
-        (Symbol::keyword("cons"), Class::Cons),
-        (Symbol::keyword("func"), Class::Function),
-        (Symbol::keyword("nil"), Class::Null),
-        (Symbol::keyword("ns"), Class::Namespace),
-        (Symbol::keyword("stream"), Class::Stream),
-        (Symbol::keyword("symbol"), Class::Symbol),
-        (Symbol::keyword("t"), Class::T),
-        (Symbol::keyword("vector"), Class::Vector),
+    static ref TYPEMAP: Vec<(Tag, Type)> = vec![
+        (Symbol::keyword("cons"), Type::Cons),
+        (Symbol::keyword("func"), Type::Function),
+        (Symbol::keyword("nil"), Type::Null),
+        (Symbol::keyword("ns"), Type::Namespace),
+        (Symbol::keyword("stream"), Type::Stream),
+        (Symbol::keyword("symbol"), Type::Symbol),
+        (Symbol::keyword("t"), Type::T),
+        (Symbol::keyword("vector"), Type::Vector),
     ];
 }
 
 pub trait Core {
-    fn to_type(_: Tag) -> Option<Class>;
+    fn to_type(_: Tag) -> Option<Type>;
     fn hp_info(_: &Mu) -> (usize, usize);
-    fn hp_type(_: &Mu, _: Class) -> (u8, usize, usize, usize, usize);
+    fn hp_type(_: &Mu, _: Type) -> (u8, usize, usize, usize, usize);
 }
 
 impl Core for Mu {
-    fn to_type(keyword: Tag) -> Option<Class> {
+    fn to_type(keyword: Tag) -> Option<Type> {
         TYPEMAP
             .iter()
             .copied()
@@ -55,7 +55,7 @@ impl Core for Mu {
         (heap_ref.page_size, heap_ref.npages)
     }
 
-    fn hp_type(mu: &Mu, htype: Class) -> (u8, usize, usize, usize, usize) {
+    fn hp_type(mu: &Mu, htype: Type) -> (u8, usize, usize, usize, usize) {
         let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
 
         #[allow(clippy::type_complexity)]
@@ -89,10 +89,10 @@ impl MuFunction for Mu {
         let type_key = fp.argv[0];
         let of_key = fp.argv[1];
 
-        match Tag::class_of(mu, type_key) {
-            Class::Keyword => match Self::to_type(type_key) {
-                Some(htype) => match Tag::class_of(mu, of_key) {
-                    Class::Keyword => {
+        match Tag::type_of(mu, type_key) {
+            Type::Keyword => match Self::to_type(type_key) {
+                Some(htype) => match Tag::type_of(mu, of_key) {
+                    Type::Keyword => {
                         let type_info = Self::hp_type(mu, htype);
 
                         fp.value = if of_key.eq_(Symbol::keyword("alloc")) {
