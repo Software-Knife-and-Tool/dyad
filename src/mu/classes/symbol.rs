@@ -6,6 +6,7 @@ use {
         classes::{
             indirect_vector::{TypedVec, VecType},
             namespace::{Namespace, Properties as _, Scope},
+            stream::{Core as _, Stream},
             vector::{Core as _, Vector},
         },
         core::{
@@ -224,7 +225,12 @@ impl Core for Symbol {
     fn write(mu: &Mu, symbol: Tag, escape: bool, stream: Tag) -> exception::Result<()> {
         match Tag::class_of(mu, symbol) {
             Class::Null | Class::Keyword => match str::from_utf8(&symbol.data(mu).to_le_bytes()) {
-                Ok(s) => mu.write_string(format!(":{s}"), stream),
+                Ok(s) => {
+                    for nth in 0..symbol.length() {
+                        Stream::write_char(mu, stream, s.as_bytes()[nth as usize] as char).unwrap();
+                    }
+                    Ok(())
+                }
                 Err(_) => panic!("internal: symbol content inconsistency"),
             },
             Class::Symbol => {
@@ -339,17 +345,12 @@ impl MuFunction for Symbol {
     fn mu_keywordp(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let symbol = fp.argv[0];
 
-        match Tag::class_of(mu, symbol) {
-            Class::Keyword => {
-                fp.value = symbol;
-                Ok(())
-            }
-            Class::Symbol => {
-                fp.value = Tag::nil();
-                Ok(())
-            }
-            _ => Err(Except::raise(mu, Condition::Type, "mu:keyp", symbol)),
-        }
+        fp.value = match Tag::class_of(mu, symbol) {
+            Class::Keyword => symbol,
+            _ => Tag::nil(),
+        };
+
+        Ok(())
     }
 
     fn mu_keyword(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {

@@ -96,7 +96,7 @@
     (:lambda (ch stream)
         (:if (mu:eq ch #\))
              core::read-list-eol
-             (mu:fix*
+             (mu:fix
               (:lambda (self eol list)
                 (:if eol
                      list

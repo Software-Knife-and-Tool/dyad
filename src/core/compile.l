@@ -48,7 +48,7 @@
 
 (mu:intern core::ns :intern "lambda"
     (:lambda (form env)
-      (core:error-if (mu:fixnum< (mu:length form) 2) form "lambda: malformed lambda expression")
+      (core:error-if (mu:fx-lt (mu:length form) 2) form "lambda: malformed lambda expression")
       (core::compile-lambda (core::list2 (mu:nth 1 form) (mu:nthcdr 2 form)) env)))
 
 (mu:intern core::ns :intern "defconst"
@@ -96,8 +96,8 @@
 (mu:intern core::ns :intern "if"
    (:lambda (form env)
       (core:errorp-unless core:listp env "core::if: not an environment")
-      (core:errorp-unless (:lambda (form) (mu:fixnum< 2 (mu:length form))) form "core:if: takes two or three arguments")
-      (core:errorp-unless (:lambda (form) (mu:fixnum< (mu:length form) 5)) form "core:if: takes two or three arguments")
+      (core:errorp-unless (:lambda (form) (mu:fx-lt 2 (mu:length form))) form "core:if: takes two or three arguments")
+      (core:errorp-unless (:lambda (form) (mu:fx-lt (mu:length form) 5)) form "core:if: takes two or three arguments")
       (core::compile
         ((:lambda (thunk if-impl)
             (mu:cons 'core::apply

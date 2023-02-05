@@ -10,9 +10,9 @@
 ;;;
 ;;; readtable
 ;;;
-(mu:intern (mu:map-ns "mu") :extern "read-char-syntax"
+(mu:intern core::ns :extern "read-char-syntax"
    (:lambda (ch)
-     ((:lambda (read-table) read-table)
+     ((:lambda (read-table) (mu:cdr (core:assoc ch read-table)))
       '((#\return . :wspace) (#\linefeed . :wspace) (#\page . :wspace)
         (#\tab . :wspace) (#\space . :wspace)
         (#\0 . :const)  (#\1 . :const)  (#\2 . :const)  (#\3 . :const)
@@ -57,7 +57,7 @@
 (mu:intern core::ns :intern "read-atom"
    (:lambda (stream)
      (core:errorp-when mu:eof stream "core::read-atom: unexpected eof")
-     (mu:fix*           
+     (mu:fix
       (:lambda (self end atom)
         (:if (core::logical-or (core:fixnump end) (mu:eof stream))
              atom

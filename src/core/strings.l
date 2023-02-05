@@ -81,5 +81,5 @@
      (core:errorp-unless core:fixnump end "is not a fixnum (core::substr)")
      ((:lambda (list)
          (mu:list-sv :char
-           (core:dropl (core:dropr list (mu:fixnum- (mu:length list) (core:1+ end))) start)))
+           (core:dropl (core:dropr list (mu:fx-sub (mu:length list) (core:1+ end))) start)))
          (core:sv-list str))))

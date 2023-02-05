@@ -26,7 +26,7 @@
                   (core::flat-arg-list quasi-list))
                  "output-quasi-list"))
               ((:lambda ()
-                 (mu:fix*
+                 (mu:fix
                   (:lambda (self toggle end lst)
                     (:if end
                          lst

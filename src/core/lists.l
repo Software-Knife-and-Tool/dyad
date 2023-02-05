@@ -97,7 +97,7 @@
      (:if (core:null list)
           ()
           (:if (core::fn-applyp fn)
-               (mu:fix*
+               (mu:fix
                 (:lambda (self acc list)
                   (:if (core:null list)
                        acc
@@ -107,7 +107,7 @@
                                        (core::append acc (core::list (core::apply fn (core::list list)))))
                           (mu:fr-setv (core::fn-frame-id self) 2 (mu:cdr list)))))
                 (core::list2 () list))
-               (mu:fix*
+               (mu:fix
                 (:lambda (self acc list)
                   (:if (core:null list)
                        acc
@@ -153,7 +153,7 @@
         ((:lambda (len)
             (core:foldl
               (:lambda (el last)
-                 (:if (mu:fixnum< (mu:length last) (mu:fixnum- (mu:length list) n))
+                 (:if (mu:fx-lt (mu:length last) (mu:fx-sub (mu:length list) n))
                       (mu:cons el last)
                       last))
                  ()
@@ -165,15 +165,15 @@
    (:lambda (item list)
      (mu:car
         (mu:fix
-         (:lambda (list)
-           (:if (mu:eq () list)
-               ()
+         (:lambda (lst)
+           (:if lst
                ((:lambda (entry)
                   (core:errorp-unless core:consp entry "core:assoc: not a cons")
                   (:if (mu:eq item (mu:car entry))
-                      list
-                      (mu:cdr list)))
-                (mu:car list))))
+                      lst
+                      (mu:cdr lst)))
+                (mu:car lst))
+               ()))
          list))))
 
 (mu:intern core::ns :extern "last"

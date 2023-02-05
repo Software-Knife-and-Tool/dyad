@@ -46,7 +46,7 @@
                        (core::apply fn (core::list2 (mu:car seq) (fold fold (mu:cdr seq)))))))
                ((:lambda (fold) (fold fold init (core:1- (mu:sv-len seq))))
                 (:lambda (fold acc index)
-                  (:if (mu:fixnum< -1 index)
+                  (:if (mu:fx-lt -1 index)
                        (fold fold (core::apply fn (core::list2 (mu:sv-ref seq index) acc)) (core:1- index))
                        acc))))
           (:if (core:listp seq)
@@ -57,7 +57,7 @@
                        (fn (mu:car seq) (fold fold (mu:cdr seq))))))
                ((:lambda (fold) (fold fold init (core:1- (mu:sv-len seq))))
                 (:lambda (fold acc index)
-                  (:if (mu:fixnum< -1 index)
+                  (:if (mu:fx-lt -1 index)
                        (fold fold (fn (mu:sv-ref seq index) acc) (core:1- index))
                        acc)))))))
 
@@ -108,7 +108,7 @@
                     ((:lambda (lst)
                        (:if (core:null lst)
                             ()
-                            (mu:fixnum- (mu:length seq) (mu:length lst))))
+                            (mu:fx-sub (mu:length seq) (mu:length lst))))
                      (mu:fix
                       (:lambda (list)
                         (:if (core:null list)
@@ -127,7 +127,7 @@
                       (:lambda (nth)
                         (:if (core:null nth)
                              ()
-                             (:if (mu:fixnum< nth (mu:sv-len seq))
+                             (:if (mu:fx-lt nth (mu:sv-len seq))
                                   (:if (core::apply fn (core::list2 item (mu:sv-ref seq nth)))
                                        nth
                                        (core:1+ nth))
@@ -139,7 +139,7 @@
                     ((:lambda (lst)
                        (:if (core:null lst)
                             ()
-                            (mu:fixnum- (mu:length seq) (mu:length lst))))
+                            (mu:fx-sub (mu:length seq) (mu:length lst))))
                      (mu:fix
                       (:lambda (list)
                         (:if (core:null list)
@@ -158,7 +158,7 @@
                       (:lambda (nth)
                         (:if (core:null nth)
                              ()
-                             (:if (mu:fixnum< nth (mu:sv-len seq))
+                             (:if (mu:fx-lt nth (mu:sv-len seq))
                                   (:if (fn item (mu:sv-ref seq nth))
                                        nth
                                        (core:1+ nth))
@@ -176,12 +176,12 @@
                     ((:lambda (nthcdr)
                        (:if (core:null nthcdr)
                             ()
-                            (mu:fixnum- (mu:length seq) (mu:length nthcdr))))
+                            (mu:fx-sub (mu:length seq) (mu:length nthcdr))))
                      (mu:fix
                       (:lambda (nth)
                         (:if (core:listp nth)
                              nth
-                             (:if (mu:fixnum< nth 0)
+                             (:if (mu:fx-lt nth 0)
                                   ()
                                   (:if (core::apply fn (core::list2 item (mu:nth nth seq)))
                                        (mu:nthcdr nth seq)
@@ -193,7 +193,7 @@
                      (:lambda (nth)
                        (:if (core:null nth)
                             nth
-                            (:if (mu:fixnum< nth 0)
+                            (:if (mu:fx-lt nth 0)
                                  ()
                                  (:if (core::apply fn (core::list2 item (mu:sv-ref seq nth)))
                                       nth
@@ -205,12 +205,12 @@
                     ((:lambda (nthcdr)
                        (:if (core:null nthcdr)
                             ()
-                            (mu:fixnum- (mu:length seq) (mu:length nthcdr))))
+                            (mu:fx-sub (mu:length seq) (mu:length nthcdr))))
                      (mu:fix
                       (:lambda (nth)
                         (:if (core:listp nth)
                              nth
-                             (:if (mu:fixnum< nth 0)
+                             (:if (mu:fx-lt nth 0)
                                   ()
                                   (:if (fn item (mu:nth nth seq))
                                        (mu:nthcdr nth seq)
@@ -222,7 +222,7 @@
                      (:lambda (nth)
                        (:if (core:null nth)
                             nth
-                            (:if (mu:fixnum< nth 0)
+                            (:if (mu:fx-lt nth 0)
                                  ()
                                  (:if (fn item (mu:sv-ref seq nth))
                                       nth

@@ -41,6 +41,6 @@ assert_eq "(core:maplist (:lambda (el) el) ())" ":nil"
 assert_eq "(core:foldl (:lambda (el acc) (:if (core:null acc) :nil (core:symbolp el))) :t '(1 2 3))" ":nil"
 assert_eq "(core:foldl (:lambda (el acc) (:if (core:null acc) :nil (core:symbolp el))) :t '(a b c))" ":t"
 assert_eq "(core:foldl (:lambda (el acc) (mu:cons el acc)) () '(1 2 3))" "(3 2 1)"
-assert_eq "(core:foldr (:lambda (x y) (mu:fixnum+ x y)) 0 '(1 2 3))" "6"
+assert_eq "(core:foldr (:lambda (x y) (mu:fx-add x y)) 0 '(1 2 3))" "6"
 assert_eq "(core:sv-list \"abc\")" "(a b c)"
 #

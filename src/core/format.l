@@ -14,7 +14,7 @@
                    ""
                    ())
               ((:lambda ()
-                 (mu:fix*
+                 (mu:fix
                   (:lambda (self nth args)
                     (:if (mu:eq nth fmt-len)
                          dest
@@ -23,7 +23,7 @@
                                  ((:lambda ()
                                     (core:error-if (mu:eq (core:1+ nth) fmt-len) nth "core:format: end of string while processing directive")
                                     (mu:fr-setv (core::fn-frame-id self) 2 (fmt-op (core:schar fmt (core:1+ nth)) dest args))
-                                    (mu:fr-setv (core::fn-frame-id self) 1 (mu:fixnum+ 2 nth))))
+                                    (mu:fr-setv (core::fn-frame-id self) 1 (mu:fx-add 2 nth))))
                                  (core::prog2
                                     (core:write-char ch dest)
                                     (mu:fr-setv (core::fn-frame-id self) 1 (core:1+ nth)))))
@@ -53,7 +53,7 @@
                         (:if (mu:eq dir #\X)
                              ((:lambda (fx)
                                 (core:errorp-unless core:fixnump fx "format: argument to ~X not a fixnum")
-                                (core:errorp-when (:lambda (n) (mu:fixnum< n 0)) fx "format: argument to ~X is negative")
+                                (core:errorp-when (:lambda (n) (mu:fx-lt n 0)) fx "format: argument to ~X is negative")
                                 (:if (core:zerop fx)
                                      (core:write "0" () dest)
                                      ((:lambda (loop)

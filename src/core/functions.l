@@ -98,7 +98,7 @@
                                 (core::flat-arg-list rest)
                                 (core::list ())))
                                         ()))))
-                   (core:dropr args (mu:fixnum- (mu:length args) (core::fn-nreqs fn)))
+                   (core:dropr args (mu:fx-sub (mu:length args) (core::fn-nreqs fn)))
                    (core:dropl args (core::fn-nreqs fn))))
           (core::flat-arg-list args))))
 
@@ -111,7 +111,7 @@
                   (core::append
                    reqs
                    (core::list rest)))
-                (core:dropr args (mu:fixnum- (mu:length args) (core::fn-nreqs fn)))
+                (core:dropr args (mu:fx-sub (mu:length args) (core::fn-nreqs fn)))
                 (core:dropl args (core::fn-nreqs fn))))
           args)))
 
@@ -141,7 +141,7 @@
                                 (core::compile-flat-arg-list rest env)
                                 (core::list ())))
                                         ()))))
-                   (core:dropr args (mu:fixnum- (mu:length args) (core::fn-nreqs fn)))
+                   (core:dropr args (mu:fx-sub (mu:length args) (core::fn-nreqs fn)))
                    (core:dropl args (core::fn-nreqs fn))))
           (core::compile-flat-arg-list args env))))
 |#

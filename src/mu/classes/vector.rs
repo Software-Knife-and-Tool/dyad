@@ -198,10 +198,18 @@ impl<'a> Core<'a> for Vector {
             Tag::Direct(_) => match str::from_utf8(&vector.data(mu).to_le_bytes()) {
                 Ok(s) => {
                     if escape {
-                        mu.write_string(format!("\"{s}\""), stream)
-                    } else {
-                        mu.write_string(s.to_string(), stream)
+                        mu.write_string("\"".to_string(), stream).unwrap()
                     }
+
+                    for nth in 0..vector.length() {
+                        Stream::write_char(mu, stream, s.as_bytes()[nth as usize] as char).unwrap();
+                    }
+
+                    if escape {
+                        mu.write_string("\"".to_string(), stream).unwrap()
+                    }
+
+                    Ok(())
                 }
                 Err(_) => panic!("internal: vector type inconsistency"),
             },
