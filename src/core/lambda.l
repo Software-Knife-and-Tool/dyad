@@ -70,7 +70,7 @@
                (:if (core:vectorp acc)
                   acc
                   (:if (mu:eq '&rest el)
-                     (:if (mu:eq (mu:length form) (mu:fixnum+ 2 acc))
+                     (:if (mu:eq (mu:length form) (mu:fx-add 2 acc))
                           (core::lambda-descriptor
                            (core::append (core:dropr form 2) (core:dropl form (core:1- (mu:length form))))
                            (core:dropr form 2)
