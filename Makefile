@@ -68,6 +68,7 @@ commit:
 	@cargo clippy
 
 clean:
-	@rm -f TAGS ETAGS
+	@rm -f TAGS
+	@make -C docker clean --no-print-directory
 	@make -C dist clean --no-print-directory
 	@make -C tests clean --no-print-directory

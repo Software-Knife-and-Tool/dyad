@@ -1,0 +1,4 @@
+FROM ubuntu:jammy AS env
+COPY dyad/dist/dyad-0.0.8.tgz /tmp
+RUN (cd /opt ; tar xvfz /tmp/dyad-0.0.8.tgz)
+SHELL ["/bin/bash", "--login", "-c"]
