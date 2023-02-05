@@ -7,6 +7,7 @@ BASE = dyad
 DOCS = ../doc
 DIST = ../dist
 RUNTIME = ./runtime
+VERSION = 0.0.8
 
 dist:
 	@install -d $(BASE)
@@ -30,8 +31,8 @@ dist:
 	@install -m 644 $(DOCS)/refcards/*.pdf $(BASE)/doc
 	@install -m 644 $(DOCS)/reference/html/*.html $(BASE)/doc/html
 
-	@tar cfz $(BASE).tgz $(BASE)
+	@tar cfz $(BASE)-$(VERSION).tgz $(BASE)
 	@rm -rf $(BASE)
 
 clean:
-	@rm -rf $(BASE).tgz $(BASE) $(RUNTIME)
+	@rm -rf $(BASE)-$(VERSION).tgz $(BASE) $(RUNTIME)

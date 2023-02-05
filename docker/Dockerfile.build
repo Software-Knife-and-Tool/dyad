@@ -1,0 +1,4 @@
+FROM rust:1.67
+WORKDIR /usr/src/dyad
+COPY ../dyad /usr/src 
+RUN make world

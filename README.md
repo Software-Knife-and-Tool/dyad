@@ -3,7 +3,7 @@
 
 ### Under heavy development
 
-*dyad* is a LISP-idiomatic functionally-oriented interactive environment for programming in the Rust ecosystem. It is targeted to low-resource persistent POSIX environments.
+*dyad* is a LISP-idiomatic functionally-oriented interactive environment for system programming in the Rust ecosystem. It is targeted to low-resource persistent POSIX environments.
 
 *dyad* is a LISP-1 namespaced programming environment with Common Lisp idioms and macro system.
 
@@ -36,7 +36,7 @@ While *dyad* has much in common with Scheme, it is meant to be familiar to tradi
 - x86-64 and AArch-64 Linux distributions
 - x86-64 and M1 MacOs X
 - x86-64 WSL
-- Docker Alpine containers
+- Docker Ubuntu and Alpine containers
 
 Portability, libraries, deployment, documentation, and garbage collection are currently the top priorities.
 
@@ -54,7 +54,7 @@ See the documentation for an up to date list of what works and what doesn't.
 
 The *dyad* runtime kernel is written in mostly-safe `rust` (the system image heap facility *mmaps* a file, which is an inherently unsafe operation.)
 
-The *mu* runtime implements 64 bit tagged pointers and can accommodate an address space up to 59 bits. *libmu* is available as a crate, extends a Rust API for embedded applications, and is an evaluator for the kernel language *mu*. *mu* provides the usual fixed-width numeric types, lists, fixed-arity lambdas, exceptions, symbol namespaces, streams, and specialized vectors in a garbage collected environment.
+The *mu* runtime implements 64 bit tagged pointers and can accommodate an address space up to 61 bits. *runtime* is available as a crate, extends a Rust API for embedded applications, and is an evaluator for the kernel language *mu*. *mu* provides the usual fixed-width numeric types, lists, fixed-arity lambdas, symbol namespaces, streams, and specialized vectors in a garbage collected environment.
 
 The *dyad* 2-LISP system is organized as a stack of compilers. 
 
@@ -180,8 +180,9 @@ dyad         shell script for running the extended repl
 
 ```
 OVERVIEW: runtime - posix platform mu interface
-USAGE: runtime [options] [src-file...]
+USAGE: runtime [options] [file...]
 
+runtime: 0.0.x: [-h?psvcelq] [file...]
 OPTIONS:
   -h                   print this message
   -?                   print this message
@@ -192,7 +193,7 @@ OPTIONS:
   -e SEXPR             evaluate SEXPR and print result
   -q SEXPR             evaluate SEXPR quietly
   -c name:value[,...]  environment configuration  	   
-  src-file ...         load source files
+  file ...             load source file(s)
   
 ```
 
@@ -200,7 +201,7 @@ An interactive session for the extended *dyad* system is invoked by the`dyad` sh
 
 ```
 % /opt/dyad/bin/dyad
-;;; Dyad LISP version 0.0.2 (preface:repl) :h for help
+;;; Dyad LISP version 0.0.x (preface:repl) :h for help
 user>
 ```
 
@@ -222,10 +223,10 @@ to your `~/.inputrc` may help.
 
 ------
 
-*dyad* is named for the Norse ravens, which symbolize a wise, all-knowing messenger.
+*dyad* is named for the core structure of LISP expressions, *eval* and *apply*. Functional languages bring us closer to a time where we can prove our programs are correct. *dyad* attempts to couch modern programming concepts in a familiar language.
 
 *LISP* is a path, one of many. *LISPs* are intentionally dynamic which has selected against them for use in production environments, yet statically-typed languages produce systems that are hard to interact with and even harder to change *in situ*.
 
 Change and evolution are the only defenses a system has against obsolescence.
 
-Dynamic systems are the next step.
+Most, if not all, of our core computational frameworks are built on static systems and are fragile with respect to change. Such systems tend to be disposable. Dynamic systems designed for persistence and change are the next step.
