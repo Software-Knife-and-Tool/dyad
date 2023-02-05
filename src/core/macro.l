@@ -127,7 +127,7 @@
 (mu:intern core::ns :intern "compile-macro"
    (:lambda (form env)
      ((:lambda (lambda-desc body)
-        (mu::compile
+        (mu:compile
          (mu:cons :lambda
                   (mu:cons (core::lambda-syms lambda-desc)
                            (core::compile-lambda-body lambda-desc body env)))))

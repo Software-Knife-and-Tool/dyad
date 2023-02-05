@@ -56,7 +56,7 @@
      ((:lambda (symbol value)
         (core:errorp-unless core:symbolp symbol "core::defconst: not a symbol")
         (core:errorp-when core:keywordp symbol "core::defconst: not a symbol")
-        (mu::compile
+        (mu:compile
          (core::list2 :quote
                       (core::intern
                        symbol
@@ -74,7 +74,7 @@
          ((:lambda (macro-fn)
             ((:lambda (symbol)
                (core::core-macro-env symbol macro-fn)
-               (mu::compile (core::list2 :quote symbol)))
+               (mu:compile (core::list2 :quote symbol)))
              (core::intern symbol macro-fn env)))
             (core::compile-macro (core::list2 (mu:car lambda) (mu:cdr lambda)) env)))
        (mu:nth 1 form)
@@ -86,7 +86,7 @@
          (core:errorp-unless core:symbolp symbol "core::defun: not a symbol")
          (core:errorp-when core:keywordp symbol "core::defun: not a symbol")
          (core:errorp-unless core:listp lambda "core::defun: not a lambda list")
-         (mu::compile (core::list2 :quote (core::intern symbol (core::lambda (mu:cons :lambda lambda) env) env))))
+         (mu:compile (core::list2 :quote (core::intern symbol (core::lambda (mu:cons :lambda lambda) env) env))))
        (mu:nth 1 form)
        (mu:nthcdr 2 form))))
 
@@ -141,7 +141,7 @@
       (:if (core:consp form)
           ((:lambda (fn args)
              (:if (mu:keyp fn)
-                  (mu::compile form)    ;;; libmu special form (:key ...)
+                  (mu:compile form)    ;;; libmu special form (:key ...)
                   (:if (core:consp fn)  ;;; application ((...) ...), native or core
                        (core::compile-function-application fn args env)
                        ((:lambda (specf)
@@ -153,7 +153,7 @@
            (mu:cdr form))
           (:if (core:symbolp form)
                (core::compile-symbol form env)
-               (mu::compile form)))))
+               (mu:compile form)))))
 
 (mu:intern core::ns :extern "compile"
    (:lambda (form)

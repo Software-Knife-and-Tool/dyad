@@ -3,7 +3,14 @@
 
 //! mu reader
 use crate::{
-    classes::{
+    core::{
+        classes::{DirectType, Tag, Type},
+        exception,
+        exception::{Condition, Except},
+        mu::Mu,
+        readtable::{map_char_syntax, SyntaxType},
+    },
+    types::{
         char::Char,
         cons::{Cons, Core as _},
         fixnum::Fixnum,
@@ -13,17 +20,10 @@ use crate::{
         symbol::{Core as _, Symbol, UNBOUND},
         vector::{Core as _, Vector},
     },
-    core::{
-        classes::{Class, DirectClass, Tag},
-        exception,
-        exception::{Condition, Except},
-        mu::Mu,
-        readtable::{map_char_syntax, SyntaxType},
-    },
 };
 
 lazy_static! {
-    pub static ref EOL: Tag = Tag::to_direct(0, 0, DirectClass::Keyword);
+    pub static ref EOL: Tag = Tag::to_direct(0, 0, DirectType::Keyword);
 }
 
 //
@@ -377,8 +377,8 @@ impl Read for Mu {
             Ok(Some(ch)) => match ch {
                 ':' => match Stream::read_char(mu, stream) {
                     Ok(Some(ch)) => match Self::read_atom(mu, ch, stream) {
-                        Ok(atom) => match Tag::class_of(mu, atom) {
-                            Class::Symbol => Ok(Some(atom)),
+                        Ok(atom) => match Tag::type_of(mu, atom) {
+                            Type::Symbol => Ok(Some(atom)),
                             _ => Err(Except::raise(
                                 mu,
                                 Condition::Type,

@@ -27,3 +27,4 @@ assert_eq "(mu:view 'mu:eq)" '#(:t #<namespace: "mu"> :extern eq #<function: :na
 assert_eq '(mu:view (mu:map-ns "mu"))' "#(:t mu :nil)"
 assert_eq "(mu:view mu:std-in)" "#(:t 2147483648 0 :input :nil :nil)"
 assert_eq "(mu:with-ex (:lambda (cond obj) (mu:write cond () mu:std-out)) (:lambda () (mu:fx-div 1 1)))" "1"
+assert_eq "(mu:type-of mu:fn-prop)" ":func"

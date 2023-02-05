@@ -4,18 +4,18 @@
 //! mu image vector type
 use {
     crate::{
-        classes::{
+        core::{
+            classes::{DirectType, Tag, TagType, TagU64, Type},
+            mu::Mu,
+        },
+        image,
+        types::{
             char::Char,
             fixnum::Fixnum,
             float::Float,
             symbol::{Core as _, Symbol},
             vector::{Core, Properties as _, Vector},
         },
-        core::{
-            classes::{Class, DirectClass, Tag, TagType, TagU64},
-            mu::Mu,
-        },
-        image,
     },
     std::cell::{Ref, RefMut},
 };
@@ -70,7 +70,7 @@ impl<'a> IVector for IndirectVector<'a> {
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
                     TagU64::new()
-                        .with_offset(heap_ref.valloc(&slices, data, Class::Vector as u8) as u64)
+                        .with_offset(heap_ref.valloc(&slices, data, Type::Vector as u8) as u64)
                         .with_tag(TagType::Heap),
                 )
             }
@@ -85,7 +85,7 @@ impl<'a> IVector for IndirectVector<'a> {
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
                     TagU64::new()
-                        .with_offset(heap_ref.valloc(&slices, data, Class::Vector as u8) as u64)
+                        .with_offset(heap_ref.valloc(&slices, data, Type::Vector as u8) as u64)
                         .with_tag(TagType::Heap),
                 )
             }
@@ -104,7 +104,7 @@ impl<'a> IVector for IndirectVector<'a> {
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
                     TagU64::new()
-                        .with_offset(heap_ref.alloc(&slices, Class::Vector as u8) as u64)
+                        .with_offset(heap_ref.alloc(&slices, Type::Vector as u8) as u64)
                         .with_tag(TagType::Heap),
                 )
             }
@@ -123,7 +123,7 @@ impl<'a> IVector for IndirectVector<'a> {
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
                     TagU64::new()
-                        .with_offset(heap_ref.alloc(&slices, Class::Vector as u8) as u64)
+                        .with_offset(heap_ref.alloc(&slices, Type::Vector as u8) as u64)
                         .with_tag(TagType::Heap),
                 )
             }
@@ -149,7 +149,7 @@ impl<'a> IVector for IndirectVector<'a> {
                         .with_offset(heap_ref.valloc(
                             &Self::image_of(image),
                             &data,
-                            Class::Vector as u8,
+                            Type::Vector as u8,
                         ) as u64)
                         .with_tag(TagType::Heap),
                 )
@@ -166,7 +166,7 @@ impl<'a> IVector for IndirectVector<'a> {
         }
 
         match Vector::to_type(image.vtype).unwrap() {
-            Class::Byte => match vector {
+            Type::Byte => match vector {
                 Tag::Indirect(image) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
                     let slice = heap_ref
@@ -177,7 +177,7 @@ impl<'a> IVector for IndirectVector<'a> {
                 }
                 _ => panic!("internal: vector type inconsistency"),
             },
-            Class::Char => match vector {
+            Type::Char => match vector {
                 Tag::Indirect(image) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
                     let slice = heap_ref
@@ -188,7 +188,7 @@ impl<'a> IVector for IndirectVector<'a> {
                 }
                 _ => panic!("internal: vector type inconsistency"),
             },
-            Class::T => match vector {
+            Type::T => match vector {
                 Tag::Indirect(image) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
                     Some(Tag::from_slice(
@@ -202,7 +202,7 @@ impl<'a> IVector for IndirectVector<'a> {
                 }
                 _ => panic!("internal: vector type inconsistency"),
             },
-            Class::Fixnum => match vector {
+            Type::Fixnum => match vector {
                 Tag::Indirect(image) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
                     let slice = heap_ref
@@ -218,7 +218,7 @@ impl<'a> IVector for IndirectVector<'a> {
                 }
                 _ => panic!("internal: vector type inconsistency"),
             },
-            Class::Float => match vector {
+            Type::Float => match vector {
                 Tag::Indirect(image) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
                     let slice = heap_ref
@@ -269,7 +269,7 @@ impl VecType for String {
             Vector::Direct(Tag::to_direct(
                 u64::from_le_bytes(data),
                 len as u8,
-                DirectClass::Byte,
+                DirectType::Byte,
             ))
         }
     }

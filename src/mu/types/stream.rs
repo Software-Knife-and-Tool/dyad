@@ -9,16 +9,8 @@
 
 use {
     crate::{
-        classes::{
-            char::Char,
-            cons::{Cons, ConsIter, Core as _, Properties as _},
-            fixnum::Fixnum,
-            indirect_vector::{TypedVec, VecType},
-            symbol::{Core as _, Symbol},
-            vector::{Core as _, Properties as _, Vector},
-        },
         core::{
-            classes::{Class, Tag, TagType, TagU64},
+            classes::{Tag, TagType, TagU64, Type},
             exception,
             exception::{Condition, Except},
             frame::Frame,
@@ -27,6 +19,14 @@ use {
         image,
         system::stream::{Core as _, Stream as SystemStream},
         system::stream::{STDERR, STDIN, STDOUT},
+        types::{
+            char::Char,
+            cons::{Cons, ConsIter, Core as _, Properties as _},
+            fixnum::Fixnum,
+            indirect_vector::{TypedVec, VecType},
+            symbol::{Core as _, Symbol},
+            vector::{Core as _, Properties as _, Vector},
+        },
     },
     std::cell::{Ref, RefMut},
 };
@@ -64,7 +64,7 @@ impl Stream {
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
                     TagU64::new()
-                        .with_offset(heap_ref.alloc(slices, Class::Stream as u8) as u64)
+                        .with_offset(heap_ref.alloc(slices, Type::Stream as u8) as u64)
                         .with_tag(TagType::Heap),
                 )
             }
@@ -73,8 +73,8 @@ impl Stream {
     }
 
     pub fn to_image(mu: &Mu, tag: Tag) -> Image {
-        match Tag::class_of(mu, tag) {
-            Class::Stream => match tag {
+        match Tag::type_of(mu, tag) {
+            Type::Stream => match tag {
                 Tag::Indirect(main) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
 
@@ -161,8 +161,8 @@ impl Core for Stream {
     fn is_eof(mu: &Mu, stream: Tag) -> bool {
         let image = Self::to_image(mu, stream);
 
-        match Tag::class_of(mu, image.direction) {
-            Class::Keyword if image.direction.eq_(Symbol::keyword("input")) => {
+        match Tag::type_of(mu, image.direction) {
+            Type::Keyword if image.direction.eq_(Symbol::keyword("input")) => {
                 if !image.unch.null_() {
                     false
                 } else {
@@ -201,19 +201,19 @@ impl Core for Stream {
             ));
         }
 
-        match Tag::class_of(mu, tag) {
-            Class::Stream => {
+        match Tag::type_of(mu, tag) {
+            Type::Stream => {
                 let mut image = Self::to_image(mu, tag);
                 let source = image.source;
 
-                match Tag::class_of(mu, image.direction) {
-                    Class::Keyword if image.direction.eq_(Symbol::keyword("output")) => {
+                match Tag::type_of(mu, image.direction) {
+                    Type::Keyword if image.direction.eq_(Symbol::keyword("output")) => {
                         image.source = Tag::nil();
                         Self::update(mu, &image, tag);
 
-                        match Tag::class_of(mu, source) {
-                            Class::Null => Ok(Vector::from_string("").evict(mu)),
-                            Class::Cons => {
+                        match Tag::type_of(mu, source) {
+                            Type::Null => Ok(Vector::from_string("").evict(mu)),
+                            Type::Cons => {
                                 let string = ConsIter::new(mu, source).fold(
                                     String::from(""),
                                     |mut acc, cons| {
@@ -243,21 +243,21 @@ impl Core for Stream {
     }
 
     fn write(mu: &Mu, tag: Tag, _: bool, stream: Tag) -> exception::Result<()> {
-        match Tag::class_of(mu, tag) {
-            Class::Stream => {
+        match Tag::type_of(mu, tag) {
+            Type::Stream => {
                 let image = Self::to_image(mu, tag);
-                match Tag::class_of(mu, image.source) {
-                    Class::Keyword => mu.write_string("#<stream: closed>".to_string(), stream),
-                    Class::Fixnum => mu.write_string(
+                match Tag::type_of(mu, image.source) {
+                    Type::Keyword => mu.write_string("#<stream: closed>".to_string(), stream),
+                    Type::Fixnum => mu.write_string(
                         format!("#<stream: id: {}>", Fixnum::as_i64(mu, image.source)),
                         stream,
                     ),
-                    Class::Null | Class::Cons | Class::Vector => {
+                    Type::Null | Type::Cons | Type::Vector => {
                         mu.write_string("#<stream: string>".to_string(), stream)
                     }
                     _ => panic!(
                         "internal: stream type inconsistency {:?}",
-                        Tag::class_of(mu, image.source)
+                        Tag::type_of(mu, image.source)
                     ),
                 }
             }
@@ -383,8 +383,8 @@ impl Core for Stream {
             return Ok(None);
         }
 
-        match Tag::class_of(mu, image.source) {
-            Class::Fixnum => {
+        match Tag::type_of(mu, image.source) {
+            Type::Fixnum => {
                 let stream_id = Fixnum::as_i64(mu, image.source) as usize;
 
                 if unch.null_() {
@@ -409,7 +409,7 @@ impl Core for Stream {
                     Ok(Some(Char::as_char(mu, unch) as u8))
                 }
             }
-            Class::Vector => {
+            Type::Vector => {
                 if unch.null_() {
                     let mut index = Fixnum::as_i64(mu, image.count) as usize;
                     let length = Vector::length_of(mu, image.source);
@@ -496,12 +496,12 @@ impl Core for Stream {
             ));
         }
 
-        match Tag::class_of(mu, image.source) {
-            Class::Fixnum => {
+        match Tag::type_of(mu, image.source) {
+            Type::Fixnum => {
                 let stream_id = Fixnum::as_i64(mu, image.source) as usize;
                 SystemStream::write_byte(system_stream, stream_id, ch as u8)
             }
-            Class::Cons => {
+            Type::Cons => {
                 image.source = Cons::new(Char::as_tag(ch), image.source).evict(mu);
                 image.count = Fixnum::as_tag(Fixnum::as_i64(mu, image.count) + 1);
                 Self::update(mu, &image, stream);
@@ -534,12 +534,12 @@ impl Core for Stream {
             ));
         }
 
-        match Tag::class_of(mu, image.source) {
-            Class::Fixnum => {
+        match Tag::type_of(mu, image.source) {
+            Type::Fixnum => {
                 let stream_id = Fixnum::as_i64(mu, image.source) as usize;
                 SystemStream::write_byte(system_stream, stream_id, byte)
             }
-            Class::Cons => {
+            Type::Cons => {
                 image.source = Cons::new(Fixnum::as_tag(byte as i64), image.source).evict(mu);
                 image.count = Fixnum::as_tag(Fixnum::as_i64(mu, image.count) + 1);
                 Self::update(mu, &image, stream);
@@ -571,8 +571,8 @@ impl MuFunction for Stream {
     fn mu_close(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let stream = fp.argv[0];
 
-        fp.value = match Tag::class_of(mu, stream) {
-            Class::Stream => {
+        fp.value = match Tag::type_of(mu, stream) {
+            Type::Stream => {
                 if Self::is_open(mu, stream) {
                     Self::close(mu, stream);
                     Tag::t()
@@ -589,8 +589,8 @@ impl MuFunction for Stream {
     fn mu_openp(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let stream = fp.argv[0];
 
-        fp.value = match Tag::class_of(mu, stream) {
-            Class::Stream => {
+        fp.value = match Tag::type_of(mu, stream) {
+            Type::Stream => {
                 if Self::is_open(mu, stream) {
                     stream
                 } else {
@@ -608,23 +608,23 @@ impl MuFunction for Stream {
         let st_dir = fp.argv[1];
         let st_arg = fp.argv[2];
 
-        let arg = match Tag::class_of(mu, st_arg) {
-            Class::Vector => Vector::as_string(mu, st_arg),
+        let arg = match Tag::type_of(mu, st_arg) {
+            Type::Vector => Vector::as_string(mu, st_arg),
             _ => return Err(Except::raise(mu, Condition::Type, "mu:open", st_arg)),
         };
 
-        let dir = match Tag::class_of(mu, st_dir) {
-            Class::Keyword if st_dir.eq_(Symbol::keyword("input")) => true,
-            Class::Keyword if st_dir.eq_(Symbol::keyword("output")) => false,
+        let dir = match Tag::type_of(mu, st_dir) {
+            Type::Keyword if st_dir.eq_(Symbol::keyword("input")) => true,
+            Type::Keyword if st_dir.eq_(Symbol::keyword("output")) => false,
             _ => return Err(Except::raise(mu, Condition::Type, "mu:open", st_dir)),
         };
 
-        match Tag::class_of(mu, st_type) {
-            Class::Keyword if st_type.eq_(Symbol::keyword("file")) => {
+        match Tag::type_of(mu, st_type) {
+            Type::Keyword if st_type.eq_(Symbol::keyword("file")) => {
                 fp.value = Self::open_file(mu, &arg, dir).unwrap();
                 Ok(())
             }
-            Class::Keyword if st_type.eq_(Symbol::keyword("string")) => {
+            Type::Keyword if st_type.eq_(Symbol::keyword("string")) => {
                 fp.value = Self::open_string(mu, &arg, dir).unwrap();
                 Ok(())
             }
@@ -637,8 +637,8 @@ impl MuFunction for Stream {
         let eofp = fp.argv[1];
         let eof_value = fp.argv[2];
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => match mu.read(stream, !eofp.null_(), eof_value) {
+        match Tag::type_of(mu, stream) {
+            Type::Stream => match mu.read(stream, !eofp.null_(), eof_value) {
                 Ok(tag) => {
                     fp.value = tag;
                     Ok(())
@@ -654,8 +654,8 @@ impl MuFunction for Stream {
         let escape = fp.argv[1];
         let stream = fp.argv[2];
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => match mu.write(value, !escape.null_(), stream) {
+        match Tag::type_of(mu, stream) {
+            Type::Stream => match mu.write(value, !escape.null_(), stream) {
                 Ok(_) => {
                     fp.value = value;
                     Ok(())
@@ -669,8 +669,8 @@ impl MuFunction for Stream {
     fn mu_eof(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let stream = fp.argv[0];
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => {
+        match Tag::type_of(mu, stream) {
+            Type::Stream => {
                 fp.value = if Self::is_eof(mu, stream) {
                     Tag::t()
                 } else {
@@ -685,8 +685,8 @@ impl MuFunction for Stream {
     fn mu_get_string(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let stream = fp.argv[0];
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => match Self::get_string(mu, stream) {
+        match Tag::type_of(mu, stream) {
+            Type::Stream => match Self::get_string(mu, stream) {
                 Ok(tag) => {
                     fp.value = tag;
                     Ok(())
@@ -702,8 +702,8 @@ impl MuFunction for Stream {
         let eofp = fp.argv[1];
         let eof_value = fp.argv[2];
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => match Self::read_char(mu, stream) {
+        match Tag::type_of(mu, stream) {
+            Type::Stream => match Self::read_char(mu, stream) {
                 Ok(Some(ch)) => {
                     fp.value = Char::as_tag(ch);
                     Ok(())
@@ -724,8 +724,8 @@ impl MuFunction for Stream {
         let eofp = fp.argv[1];
         let eof_value = fp.argv[2];
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => match Self::read_byte(mu, stream) {
+        match Tag::type_of(mu, stream) {
+            Type::Stream => match Self::read_byte(mu, stream) {
                 Ok(Some(byte)) => {
                     fp.value = Fixnum::as_tag(byte as i64);
                     Ok(())
@@ -745,8 +745,8 @@ impl MuFunction for Stream {
         let stream = fp.argv[0];
         let byte = fp.argv[1];
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => {
+        match Tag::type_of(mu, stream) {
+            Type::Stream => {
                 match Self::unread_char(mu, stream, (Fixnum::as_i64(mu, byte) as u8) as char) {
                     Ok(Some(_)) => {
                         fp.value = byte;
@@ -764,8 +764,8 @@ impl MuFunction for Stream {
         let stream = fp.argv[0];
         let ch = fp.argv[1];
 
-        match Tag::class_of(mu, stream) {
-            Class::Stream => match Self::unread_char(mu, stream, Char::as_char(mu, ch)) {
+        match Tag::type_of(mu, stream) {
+            Type::Stream => match Self::unread_char(mu, stream, Char::as_char(mu, ch)) {
                 Ok(Some(_)) => {
                     fp.value = ch;
                     Ok(())
@@ -781,9 +781,9 @@ impl MuFunction for Stream {
         let ch = fp.argv[0];
         let stream = fp.argv[1];
 
-        match Tag::class_of(mu, ch) {
-            Class::Char => match Tag::class_of(mu, stream) {
-                Class::Stream => match Self::write_char(mu, stream, Char::as_char(mu, ch)) {
+        match Tag::type_of(mu, ch) {
+            Type::Char => match Tag::type_of(mu, stream) {
+                Type::Stream => match Self::write_char(mu, stream, Char::as_char(mu, ch)) {
                     Ok(_) => {
                         fp.value = ch;
                         Ok(())
@@ -800,16 +800,17 @@ impl MuFunction for Stream {
         let byte = fp.argv[0];
         let stream = fp.argv[1];
 
-        match Tag::class_of(mu, byte) {
-            Class::Fixnum if Fixnum::as_i64(mu, byte) < 256 => match Tag::class_of(mu, stream) {
-                Class::Stream => match Self::write_byte(mu, stream, Fixnum::as_i64(mu, byte) as u8)
-                {
-                    Ok(_) => {
-                        fp.value = byte;
-                        Ok(())
+        match Tag::type_of(mu, byte) {
+            Type::Fixnum if Fixnum::as_i64(mu, byte) < 256 => match Tag::type_of(mu, stream) {
+                Type::Stream => {
+                    match Self::write_byte(mu, stream, Fixnum::as_i64(mu, byte) as u8) {
+                        Ok(_) => {
+                            fp.value = byte;
+                            Ok(())
+                        }
+                        Err(e) => Err(e),
                     }
-                    Err(e) => Err(e),
-                },
+                }
                 _ => Err(Except::raise(mu, Condition::Type, "mu:write-char", stream)),
             },
             _ => Err(Except::raise(mu, Condition::Type, "mu:write-byte", stream)),

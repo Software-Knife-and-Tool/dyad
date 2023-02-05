@@ -8,7 +8,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate modular_bitfield;
 
-mod classes;
 pub mod core;
 mod image;
 mod system;
+mod types;

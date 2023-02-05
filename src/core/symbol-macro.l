@@ -14,7 +14,7 @@
 (mu:intern core::ns :intern "read-get-ns"
    (:lambda ()
      ((:lambda (name)
-        (mu:write name core::reader-ns-stream ())
+        (mu:write name () core::reader-ns-stream)
         (mu:map-ns name))
       (core:get-output-stream-string core::reader-ns-stream))))
 

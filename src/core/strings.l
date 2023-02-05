@@ -12,7 +12,7 @@
 
 (mu:intern core::ns :extern "get-output-stream-string"
    (:lambda (stream)
-      (mu:get-buf :char stream)))
+      (mu:get-str stream)))
 
 (mu:intern core::ns :extern "schar"
   (:lambda (str index)

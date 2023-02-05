@@ -3,16 +3,16 @@
 
 //! mu fixnum type
 use crate::{
-    classes::{
-        indirect_vector::{TypedVec, VecType},
-        vector::Core as _,
-    },
     core::{
-        classes::{Class, Tag},
+        classes::{Tag, Type},
         exception,
         exception::{Condition, Except, Result},
         frame::Frame,
         mu::{Core as _, Mu},
+    },
+    types::{
+        indirect_vector::{TypedVec, VecType},
+        vector::Core as _,
     },
 };
 
@@ -31,8 +31,8 @@ impl Fixnum {
 
     // tag as i64
     pub fn as_i64(mu: &Mu, tag: Tag) -> i64 {
-        match Tag::class_of(mu, tag) {
-            Class::Fixnum => Tag::data(&tag, mu) as i64,
+        match Tag::type_of(mu, tag) {
+            Type::Fixnum => Tag::data(&tag, mu) as i64,
             _ => panic!("internal: fixnum type inconsistency"),
         }
     }
@@ -67,9 +67,9 @@ pub trait MuFunction {
 
 impl MuFunction for Fixnum {
     fn mu_fxadd(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Fixnum => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Fixnum => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Fixnum => {
                     fp.value = Self::as_tag(
                         Fixnum::as_i64(mu, fp.argv[0]) + Fixnum::as_i64(mu, fp.argv[1]),
                     );
@@ -82,9 +82,9 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxsub(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Fixnum => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Fixnum => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Fixnum => {
                     fp.value = Self::as_tag(
                         Fixnum::as_i64(mu, fp.argv[0]) - Fixnum::as_i64(mu, fp.argv[1]),
                     );
@@ -97,9 +97,9 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxmul(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Fixnum => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Fixnum => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Fixnum => {
                     fp.value = Self::as_tag(
                         Fixnum::as_i64(mu, fp.argv[0]) * Fixnum::as_i64(mu, fp.argv[1]),
                     );
@@ -112,9 +112,9 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxlt(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Fixnum => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Fixnum => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Fixnum => {
                     fp.value = if Fixnum::as_i64(mu, fp.argv[0]) < Fixnum::as_i64(mu, fp.argv[1]) {
                         Tag::t()
                     } else {
@@ -130,9 +130,9 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxdiv(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Fixnum => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Fixnum => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Fixnum => {
                     let dividend = Fixnum::as_i64(mu, fp.argv[0]);
                     let divisor = Fixnum::as_i64(mu, fp.argv[1]);
 
@@ -155,9 +155,9 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxand(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Fixnum => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Fixnum => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Fixnum => {
                     fp.value = Self::as_tag(
                         Fixnum::as_i64(mu, fp.argv[0]) & Fixnum::as_i64(mu, fp.argv[1]),
                     );
@@ -170,9 +170,9 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxor(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Fixnum => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Fixnum => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Fixnum => {
                     fp.value = Self::as_tag(
                         Fixnum::as_i64(mu, fp.argv[0]) | Fixnum::as_i64(mu, fp.argv[1]),
                     );
@@ -187,7 +187,7 @@ impl MuFunction for Fixnum {
 
 #[cfg(test)]
 mod tests {
-    use crate::classes::fixnum::Fixnum;
+    use crate::types::fixnum::Fixnum;
 
     #[test]
     fn as_tag() {

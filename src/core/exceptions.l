@@ -69,7 +69,7 @@
 
 (mu:intern core::ns :extern "errorp-when"
    (:lambda (fn obj msg)
-     (:if (mu:apply fn (core:list obj))
+     (:if (mu:apply fn (core::list obj))
           ((:lambda ()
              (core::eprinc "errorp-when: ")
              (core::eprinc msg)

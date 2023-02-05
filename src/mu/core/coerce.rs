@@ -5,40 +5,40 @@
 #![allow(unused_imports)]
 
 use crate::{
-    classes::{
-        char::{Char, Core as _},
-        cons::{Cons, Core as _},
-        fixnum::Fixnum,
-        symbol::{Core as _, Symbol},
-    },
     core::{
-        classes::{Class, Tag},
+        classes::{Tag, Type},
         exception,
         exception::{Condition, Except},
         frame::Frame,
         mu::{Core as _, Mu},
     },
     image,
+    types::{
+        char::{Char, Core as _},
+        cons::{Cons, Core as _},
+        fixnum::Fixnum,
+        symbol::{Core as _, Symbol},
+    },
 };
 
 trait Core {
-    fn coerce(_: &Mu, _: Tag, _: Class) -> Option<Tag>;
+    fn coerce(_: &Mu, _: Tag, _: Type) -> Option<Tag>;
 }
 
 impl Core for Mu {
-    fn coerce(mu: &Mu, src: Tag, to_type: Class) -> Option<Tag> {
+    fn coerce(mu: &Mu, src: Tag, to_type: Type) -> Option<Tag> {
         match to_type {
-            Class::Char => match Tag::class_of(mu, src) {
-                Class::Fixnum => Some(Char::as_tag(
+            Type::Char => match Tag::type_of(mu, src) {
+                Type::Fixnum => Some(Char::as_tag(
                     char::from_u32(Fixnum::as_i64(mu, src) as u32).unwrap(),
                 )),
                 _ => None,
             },
-            Class::Fixnum => match Tag::class_of(mu, src) {
-                Class::Char => Some(Fixnum::as_tag(Char::as_char(mu, src) as i64)),
+            Type::Fixnum => match Tag::type_of(mu, src) {
+                Type::Char => Some(Fixnum::as_tag(Char::as_char(mu, src) as i64)),
                 _ => None,
             },
-            Class::Float => Some(Tag::nil()),
+            Type::Float => Some(Tag::nil()),
             _ => None,
         }
     }

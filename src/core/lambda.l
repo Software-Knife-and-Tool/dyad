@@ -88,7 +88,7 @@
 (mu:intern core::ns :intern "compile-lambda"
    (:lambda (form env)
      ((:lambda (lambda-desc body)
-        (mu::compile
+        (mu:compile
            (mu:cons :lambda
               (mu:cons (core::lambda-syms lambda-desc)
                        (core::compile-lambda-body lambda-desc body env)))))
@@ -103,7 +103,7 @@
      ((:lambda (lambda-desc)
         (core:errorp-when core:null lambda-desc "core::closure: closing bare function")
         ((:lambda (desc body)
-           (mu::compile
+           (mu:compile
             (mu:cons :lambda
                (mu:cons
                 (core::lambda-syms desc)
@@ -179,7 +179,7 @@
                    (mu:cons (mu:car env-ref)
                       (core::list (mu:cdr env-ref))))
                  env)
-               (mu::compile symbol)))
+               (mu:compile symbol)))
        (core::symbol-frame symbol env))))
 
 ;;;

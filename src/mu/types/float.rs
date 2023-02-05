@@ -3,17 +3,17 @@
 
 //! mu float type
 use crate::{
-    classes::{
-        indirect_vector::{TypedVec, VecType},
-        vector::Core as _,
-    },
     core::{
-        classes::DirectClass,
-        classes::{Class, Tag},
+        classes::DirectType,
+        classes::{Tag, Type},
         exception,
         exception::{Condition, Except},
         frame::Frame,
         mu::{Core as _, Mu},
+    },
+    types::{
+        indirect_vector::{TypedVec, VecType},
+        vector::Core as _,
     },
 };
 
@@ -26,12 +26,12 @@ pub enum Float {
 impl Float {
     pub fn as_tag(fl: f32) -> Tag {
         let bytes = fl.to_le_bytes();
-        Tag::to_direct(u32::from_le_bytes(bytes) as u64, 0, DirectClass::Float)
+        Tag::to_direct(u32::from_le_bytes(bytes) as u64, 0, DirectType::Float)
     }
 
     pub fn as_f32(mu: &Mu, tag: Tag) -> f32 {
-        match Tag::class_of(mu, tag) {
-            Class::Float => {
+        match Tag::type_of(mu, tag) {
+            Type::Float => {
                 let data = tag.data(mu).to_le_bytes();
                 let mut fl = 0.0f32.to_le_bytes();
 
@@ -72,9 +72,9 @@ pub trait MuFunction {
 
 impl MuFunction for Float {
     fn mu_fladd(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Float => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Float => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Float => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Float => {
                     fp.value =
                         Self::as_tag(Self::as_f32(mu, fp.argv[0]) + Self::as_f32(mu, fp.argv[1]));
                     Ok(())
@@ -86,9 +86,9 @@ impl MuFunction for Float {
     }
 
     fn mu_flsub(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Float => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Float => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Float => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Float => {
                     fp.value =
                         Self::as_tag(Self::as_f32(mu, fp.argv[0]) - Self::as_f32(mu, fp.argv[1]));
                     Ok(())
@@ -100,9 +100,9 @@ impl MuFunction for Float {
     }
 
     fn mu_flmul(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Float => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Float => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Float => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Float => {
                     fp.value =
                         Self::as_tag(Self::as_f32(mu, fp.argv[0]) * Self::as_f32(mu, fp.argv[1]));
                     Ok(())
@@ -114,9 +114,9 @@ impl MuFunction for Float {
     }
 
     fn mu_fllt(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Float => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Float => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Float => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Float => {
                     fp.value = if Self::as_f32(mu, fp.argv[0]) < Self::as_f32(mu, fp.argv[1]) {
                         Tag::t()
                     } else {
@@ -132,9 +132,9 @@ impl MuFunction for Float {
     }
 
     fn mu_fldiv(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::class_of(mu, fp.argv[0]) {
-            Class::Float => match Tag::class_of(mu, fp.argv[1]) {
-                Class::Float => {
+        match Tag::type_of(mu, fp.argv[0]) {
+            Type::Float => match Tag::type_of(mu, fp.argv[1]) {
+                Type::Float => {
                     fp.value =
                         Self::as_tag(Self::as_f32(mu, fp.argv[0]) / Self::as_f32(mu, fp.argv[1]));
                     Ok(())
@@ -148,7 +148,7 @@ impl MuFunction for Float {
 
 #[cfg(test)]
 mod tests {
-    use crate::classes::float::Float;
+    use crate::types::float::Float;
 
     #[test]
     fn as_tag() {

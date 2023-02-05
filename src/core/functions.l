@@ -10,19 +10,19 @@
       (:if (core:fixnump lambda)
            lambda
            (mu:length lambda)))
-     (mu::fn-int :lambda fn))))
+     (mu:fn-prop :lambda fn))))
 
 (mu:intern core::ns :intern "fn-lambda"
   (:lambda (fn)
-    (mu::fn-int :lambda fn)))
+    (mu:fn-prop :lambda fn)))
 
 (mu:intern core::ns :intern "fn-frame-id"
   (:lambda (fn)
-    (mu::fn-int :frame fn)))
+    (mu:fn-prop :frame fn)))
 
 (mu:intern core::ns :intern "fn-form"
   (:lambda (fn)
-    (mu::fn-int :form fn)))
+    (mu:fn-prop :form fn)))
 
 (mu:intern core::ns :intern "fn-lambda-desc"
    (:lambda (fn)
@@ -32,7 +32,7 @@
                   (mu:car form)
                   ())
              ()))
-      (mu::fn-int :form fn))))
+      (mu:fn-prop :form fn))))
 
 (mu:intern core::ns :intern "fn-applyp"
    (:lambda (fn)
