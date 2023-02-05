@@ -226,6 +226,7 @@ impl Core for Symbol {
         match Tag::class_of(mu, symbol) {
             Class::Null | Class::Keyword => match str::from_utf8(&symbol.data(mu).to_le_bytes()) {
                 Ok(s) => {
+                    Stream::write_char(mu, stream, ':').unwrap();
                     for nth in 0..symbol.length() {
                         Stream::write_char(mu, stream, s.as_bytes()[nth as usize] as char).unwrap();
                     }
