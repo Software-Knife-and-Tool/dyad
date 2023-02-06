@@ -45,7 +45,7 @@ impl Frame {
                     self.apply(mu, Symbol::value_of(mu, func))
                 }
             }
-            Type::Function => match Tag::type_of(mu, Function::func_of(mu, func)) {
+            Type::Function => match Tag::type_of(mu, Function::form_of(mu, func)) {
                 Type::Null => Ok(Tag::nil()),
                 Type::Fixnum => {
                     let nreqs = Fixnum::as_i64(mu, Function::nreq_of(mu, func)) as usize;
@@ -55,8 +55,8 @@ impl Frame {
                         return Err(Except::raise(mu, Condition::Arity, "frame::apply", func));
                     }
 
-                    let fn_off = Fixnum::as_i64(mu, Function::func_of(mu, func)) as usize;
-                    let (_, _, _, fnc) = Mu::functionmap(fn_off);
+                    let fn_off = Fixnum::as_i64(mu, Function::form_of(mu, func)) as usize;
+                    let (_, _, _, fnc) = Mu::map_core(fn_off);
 
                     // Self::stack_push(mu, self);
 
@@ -80,7 +80,7 @@ impl Frame {
                     self.lexical_push(mu);
                     // Self::stack_push(mu, self);
 
-                    for cons in ConsIter::new(mu, Function::func_of(mu, func)) {
+                    for cons in ConsIter::new(mu, Function::form_of(mu, func)) {
                         value = match mu.eval(Cons::car(mu, cons)) {
                             Ok(value) => value,
                             Err(e) => return Err(e),
