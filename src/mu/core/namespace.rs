@@ -48,6 +48,7 @@ lazy_static! {
         ("raise", Scope::Extern, 2, Exception::mu_raise),
         // frames
         ("context", Scope::Intern, 0, Frame::mu_context),
+        ("fr-lexv", Scope::Extern, 1, Frame::mu_fr_lexv),
         ("fr-pop", Scope::Extern, 1, Frame::mu_fr_pop),
         ("fr-push", Scope::Extern, 1, Frame::mu_fr_push),
         // types

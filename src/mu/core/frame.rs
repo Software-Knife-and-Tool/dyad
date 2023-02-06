@@ -20,7 +20,9 @@ use {
             cons::{Cons, ConsIter, Properties as _},
             fixnum::Fixnum,
             function::{Function, Properties as _},
+            indirect_vector::{TypedVec, VecType, VectorIter},
             symbol::{Core as _, Properties as _, Symbol},
+            vector::{Core as _, Vector},
         },
     },
     std::{
@@ -77,8 +79,8 @@ impl Frame {
 
                     let mut value = Tag::nil();
 
+                    // Self::dynamic_push(mu, (self.func, &self.argv));
                     self.lexical_push(mu);
-                    // Self::stack_push(mu, self);
 
                     for cons in ConsIter::new(mu, Function::form_of(mu, func)) {
                         value = match mu.eval(Cons::car(mu, cons)) {
@@ -87,8 +89,8 @@ impl Frame {
                         };
                     }
 
-                    // Self::stack_pop(mu);
                     Self::lexical_pop(mu, Function::frame_of(mu, func));
+                    // Self::dynamic_pop(mu);
 
                     Ok(value)
                 }
@@ -103,7 +105,48 @@ impl Frame {
         }
     }
 
-    pub fn lexical_push(self, mu: &Mu) {
+    fn to_vector(&self, mu: &Mu) -> Tag {
+        let mut vec: Vec<Tag> = vec![Symbol::keyword("frame"), self.func];
+
+        for arg in &self.argv {
+            vec.push(*arg)
+        }
+
+        TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu)
+    }
+
+    fn from_vector(mu: &Mu, vec: Tag) -> Self {
+        match Tag::type_of(mu, vec) {
+            Type::Vector => {
+                let vtype = Vector::svref(mu, vec, 0).unwrap();
+                let func = Vector::svref(mu, vec, 1).unwrap();
+
+                match Tag::type_of(mu, func) {
+                    Type::Function => {
+                        if !vtype.eq_(Tag::t()) {
+                            panic!("internal: vector type inconsistency")
+                        }
+
+                        let mut args = Vec::new();
+
+                        for arg in VectorIter::new(mu, vec).skip(2) {
+                            args.push(arg)
+                        }
+
+                        Frame {
+                            func,
+                            argv: args,
+                            value: Tag::nil(),
+                        }
+                    }
+                    _ => panic!("internal: vector type inconsistency"),
+                }
+            }
+            _ => panic!("internal: frame type inconsistency"),
+        }
+    }
+
+    fn lexical_push(self, mu: &Mu) {
         let id = Function::frame_of(mu, self.func).as_u64();
         let mut lexical_ref: RefMut<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow_mut();
 
@@ -115,26 +158,28 @@ impl Frame {
         }
     }
 
-    pub fn lexical_pop(mu: &Mu, frame: Tag) {
+    fn lexical_pop(mu: &Mu, frame: Tag) {
         let lexical_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow();
         let mut vec_ref: RefMut<Vec<Frame>> = lexical_ref[&frame.as_u64()].borrow_mut();
 
         vec_ref.pop();
     }
 
-    pub fn dynamic_push(mu: &Mu, frame: Frame) {
-        let mut dynamic_ref: RefMut<Vec<Frame>> = mu.dynamic.borrow_mut();
+    #[allow(dead_code)]
+    fn dynamic_push(mu: &Mu, frame: (Tag, Vec<Tag>)) {
+        let mut dynamic_ref: RefMut<Vec<(Tag, Vec<Tag>)>> = mu.dynamic.borrow_mut();
 
         dynamic_ref.push(frame);
     }
 
-    pub fn dynamic_pop(mu: &Mu) {
-        let mut dynamic_ref: RefMut<Vec<Frame>> = mu.dynamic.borrow_mut();
+    #[allow(dead_code)]
+    fn dynamic_pop(mu: &Mu) {
+        let mut dynamic_ref: RefMut<Vec<(Tag, Vec<Tag>)>> = mu.dynamic.borrow_mut();
 
         dynamic_ref.pop();
     }
 
-    pub fn frame_ref(mu: &Mu, id: u64, offset: usize) -> Option<Tag> {
+    fn frame_ref(mu: &Mu, id: u64, offset: usize) -> Option<Tag> {
         let lexical_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow();
         let vec_ref: Ref<Vec<Frame>> = lexical_ref[&id].borrow();
 
@@ -144,6 +189,7 @@ impl Frame {
 
 pub trait MuFunction {
     fn mu_context(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
+    fn mu_fr_lexv(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_pop(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_push(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_ref(mu: &Mu, fp: &mut Frame) -> exception::Result<()>;
@@ -155,13 +201,42 @@ impl MuFunction for Frame {
         Ok(())
     }
 
-    fn mu_fr_pop(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Tag::nil();
+    fn mu_fr_lexv(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        let func = fp.argv[0];
+
+        fp.value = match Tag::type_of(mu, func) {
+            Type::Function => {
+                let id = Function::frame_of(mu, func).as_u64();
+                let lexical_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow();
+                let vec_ref: Ref<Vec<Frame>> = lexical_ref[&id].borrow();
+
+                vec_ref[0].to_vector(mu)
+            }
+            _ => return Err(Except::raise(mu, Condition::Type, "mu:fr-lexv", func)),
+        };
+
         Ok(())
     }
 
-    fn mu_fr_push(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Tag::nil();
+    fn mu_fr_pop(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        fp.value = fp.argv[0];
+
+        match Tag::type_of(mu, fp.value) {
+            Type::Function => Self::lexical_pop(mu, fp.value),
+            _ => return Err(Except::raise(mu, Condition::Type, "mu:fr-pop", fp.value)),
+        }
+
+        Ok(())
+    }
+
+    fn mu_fr_push(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        fp.value = fp.argv[0];
+
+        match Tag::type_of(mu, fp.value) {
+            Type::Vector => Self::from_vector(mu, fp.value).lexical_push(mu),
+            _ => return Err(Except::raise(mu, Condition::Type, "mu:fr-push", fp.value)),
+        }
+
         Ok(())
     }
 
