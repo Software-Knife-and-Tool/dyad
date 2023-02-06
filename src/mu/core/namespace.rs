@@ -116,14 +116,14 @@ lazy_static! {
 
 pub trait Core {
     type FunctionDesc;
-    fn functionmap(_: usize) -> <Mu as Core>::FunctionDesc;
+    fn map_core(_: usize) -> <Mu as Core>::FunctionDesc;
     fn install_mu_symbols(_: &Mu);
 }
 
 impl Core for Mu {
     type FunctionDesc = (&'static str, Scope, u16, MuFunctionType);
 
-    fn functionmap(index: usize) -> <Mu as Core>::FunctionDesc {
+    fn map_core(index: usize) -> <Mu as Core>::FunctionDesc {
         FUNCTIONMAP[index]
     }
 
@@ -155,11 +155,12 @@ impl Core for Mu {
             let (name, scope, nreqs, _) = fnmap;
 
             let func = Function::new(
+                Tag::nil(),
+                Fixnum::as_tag(*nreqs as i64),
                 Fixnum::as_tag(match id.try_into().unwrap() {
                     Some(n) => n as i64,
                     None => panic!("internal: mu function id inconsistency"),
                 }),
-                Fixnum::as_tag(*nreqs as i64),
                 Tag::nil(),
             )
             .evict(mu);

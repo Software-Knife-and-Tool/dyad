@@ -14,7 +14,6 @@ use {
         },
         image,
         types::{
-            cons::{Cons, Properties as _},
             fixnum::Fixnum,
             indirect_vector::{TypedVec, VecType},
             symbol::{Core as _, Symbol},
@@ -26,20 +25,27 @@ use {
 
 #[derive(Copy, Clone)]
 pub struct Function {
-    func: Tag,  // if a fixnum, it's native, otherwise a body list
-    nreq: Tag,  // fixnum nrequired arguments
-    frame: Tag, // frame id
+    lambda: Tag, // lambda list
+    nreq: Tag,   // fixnum # of required arguments
+    form: Tag,   // cons body or fixnum native table offset
+    frame: Tag,  // frame id
 }
 
 impl Function {
-    pub fn new(func: Tag, nreq: Tag, frame: Tag) -> Self {
-        Function { func, nreq, frame }
+    pub fn new(lambda: Tag, nreq: Tag, form: Tag, frame: Tag) -> Self {
+        Function {
+            lambda,
+            nreq,
+            form,
+            frame,
+        }
     }
 
     pub fn evict(&self, mu: &Mu) -> Tag {
         let image: &[[u8; 8]] = &[
-            self.func.as_slice(),
+            self.lambda.as_slice(),
             self.nreq.as_slice(),
+            self.form.as_slice(),
             self.frame.as_slice(),
         ];
 
@@ -57,14 +63,17 @@ impl Function {
                 Tag::Indirect(main) => {
                     let heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                     Function {
-                        func: Tag::from_slice(
+                        lambda: Tag::from_slice(
                             heap_ref.of_length(main.offset() as usize, 8).unwrap(),
                         ),
                         nreq: Tag::from_slice(
                             heap_ref.of_length(main.offset() as usize + 8, 8).unwrap(),
                         ),
-                        frame: Tag::from_slice(
+                        form: Tag::from_slice(
                             heap_ref.of_length(main.offset() as usize + 16, 8).unwrap(),
+                        ),
+                        frame: Tag::from_slice(
+                            heap_ref.of_length(main.offset() as usize + 24, 8).unwrap(),
                         ),
                     }
                 }
@@ -76,9 +85,10 @@ impl Function {
 }
 
 pub trait Properties {
-    fn nreq_of(_: &Mu, _: Tag) -> Tag;
-    fn func_of(_: &Mu, _: Tag) -> Tag;
+    fn form_of(_: &Mu, _: Tag) -> Tag;
     fn frame_of(_: &Mu, _: Tag) -> Tag;
+    fn lambda_of(_: &Mu, _: Tag) -> Tag;
+    fn nreq_of(_: &Mu, _: Tag) -> Tag;
 }
 
 impl Properties for Function {
@@ -92,10 +102,20 @@ impl Properties for Function {
         }
     }
 
-    fn func_of(mu: &Mu, func: Tag) -> Tag {
+    fn lambda_of(mu: &Mu, func: Tag) -> Tag {
         match Tag::type_of(mu, func) {
             Type::Function => match func {
-                Tag::Indirect(_) => Self::to_image(mu, func).func,
+                Tag::Indirect(_) => Self::to_image(mu, func).lambda,
+                _ => panic!("internal: function type inconsistency"),
+            },
+            _ => panic!("internal: function type inconsistency"),
+        }
+    }
+
+    fn form_of(mu: &Mu, func: Tag) -> Tag {
+        match Tag::type_of(mu, func) {
+            Type::Function => match func {
+                Tag::Indirect(_) => Self::to_image(mu, func).form,
                 _ => panic!("internal: function type inconsistency"),
             },
             _ => panic!("internal: function type inconsistency"),
@@ -122,8 +142,9 @@ impl Core for Function {
     fn view(mu: &Mu, func: Tag) -> Tag {
         let vec = TypedVec::<Vec<Tag>> {
             vec: vec![
+                Self::lambda_of(mu, func),
                 Self::nreq_of(mu, func),
-                Self::func_of(mu, func),
+                Self::form_of(mu, func),
                 Self::frame_of(mu, func),
             ],
         };
@@ -134,34 +155,22 @@ impl Core for Function {
     fn write(mu: &Mu, func: Tag, _: bool, stream: Tag) -> exception::Result<()> {
         match Tag::type_of(mu, func) {
             Type::Function => {
-                match mu.write_string("#<function: ".to_string(), stream) {
-                    Ok(_) => (),
-                    Err(e) => return Err(e),
-                }
-                let form = Function::func_of(mu, func);
-                match Tag::type_of(mu, form) {
-                    Type::Null | Type::Cons => match mu.write_string(
-                        format!(
-                            ":lambda [req:{}, tag:{:x}]",
-                            Fixnum::as_i64(mu, Function::nreq_of(mu, func)),
-                            func.as_u64(),
-                        ),
-                        stream,
-                    ) {
-                        Ok(_) => (),
-                        Err(e) => return Err(e),
-                    },
+                let nreq = Fixnum::as_i64(mu, Function::nreq_of(mu, func));
+                let form = Function::form_of(mu, func);
+
+                let desc = match Tag::type_of(mu, form) {
+                    Type::Cons => ("lambda".to_string(), form.as_u64().to_string()),
                     Type::Fixnum => {
-                        let (name, _, nreqs, _) =
-                            Mu::functionmap(Fixnum::as_i64(mu, form) as usize);
-                        match mu.write_string(format!(":native [req:{nreqs}] mu:{name}"), stream) {
-                            Ok(_) => (),
-                            Err(e) => return Err(e),
-                        }
+                        let (name, _, _, _) = Mu::map_core(Fixnum::as_i64(mu, form) as usize);
+                        ("native".to_string(), name.to_string())
                     }
                     _ => panic!("internal: function type inconsistency"),
-                }
-                mu.write_string(">".to_string(), stream)
+                };
+
+                mu.write_string(
+                    format!("#<:function :{} [req:{nreq}, tag:{}]>", desc.0, desc.1),
+                    stream,
+                )
             }
             _ => panic!("internal: function type inconsistency"),
         }
@@ -183,19 +192,13 @@ impl MuFunction for Function {
         }
 
         fp.value = if prop_key.eq_(Symbol::keyword("lambda")) {
-            let fnc = Self::func_of(mu, func);
-            match Tag::type_of(mu, fnc) {
-                Type::Cons => Cons::car(mu, fnc),
-                _ => return Err(Except::raise(mu, Condition::Type, "mu:fn-prop", fnc)),
-            }
+            Self::lambda_of(mu, func)
+        } else if prop_key.eq_(Symbol::keyword("nreq")) {
+            Self::nreq_of(mu, func)
+        } else if prop_key.eq_(Symbol::keyword("form")) {
+            Self::form_of(mu, func)
         } else if prop_key.eq_(Symbol::keyword("frame")) {
             Self::frame_of(mu, func)
-        } else if prop_key.eq_(Symbol::keyword("form")) {
-            let fnc = Self::func_of(mu, func);
-            match Tag::type_of(mu, fnc) {
-                Type::Cons => Cons::cdr(mu, fnc),
-                _ => func,
-            }
         } else {
             return Err(Except::raise(mu, Condition::Type, "mu:fn-prop", prop_key));
         };
@@ -207,11 +210,12 @@ impl MuFunction for Function {
 #[cfg(test)]
 mod tests {
     use crate::core::classes::Tag;
+    use crate::types::fixnum::Fixnum;
     use crate::types::function::Function;
 
     #[test]
     fn as_tag() {
-        match Function::new(Tag::nil(), Tag::nil(), Tag::nil()) {
+        match Function::new(Tag::nil(), Fixnum::as_tag(0), Tag::nil(), Tag::nil()) {
             _ => assert_eq!(true, true),
         }
     }

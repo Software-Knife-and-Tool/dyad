@@ -20,6 +20,7 @@ While *dyad* has much in common with Scheme, it is meant to be familiar to tradi
 - small and simple installation, no external dependencies
 - add interactivity and extensibility to application implementations
 - optional Rust FFI system
+- where possible, Common Lisp semantics
 - resource overhead equivalent to a UNIX shell
 - minimal external crate dependencies
 
@@ -88,7 +89,7 @@ Tests and performance measurement requires some version of `python 3`.
 git clone https://github.com/Software-Knife-and-Tool/dyad.git
 ```
 
-After cloning the *eko* repository, the *rust* system can be built and installed with the supplied makefile.
+After cloning the *dyad* repository, the *rust* system can be built and installed with the supplied makefile.
 
 ```
 % make world
@@ -122,7 +123,7 @@ The distribution includes a test suite, which should be run after every interest
 
 Performance metrics are not yet implemented.
 
-Failures in the early tests are almost guaranteed to cause complete failure of subsequent tests.
+Failures in the *mu* tests are almost guaranteed to cause complete failure of subsequent tests.
 
 ```
 % make tests/summary
@@ -156,12 +157,12 @@ Metrics include the average amount of time taken for an individual test and the 
 
 produces a synopsis of the difference between the current binaries and sources and the established baseline along with other interesting statistics.
 
-For convenience, the *eko* Makefile provides
+For convenience, the *dyad* Makefile provides:
 
 ```
 % make perf/base      # establish an NTESTS=50 baseline, will take some time to run
 % make perf/perf      # run a shorter perf test, NTESTS=20
-% make perf/report	  # compare baseline and most recent perf run
+% make perf/report    # compare baseline and most recent perf run
 ```
 
 
@@ -223,7 +224,7 @@ to your `~/.inputrc` may help.
 
 ------
 
-*dyad* is named for the core structure of LISP expressions, *eval* and *apply*. Functional languages bring us closer to a time where we can prove our programs are correct. *dyad* attempts to couch modern programming concepts in a familiar language.
+*dyad* is named for the dual core semantics of LISP expressions, *eval* and *apply*. Functional languages bring us closer to a time where we can prove our programs are correct. *dyad* attempts to couch modern programming concepts in a familiar language.
 
 *LISP* is a path, one of many. *LISPs* are intentionally dynamic which has selected against them for use in production environments, yet statically-typed languages produce systems that are hard to interact with and even harder to change *in situ*.
 

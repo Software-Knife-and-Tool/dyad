@@ -217,9 +217,10 @@ fn compile_lambda(mu: &Mu, args: Tag) -> exception::Result<Tag> {
     };
 
     match compile_list(mu, body) {
-        Ok(func) => Ok(Function::new(
-            func,
+        Ok(form) => Ok(Function::new(
+            lambda,
             Fixnum::as_tag(Cons::length(mu, lambda) as i64),
+            form,
             frame_tag,
         )
         .evict(mu)),
