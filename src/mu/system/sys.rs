@@ -22,10 +22,6 @@ impl System {
     }
 }
 
-pub trait Cores {}
-
-impl Cores for System {}
-
 #[cfg(test)]
 mod tests {
     use crate::system::sys::System;

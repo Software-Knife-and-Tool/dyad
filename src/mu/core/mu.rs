@@ -46,7 +46,7 @@ pub struct Mu {
 
     // environments
     pub compile: RefCell<Vec<(Tag, Vec<Tag>)>>,
-    pub dynamic: RefCell<Vec<Frame>>,
+    pub dynamic: RefCell<Vec<(Tag, Vec<Tag>)>>,
     pub lexical: RefCell<HashMap<u64, RefCell<Vec<Frame>>>>,
 
     // namespaces
