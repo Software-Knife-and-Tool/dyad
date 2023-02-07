@@ -1,3 +1,5 @@
+
+
 # *dyad* - a system programming environment
 
 
@@ -119,7 +121,7 @@ and then install.
 
 ------
 
-The distribution includes a test suite, which should be run after every interesting change and prior to any check in. The test suite consists of a couple of hundred or so individual tests separated into multiple sections, roughly separated by namespace.
+The distribution includes a test suite, which should be run after every interesting change and prior to any check in. The test suite consists of a several hundred individual tests separated into multiple sections, roughly separated by namespace.
 
 Performance metrics are not yet implemented.
 
@@ -129,10 +131,10 @@ Failures in the *mu* tests are almost guaranteed to cause complete failure of su
 % make tests/summary
 ```
 
-The output of the failing tests can be had with
+The `tests` makefile has additional facilities for development, including reporting on individual and all tests. The makefile `help` target will list them.
 
 ```
-% make tests/report
+% make -C tests help
 ```
 
 ------
@@ -143,7 +145,7 @@ Performance metrics, which can take in excess of ten minutes to run, can be capt
 % make -C perf base
 ```
 
-establishes a new baseline from the current metrics. Typically, you'd establish a baseline, make a change, and run the perf tests again to see how your changes affected the performance tests. Test results are not checked into the project. Once you've done that, subsequent perf runs will show the difference between the established baseline and the current run.
+establishes a new baseline from the current metrics. Typically, you'll first establish a baseline, make a change, and run the perf tests again to see how your changes affected the performance tests. Test results are not checked into the project. Once you've done that, subsequent perf runs will show the difference between the established baseline and the current run.
 
 ```
 % make -C perf perf

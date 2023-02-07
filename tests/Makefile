@@ -1,45 +1,68 @@
 #
 # tests makefile
 #
-.PHONY: all clean
+.PHONY: help cargo clean report report-all summary mu core results
 
-all:
+TMPF:=$(shell mktemp)
+NAMESPACES=\
+	mu	\
+	core
+
+help:
+	@echo "dyad test makefile -----------------"
+	@echo
+	@echo "--- test options"
+	@echo "    cargo - run rust tests"
+	@echo "    namespaces - list namespaces"
+	@echo "    list - tests in \$$NAMESPACE"
+	@echo "    \$$NAMESPACE - run all tests in namespace, raw output"
+	@echo "    summary - run all tests in all namespaces and print summary"
+	@echo "    report - individual test: NAMESPACE=namespace TEST=test and formatted output"
+	@echo "    report-all - report all tests in all namespaces"
+
+cargo:
 	@cargo test | grep "test result"
 
-tests:
-	@./run-mu-tests mu:mu-chars
-	@./run-mu-tests mu:mu-compile
-	@./run-mu-tests mu:mu-core
-	@./run-mu-tests mu:mu-lists
-	@./run-mu-tests mu:mu-namespace
-	@./run-mu-tests mu:mu-numbers
-	@./run-mu-tests mu:mu-reader
-	@./run-mu-tests mu:mu-special-forms
-	@./run-mu-tests mu:mu-streams
-	@./run-mu-tests mu:mu-symbols
-	@./run-mu-tests mu:mu-vectors
-	@./run-core-tests core:compile
-	@./run-core-tests core:core
-	@./run-core-tests core:exceptions
-	@./run-core-tests core:format
-	@./run-core-tests core:functions
-	@./run-core-tests core:lambda
-	@./run-core-tests core:lists
-	@./run-core-tests core:macro
-	@./run-core-tests core:read
-	@./run-core-tests core:sequences
-	@./run-core-tests core:streams
-	@./run-core-tests core:strings
+mu:
+	@for test in `cat mu/tests`; do 	\
+	    bash mu/run-test mu/$$test;		\
+	done
+
+core:
+	@for test in `cat core/tests`; do 	\
+	    bash core/run-test core/$$test;	\
+	done
+
+namespaces:
+	@echo $(NAMESPACES)
+
+list:
+	@cat $$NAMESPACE/tests
+
+run:
+	@for test in `cat $$NAMESPACE/tests`; do \
+	    bash $$NAMESPACE/run-test $$NAMESPACE/$$test;	\
+	done
+
+report-all:
+	@for namespace in $(NAMESPACES); do	\
+	    for test in `cat $$namespace/tests`; do 	\
+	        bash $$namespace/run-test $$namespace/$$test > $(TMPF);	\
+	        python3 report.py $(TMPF);		\
+	    done;					\
+	done
 
 report:
-	@make tests > tests.out
-	@python3 report.py tests.out
-	@rm -f tests.out
+	@bash $(NAMESPACE)/run-test $(NAMESPACE)/$(TEST) > $(TMPF)
+	@python3 report.py $(TMPF)
+	@rm -f $(TMPF)
 
 summary:
-	@make tests > tests.out
-	@python3 summary.py tests.out | sort | uniq
-	@rm -f tests.out
+	@for namespace in $(NAMESPACES); do	\
+	    make $$namespace >> $(TMPF);	\
+	done
+	@python3 summary.py $(TMPF)
+	@rm -f $(TMPF)
 
 clean:
 	@rm -f *.diff *.out

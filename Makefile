@@ -22,8 +22,7 @@ help:
 	@echo "    tags - make etags"
 	@echo "--- commit test options"
 	@echo "    tests/rust - rust tests"
-	@echo "    tests/summary - test summary"
-	@echo "    tests/report - test report"
+	@echo "    tests/summary - external test summary"
 	@echo "--- performance options (not yet)"
 	@echo "    perf/base - establish base"
 	@echo "    perf/perf - run performance tests"
@@ -52,10 +51,7 @@ install:
 	@make -C ./dist -f install.mk install
 
 tests/rust:
-	@cargo test
-
-tests/report:
-	@make -C tests report --no-print-directory
+	@make -C tests cargo --no-print-directory
 
 tests/summary:
 	@make -C tests summary --no-print-directory
