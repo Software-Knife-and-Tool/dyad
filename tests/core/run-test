@@ -35,16 +35,23 @@ function assert_eq () {
     then
        if [ "$result" != "$2" ]
        then
-            echo "--" "$1" "--" "$2" "--" "$result" "-- " failed
-        fi
+           echo -e "$1","$2","$result",failed
+       else
+           echo -e "$1","$2","$result",passed
+       fi
     else
-        echo "--" "$1" "--" "$2" "-- test aborted --" failed
+        echo -e "$1",aborted
     fi
 }
 
-source "$1" >> $TMP/core-test.$$.log 2>&1
+source "$1" > $TMP/core-test.$$.log 2>&1
 
-echo "core:" $1 `cat $1 | wc -l` `grep failed $TMP/core-test.$$.log | wc -l`
+total=`cat $1 | wc -l`
+failed=`grep failed $TMP/core-test.$$.log | wc -l`
+aborted=`grep aborted $TMP/core-test.$$.log | wc -l`
+file=`basename "$1"`
+
+echo "core:",$file,$total,$failed,$aborted
 cat $TMP/core-test.$$.log
 
 rm -f $TMP/core-test.$$.log

@@ -14,16 +14,24 @@ print(f'Test Report: {date:<10}')
 print('----------------------')
 
 for test in test_results:
-    if test[0] == '-':
-        fields = test.split("--")
-        if len(fields) != 3:
-            print(test, end="")
-        else:
-            print(f'{fields[1]:<15} expected: {fields[2]:<15} result: {fields[3]:<15}', end="")
+    global totals
+
+    fields=test[:-1].split(",")
+
+    if fields[0] in labels:
+        totals = fields
     else:
-        if len(test.split()) != 3:
-            print(test, end="")
+        form = (fields[0][:27] + '... ') if len(fields[0]) > 30 else fields[0]
+        if len(fields) != 4:
+            if len(fields) == 1:
+                pass
+            else:
+                if len(fields) == 2 and fields[0].find("panicked") == -1:
+                    print(f'{form:<30} aborted')
+                else:
+                    pass
         else:
-            label = test.split()[0]
-            source = test.split()[1]
-            print(f'{label}:{source}',end="")
+            print(f'{form:<30} {fields[1]:<15} {fields[2]:<15} {fields[3]:<15}')
+
+print('----------------------')
+print(f'{totals[0]} {totals[1]:<26} total: {totals[2]:<8} failed: {totals[3]:<8} aborted: {totals[4]:<8}')    
