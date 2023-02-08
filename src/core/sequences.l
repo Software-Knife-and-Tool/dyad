@@ -20,48 +20,6 @@
            (mu:sv-ref seq nth))))
 
 ;;;
-;;; folds
-;;;
-(mu:intern core::ns :extern "foldl"
-  (:lambda (fn init list)
-      (core:errorp-unless core:functionp fn "core:foldl: not a function")
-      (core:errorp-unless core:sequencep seq "core:foldl: not a sequence")
-      (mu:fix
-       (:lambda (acc list)
-         (:if (core:null list)
-              acc
-              (core::apply fn (core:list2 (mu:car list) acc))))
-       (core::list2 init list))))
-
-(mu:intern core::ns :extern "foldr"
-   (:lambda (fn init seq)
-     (core:errorp-unless core:functionp fn "core:foldr not a function")
-     (core:errorp-unless core:sequencep seq "core:foldr not a sequence")
-     (:if (core::fn-applyp fn)
-          (:if (core:listp seq)
-               ((:lambda (fold) (fold fold seq))
-                (:lambda (fold seq)
-                  (:if (core:null seq)
-                       init
-                       (core::apply fn (core::list2 (mu:car seq) (fold fold (mu:cdr seq)))))))
-               ((:lambda (fold) (fold fold init (core:1- (mu:sv-len seq))))
-                (:lambda (fold acc index)
-                  (:if (mu:fx-lt -1 index)
-                       (fold fold (core::apply fn (core::list2 (mu:sv-ref seq index) acc)) (core:1- index))
-                       acc))))
-          (:if (core:listp seq)
-               ((:lambda (fold) (fold fold seq))
-                (:lambda (fold seq)
-                  (:if (core:null seq)
-                       init
-                       (fn (mu:car seq) (fold fold (mu:cdr seq))))))
-               ((:lambda (fold) (fold fold init (core:1- (mu:sv-len seq))))
-                (:lambda (fold acc index)
-                  (:if (mu:fx-lt -1 index)
-                       (fold fold (fn (mu:sv-ref seq index) acc) (core:1- index))
-                       acc)))))))
-
-;;;
 ;;; finds
 ;;;
 (mu:intern core::ns :extern "findl-if"
