@@ -38,6 +38,35 @@
       ()
       list)))
 
+;;;
+;;; folds
+;;;
+(mu:intern core::ns :extern "foldl-"
+  (:lambda (fn init list)
+      (core:errorp-unless core:functionp fn "core:foldl: not a function")
+      (core:errorp-unless core:listp list "core:foldl: not a list")
+      list))
+
+(mu:intern core::ns :extern "foldl"
+  (:lambda (fn init list)
+      (core:errorp-unless core:functionp fn "core:foldl: not a function")
+      (core:errorp-unless core:listp list "core:foldl: not a list")
+      (mu:cdr
+       (mu:fix
+        (:lambda (arg)
+          ((:lambda (lst acc)
+             (:if lst
+                  (mu:cons
+                   (mu:cdr lst)
+                   (mu:apply fn (core::list2 (mu:car lst) acc)))
+                  arg))
+           (mu:car arg)
+           (mu:cdr arg)))
+        (mu:cons list init)))))
+
+;;;
+;;; maps
+;;;
 (mu:intern core::ns :extern "mapc"
    (:lambda (fn list)
      (core:errorp-unless core:functionp fn "core:mapc: not a function")
