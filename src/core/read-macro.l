@@ -37,7 +37,7 @@
     (:lambda (ch stream)
       ((:lambda (type)
           (core:errorp-unless mu:keyp type "core:read-sharp-vector: not a type keyword")
-          (mu:list-sv type (core::read-list #\( stream)))
+          (mu:vector type (core::read-list #\( stream)))
        (core::read-atom stream))))
 
 (mu:intern core::ns :intern "read-sharp-symbol"

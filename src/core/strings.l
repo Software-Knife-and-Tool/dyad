@@ -50,13 +50,13 @@
          (:if (core:symbolp designator)
               (mu:sy-name designator)
               (:if (core:charp designator)
-                   (mu:list-sv :char (core::list designator))
+                   (mu:vector :char (core::list designator))
                    (core:error designator "core::string not a char"))))))
 
 (mu:intern core::ns :extern "string-append"
    (:lambda (list)
       (core:errorp-unless core:listp list "core:string: is not a list")
-      (mu:list-sv
+      (mu:vector
        :char
        (core:foldl
         (:lambda (elt acc)
@@ -69,17 +69,15 @@
    (:lambda (str-1 str-2)
       (core:errorp-unless core:stringp str-1 "is not a string (core::string)")
       (core:errorp-unless core:stringp str-2 "is not a string (core::string)")
-      (mu:list-sv
-        :char
-        (core::append (core:sv-list str-1) (core:sv-list str-2)))))
+      (mu:vector :char (core::append (core:sv-list str-1) (core:sv-list str-2)))))
 
-;;; can use slice here?
 (mu:intern core::ns :extern "substr"
   (:lambda (str start end)
      (core:errorp-unless core:stringp str "is not a string (core::substr)")
      (core:errorp-unless core:fixnump start "is not a fixnum (core::substr)")
      (core:errorp-unless core:fixnump end "is not a fixnum (core::substr)")
      ((:lambda (list)
-         (mu:list-sv :char
-           (core:dropl (core:dropr list (mu:fx-sub (mu:length list) (core:1+ end))) start)))
-         (core:sv-list str))))
+        (mu:vector
+          :char
+          (core:dropl (core:dropr list (mu:fx-sub (mu:length list) (core:1+ end))) start)))
+      (core:sv-list str))))
