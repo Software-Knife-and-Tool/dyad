@@ -2,19 +2,15 @@
 ;;;  SPDX-License-Identifier: MIT
 
 ;;;
-;;; fixpoint loops
+;;; internal utilities
 ;;;
-(mu:intern core::ns :extern "fix"
-   (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:fix: not a function")
-     (core:errorp-unless core:listp list "core:fix: not a list")
-     (:if (core::fn-applyp fn)
-          (mu:fix (:lambda (arg) (core::apply fn (core::list arg))) list)
-          (mu:fix fn list))))
+(mu:intern core::ns :intern "append"
+   (:lambda (list-1 list-2)
+      (core:foldr
+        mu:cons
+        list-2
+        list-1)))
 
-;;;
-;;; lists
-;;;
 (mu:intern core::ns :intern "list"
    (:lambda (form)
      (mu:cons form ())))
@@ -27,26 +23,20 @@
    (:lambda (f1 f2 f3)
      (mu:cons f1 (core::list2 f2 f3))))
 
-(mu:intern core::ns :extern "append"
-   (:lambda (list)
-     (core:errorp-unless core:listp list "core:append: not a list")
-     (core:foldr
-      (:lambda (el acc)
-        (:if (core:listp el)
-          (core:foldr (:lambda (el acc) (mu:cons el acc)) acc el)
-          el))
-      ()
-      list)))
+;;;
+;;; fixpoint loop
+;;;
+(mu:intern core::ns :extern "fix"
+   (:lambda (fn list)
+     (core:errorp-unless core:functionp fn "core:fix: not a function")
+     (core:errorp-unless core:listp list "core:fix: not a list")
+     (:if (core::fn-applyp fn)
+          (mu:fix (:lambda (arg) (core::apply fn (core::list arg))) list)
+          (mu:fix fn list))))
 
 ;;;
 ;;; folds
 ;;;
-(mu:intern core::ns :extern "foldl-"
-  (:lambda (fn init list)
-      (core:errorp-unless core:functionp fn "core:foldl: not a function")
-      (core:errorp-unless core:listp list "core:foldl: not a list")
-      list))
-
 (mu:intern core::ns :extern "foldl"
   (:lambda (fn init list)
       (core:errorp-unless core:functionp fn "core:foldl: not a function")
@@ -58,11 +48,17 @@
              (:if lst
                   (mu:cons
                    (mu:cdr lst)
-                   (mu:apply fn (core::list2 (mu:car lst) acc)))
+                   (core:apply fn (core::list2 (mu:car lst) acc)))
                   arg))
            (mu:car arg)
            (mu:cdr arg)))
         (mu:cons list init)))))
+
+(mu:intern core::ns :extern "foldr"
+  (:lambda (fn init list)
+    (core:errorp-unless core:functionp fn "core:foldr: not a function")
+    (core:errorp-unless core:listp list "core:foldr: not a list")
+    (core:foldl fn init (core:reverse list))))
 
 ;;;
 ;;; maps
@@ -71,21 +67,14 @@
    (:lambda (fn list)
      (core:errorp-unless core:functionp fn "core:mapc: not a function")
      (core:errorp-unless core:listp list "core:mapc: not a list")
-     (:if (core::fn-applyp fn)
-          (mu:fix
-           (:lambda (list)
-             (:if (mu:eq () list)
-                  ()
-                  (core::prog2
-                     (core::apply fn (core::list (mu:car list)))
-                     (mu:cdr list))))
-           list)
-          (mu:fix
-           (:lambda (list)
-             (:if (mu:eq () list)
-                  ()
-                  (core::prog2 (mu:apply fn (mu:car list)) (mu:cdr list))))
-           list))
+     (mu:fix
+      (:lambda (lst)
+        (:if lst
+             (core::prog2
+                 (core::apply fn (core::list (mu:car lst)))
+                 (mu:cdr lst))
+             ()))
+      list)
      list))
 
 (mu:intern core::ns :extern "mapcar"
@@ -94,7 +83,7 @@
      (core:errorp-unless core:listp list "core:mapcar: not a list")
      (core:foldl
       (:lambda (elt acc)
-        (core::append acc (core::list (core:apply fn (core:list elt)))))
+        (core::append acc (core::list (core:apply fn (core::list elt)))))
       ()
       list)))
    
@@ -102,69 +91,51 @@
    (:lambda (fn list)
       (core:errorp-unless core:functionp fn "core:mapl: not a function")
       (core:errorp-unless core:listp list "core:mapl: not a list")
-      (:if (core::fn-applyp fn)
-           (mu:fix
-            (:lambda (list)
-              (:if (mu:eq () list)
-                   ()
-                   (core::prog2
-                      (core::apply fn (core::list list))
-                      (mu:cdr list))))
-            list)
-           (mu:fix
-            (:lambda (list)
-              (:if (mu:eq () list)
-                   ()
-                   (core::prog2 (fn list) (mu:cdr list))))
-            list))
+      (mu:fix
+       (:lambda (lst)
+         (:if lst
+              (core::prog2
+                  (core::apply fn (core::list lst))
+                  (mu:cdr lst))
+              ()))
+       list)
       list))
 
 (mu:intern core::ns :extern "maplist"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:maplist+: not a function")
-     (core:errorp-unless core:listp list "core:maplist+: not a list")
-     (:if (core:null list)
-          ()
-          (:if (core::fn-applyp fn)
-               (mu:fix
-                (:lambda (self acc list)
-                  (:if (core:null list)
-                       acc
-                       (core:prog
-                          (mu:fr-setv (core::fn-frame-id self)
-                                       1
-                                       (core::append acc (core::list (core::apply fn (core::list list)))))
-                          (mu:fr-setv (core::fn-frame-id self) 2 (mu:cdr list)))))
-                (core::list2 () list))
-               (mu:fix
-                (:lambda (self acc list)
-                  (:if (core:null list)
-                       acc
-                       (core::prog2
-                          (mu:fr-setv (core::fn-frame-id self)
-                                       1
-                                       (core::append acc (core::list (fn list))))
-                          (mu:fr-setv (core::fn-frame-id self) 2 (mu:cdr list)))))
-                (core::list2 () list))))))
+     (core:errorp-unless core:functionp fn "core:maplist: not a function")
+     (core:errorp-unless core:listp list "core:maplist: not a list")
+     (mu:car
+      (mu:fix
+       (:lambda (desc)
+         ((:lambda (acc lst)
+            (:if lst
+                 (mu:cons
+                  (core::append acc (core::list (core::apply fn (core::list lst))))
+                  (mu:cdr lst))
+                 desc))
+          (mu:car desc)
+          (mu:cdr desc)))
+       (mu:cons () list)))))
 
-(mu:intern core::ns :intern "append"
-   (:lambda (list-1 list-2)
-      (core:foldr
-        mu:cons
-        list-2
-        list-1)))
+;;;
+;;; fixed argument list functions
+;;;
+(mu:intern core::ns :extern "append"
+   (:lambda (list)
+     (core:errorp-unless core:listp list "core:append: not a list")
+     (core:foldr
+      (:lambda (el acc)
+        (:if (core:listp el)
+          (core:foldr mu:cons acc el)
+          el))
+      ()
+      list)))
 
-;;; generalize this to coerce?
-(mu:intern core::ns :extern "sv-list"
-   (:lambda (vec)
-      (core:errorp-unless core:vectorp vec "core:sv-list not: a vector")
-      (core:foldl
-        mu:cons
-        ()
-        (core:foldl
-          mu:cons
-          ()
-          vec))))
+(mu:intern core::ns :extern "reverse"
+  (:lambda (list)
+    (core:errorp-unless core:listp list "core:reverse: not a list")
+    (core:foldl mu:cons () list)))
 
 (mu:intern core::ns :extern "dropl"
    (:lambda (list n)

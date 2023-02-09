@@ -40,7 +40,7 @@
 ;;;
 (mu:intern core::ns :intern "lambda-descriptor"
    (:lambda (lambda req-syms rest-sym env closure)
-     (mu:list-sv :t
+     (mu:vector :t
         (mu:cons lambda
           (mu:cons req-syms
             (mu:cons rest-sym
