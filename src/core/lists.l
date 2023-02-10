@@ -107,15 +107,15 @@
      (core:errorp-unless core:listp list "core:maplist: not a list")
      (mu:car
       (mu:fix
-       (:lambda (desc)
+       (:lambda (loop)
          ((:lambda (acc lst)
             (:if lst
                  (mu:cons
                   (core::append acc (core::list (core::apply fn (core::list lst))))
                   (mu:cdr lst))
-                 desc))
-          (mu:car desc)
-          (mu:cdr desc)))
+                 loop))
+          (mu:car loop)
+          (mu:cdr loop)))
        (mu:cons () list)))))
 
 ;;;
