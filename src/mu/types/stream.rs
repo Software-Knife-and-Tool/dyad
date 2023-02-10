@@ -539,14 +539,17 @@ impl Core for Stream {
                 let stream_id = Fixnum::as_i64(mu, image.source) as usize;
                 SystemStream::write_byte(system_stream, stream_id, byte)
             }
-            Type::Cons => {
+            Type::Null | Type::Cons => {
                 image.source = Cons::new(Fixnum::as_tag(byte as i64), image.source).evict(mu);
                 image.count = Fixnum::as_tag(Fixnum::as_i64(mu, image.count) + 1);
                 Self::update(mu, &image, stream);
 
                 Ok(None)
             }
-            _ => panic!("internal: stream state inconsistency"),
+            _ => panic!(
+                "internal: {:?} stream state inconsistency",
+                Tag::type_of(mu, image.source)
+            ),
         }
     }
 }
