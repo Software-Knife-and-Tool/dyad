@@ -27,18 +27,17 @@
       (:if (mu:eq str-1 str-2)
          :t
          (:if (mu:eq (mu:sv-len str-1) (mu:sv-len str-2))
-            ((:lambda (result)
-               (core:charp result))
-             (core:foldl
-               (:lambda (el acc)
-                  (:if (core:null acc)
-                       ()
-                       (:if (mu:eq el (mu:sv-ref str-2 acc))
-                            (core:1+ acc)
-                            ())))
-                  0
-                  str-1))
-            ()))))
+              (mu:fix
+               (:lambda (nth)
+                 (:if (core:numberp nth)
+                      (:if (mu:eq nth (mu:sv-len str-1))
+                           :t
+                           (:if (mu:eq (mu:sv-ref str-1 nth) (mu:sv-ref str-2 nth))
+                                (core:1+ nth)
+                                ()))
+                      nth))
+               0)
+              ()))))
 
 ;;;
 ;;; string construction
@@ -55,29 +54,36 @@
 
 (mu:intern core::ns :extern "string-append"
    (:lambda (list)
-      (core:errorp-unless core:listp list "core:string: is not a list")
-      (mu:vector
-       :char
-       (core:foldl
-        (:lambda (elt acc)
-          (core:errorp-unless core:stringp elt "core:string: is not a string")
-          (core::append acc (core:sv-list elt)))
-        ()
-        list))))
+     (core:errorp-unless core:listp list "core:string: is not a list")
+     ((:lambda (result)
+       (core:mapc
+        (:lambda (str)
+          (core:errorp-unless core:stringp str "core:string-append: is not a string")
+          (mu:fix
+           (:lambda (nth)
+             (:if (mu:eq (mu:sv-len str) nth)
+                  nth
+                  (core::prog2
+                      (mu:write (mu:sv-ref str nth) () result)
+                      (core:1+ nth))))
+           0))
+        list)
+       (mu:get-str result))
+     (mu:open :string :output ""))))
 
-(mu:intern core::ns :intern "string-append"
-   (:lambda (str-1 str-2)
-      (core:errorp-unless core:stringp str-1 "is not a string (core::string)")
-      (core:errorp-unless core:stringp str-2 "is not a string (core::string)")
-      (mu:vector :char (core::append (core:sv-list str-1) (core:sv-list str-2)))))
-
-(mu:intern core::ns :extern "substr"
+(mu:intern core::ns :intern "substr"
   (:lambda (str start end)
-     (core:errorp-unless core:stringp str "is not a string (core::substr)")
-     (core:errorp-unless core:fixnump start "is not a fixnum (core::substr)")
-     (core:errorp-unless core:fixnump end "is not a fixnum (core::substr)")
-     ((:lambda (list)
-        (mu:vector
-          :char
-          (core:dropl (core:dropr list (mu:fx-sub (mu:length list) (core:1+ end))) start)))
-      (core:sv-list str))))
+     (core:errorp-unless core:stringp str "core:substr: is not a string")
+     (core:errorp-unless core:fixnump start "core:substr: start is not a fixnum")
+     (core:errorp-unless core:fixnump end "core:substr: end is not a fixnum")
+     ((:lambda (substr)
+        (mu:fix
+         (:lambda (nth)
+           (:if (core:numberp nth)
+                (:if (mu:fx-lt nth end)
+                     (mu:write (mu:sv-ref str nth) () substr)
+                     ())
+                nth))
+         start)
+        (mu:get-str substr))
+        (mu:open :string :output ""))))

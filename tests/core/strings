@@ -1,14 +1,15 @@
 #
-# core string tests"
+# core string tests
 #
 assert_eq "(mu:type-of core:schar)" ":func"
 assert_eq "(mu:type-of core:string=)" ":func"
 assert_eq "(mu:type-of core:string)" ":func"
 assert_eq "(mu:type-of core:string-append)" ":func"
-assert_eq "(mu:type-of core:substr)" ":func"
+assert_eq "(core:string-append '(\"abc\" \"123\"))" '"abc123"'
+assert_eq "(core:string-append '(\"\" \"abc\"))" '"abc"'
+assert_eq "(core:string-append '(\"abc\" \"\"))" '"abc"'
+assert_eq "(core:string-append '(\"\" \"\"))" '""'
 assert_eq "(core:string= \"abc\" \"abc\")" ":t"
 assert_eq "(core:string= \"abd\" \"abc\")" ":nil"
 assert_eq "(core:stringp \"abc\")" ":t"
 assert_eq "(core:stringp 1)" ":nil"
-assert_eq "(core:sv-list \"abc\")" "(a b c)"
-#
