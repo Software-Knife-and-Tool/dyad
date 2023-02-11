@@ -22,7 +22,7 @@ for test in test_results:
     if fields[0] in labels:
         totals = fields
     else:
-        form = (fields[0][:27] + '... ') if len(fields[0]) > 30 else fields[0]
+        form = (fields[0][:27] + '...') if len(fields[0]) > 30 else fields[0]
         if len(fields) != 4:
             if len(fields) == 1:
                 pass

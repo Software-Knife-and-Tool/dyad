@@ -501,7 +501,7 @@ impl Core for Stream {
                 let stream_id = Fixnum::as_i64(mu, image.source) as usize;
                 SystemStream::write_byte(system_stream, stream_id, ch as u8)
             }
-            Type::Cons => {
+            Type::Null | Type::Cons => {
                 image.source = Cons::new(Char::as_tag(ch), image.source).evict(mu);
                 image.count = Fixnum::as_tag(Fixnum::as_i64(mu, image.count) + 1);
                 Self::update(mu, &image, stream);
