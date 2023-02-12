@@ -19,9 +19,6 @@
 
 (mu:intern core::ns :intern "mapv"
   (:lambda (fn vector)
-    (core:errorp-unless core:functionp fn "core::mapv: not a function")
-    (core:errorp-unless core:vectorp vector "core::mapv: not a vector")
-
     (mu:fix
      (:lambda (nth)
        (:if nth
