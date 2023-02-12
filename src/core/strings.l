@@ -59,19 +59,12 @@
        (core:mapc
         (:lambda (str)
           (core:errorp-unless core:stringp str "core:string-append: is not a string")
-          (mu:fix
-           (:lambda (nth)
-             (:if (mu:eq (mu:sv-len str) nth)
-                  nth
-                  (core::prog2
-                      (mu:write (mu:sv-ref str nth) () result)
-                      (core:1+ nth))))
-           0))
+          (core::mapv (:lambda (item) (mu:write item () result)) str))
         list)
        (mu:get-str result))
      (mu:open :string :output ""))))
 
-(mu:intern core::ns :intern "substr"
+(mu:intern core::ns :extern "substr"
   (:lambda (str start end)
      (core:errorp-unless core:stringp str "core:substr: is not a string")
      (core:errorp-unless core:fixnump start "core:substr: start is not a fixnum")
@@ -80,9 +73,13 @@
         (mu:fix
          (:lambda (nth)
            (:if (core:numberp nth)
-                (:if (mu:fx-lt nth end)
-                     (mu:write (mu:sv-ref str nth) () substr)
-                     ())
+                (:if (mu:eq nth (mu:sv-len str))
+                     ()
+                     (:if (mu:fx-lt nth (core:1+ end))
+                          (core::prog2
+                              (mu:write (mu:sv-ref str nth) () substr)
+                              (core:1+ nth))
+                          ()))
                 nth))
          start)
         (mu:get-str substr))

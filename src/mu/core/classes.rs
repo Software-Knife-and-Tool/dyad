@@ -24,7 +24,7 @@ pub enum Tag {
 }
 
 // classes
-#[derive(Eq, PartialEq, Copy, Clone, Debug, TryFromPrimitive)]
+#[derive(PartialEq, Copy, Clone, Debug, TryFromPrimitive)]
 #[repr(u8)]
 pub enum Type {
     Byte,
@@ -65,7 +65,7 @@ pub struct TagU64 {
     pub offset: B61,
 }
 
-#[derive(BitfieldSpecifier, Copy, Clone)]
+#[derive(BitfieldSpecifier, Copy, Clone, Eq, PartialEq)]
 pub enum DirectType {
     Char = 0,
     Byte = 1,
