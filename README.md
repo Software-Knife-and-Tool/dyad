@@ -121,9 +121,9 @@ and then install.
 
 ------
 
-The distribution includes a test suite, which should be run after every interesting change and prior to any check in. The test suite consists of a several hundred individual tests separated into multiple sections, roughly separated by namespace.
+*Performance metrics are not yet implemented.*
 
-Performance metrics are not yet implemented.
+The distribution includes a test suite, which should be run after every interesting change. The test suite consists of a several hundred individual tests separated into multiple sections, roughly separated by namespace.
 
 Failures in the *mu* tests are almost guaranteed to cause complete failure of subsequent tests.
 
@@ -139,7 +139,7 @@ The `tests` makefile has additional facilities for development, including report
 
 ------
 
-Performance metrics, which can take in excess of ten minutes to run, can be captured with
+Performance metrics can be captured with
 
 ```
 % make -C perf base
@@ -228,7 +228,9 @@ to your `~/.inputrc` may help.
 
 *dyad* is named for the dual core semantics of LISP expressions, *eval* and *apply*. Functional languages bring us closer to a time where we can prove our programs are correct. *dyad* attempts to couch modern programming concepts in a familiar language.
 
-*LISP* is a path, one of many. *LISPs* are intentionally dynamic which has selected against them for use in production environments, yet statically-typed languages produce systems that are hard to interact with and even harder to change *in situ*.
+*LISPs* are intentionally dynamic which has selected against them for use in production environments, yet statically-typed languages produce systems that are hard to interact with and even harder to change *in situ*. Many of the dynamic languages in use today do not have adequate meta programming facilities. We need systems that can reason about and suplement themselves.
+
+Such systems tend to be large and resource-hungry. We need lean systems that can do useful work in a low resource environment and evolve to meet new demands.
 
 Change and evolution are the only defenses a system has against obsolescence.
 
