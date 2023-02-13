@@ -17,7 +17,7 @@ use {
         image,
         types::{
             fixnum::Fixnum,
-            indirect_vector::{TypedVec, VecType},
+            ivector::{TypedVec, VecType},
             symbol::{Properties as _, Symbol},
             vector::Core as _,
         },

@@ -7,5 +7,6 @@ numbers
 reader
 special-forms
 streams
+structs
 symbols
 vectors

@@ -9,7 +9,7 @@ use crate::{
         mu::{Core as _, Mu},
     },
     types::{
-        indirect_vector::{TypedVec, VecType as _},
+        ivector::{TypedVec, VecType as _},
         stream::{Core as _, Stream},
         vector::Core as _,
     },

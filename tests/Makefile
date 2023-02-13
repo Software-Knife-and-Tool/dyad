@@ -58,18 +58,14 @@ report:
 	@python3 report.py $(TMPF)
 	@rm -f $(TMPF)
 
-commit:
-	@for namespace in $(NAMESPACES); do	\
-	    make $$namespace >> $(TMPF);	\
-	done
-	@python3 summary.py $(TMPF) > tests.summary
-	@rm -f $(TMPF)
+commit: summary
 
 summary:
 	@for namespace in $(NAMESPACES); do	\
 	    make $$namespace >> $(TMPF);	\
 	done
-	@python3 summary.py $(TMPF)
+	@python3 summary.py $(TMPF) > tests.summary
+	@cat tests.summary
 	@rm -f $(TMPF)
 
 clean:

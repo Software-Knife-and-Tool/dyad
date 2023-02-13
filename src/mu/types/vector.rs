@@ -17,8 +17,8 @@ use {
             cons::{Cons, ConsIter, Core as _, Properties as _},
             fixnum::Fixnum,
             float::Float,
-            indirect_vector::{IVec, IVector, Image, IndirectVector},
-            indirect_vector::{TypedVec, VecType, VectorIter},
+            ivector::{IVec, IVector, Image, IndirectVector},
+            ivector::{TypedVec, VecType, VectorIter},
             stream::{Core as _, Stream},
             symbol::{Core as _, Symbol},
         },
@@ -38,7 +38,6 @@ lazy_static! {
         (Symbol::keyword("byte"), Type::Byte),
         (Symbol::keyword("fixnum"), Type::Fixnum),
         (Symbol::keyword("float"), Type::Float),
-        (Symbol::keyword("nil"), Type::Null),
     ];
 }
 
@@ -116,7 +115,7 @@ pub trait Core<'a> {
     fn write(_: &Mu, _: Tag, _: bool, _: Tag) -> exception::Result<()>;
 
     fn evict(&self, _: &Mu) -> Tag;
-    fn svref(_: &Mu, _: Tag, _: usize) -> Option<Tag>;
+    fn r#ref(_: &Mu, _: Tag, _: usize) -> Option<Tag>;
 
     fn from_string(_: &str) -> Vector;
     fn as_string(_: &Mu, _: Tag) -> String;
@@ -434,13 +433,13 @@ impl<'a> Core<'a> for Vector {
         }
     }
 
-    fn svref(mu: &Mu, vector: Tag, index: usize) -> Option<Tag> {
+    fn r#ref(mu: &Mu, vector: Tag, index: usize) -> Option<Tag> {
         match Tag::type_of(mu, vector) {
             Type::Vector => match vector {
                 Tag::Direct(_direct) => {
                     Some(Char::as_tag(vector.data(mu).to_le_bytes()[index] as char))
                 }
-                Tag::Indirect(_) => IndirectVector::svref(mu, vector, index),
+                Tag::Indirect(_) => IndirectVector::r#ref(mu, vector, index),
                 _ => panic!("internal: vector type inconsistency"),
             },
             _ => panic!("internal: vector type inconsistency"),
@@ -573,7 +572,7 @@ impl MuFunction for Vector {
 
                 match Tag::type_of(mu, vector) {
                     Type::Vector => {
-                        fp.value = match Self::svref(mu, vector, nth as usize) {
+                        fp.value = match Self::r#ref(mu, vector, nth as usize) {
                             Some(ch) => ch,
                             None => panic!("internal: mu:svref inconsistency"),
                         };
