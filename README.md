@@ -228,7 +228,7 @@ to your `~/.inputrc` may help.
 
 *dyad* is named for the dual core semantics of LISP expressions, *eval* and *apply*. Functional languages bring us closer to a time where we can prove our programs are correct. *dyad* attempts to couch modern programming concepts in a familiar language.
 
-*LISPs* are intentionally dynamic which has selected against them for use in production environments, yet statically-typed languages produce systems that are hard to interact with and even harder to change *in situ*. Many of the dynamic languages in use today do not have adequate meta programming facilities. We need systems that can reason about and suplement themselves.
+*LISPs* are intentionally dynamic which has selected against them for use in production environments, yet statically-typed languages produce systems that are hard to interact with and even harder to change *in situ*. Many of the dynamic languages in use today do not have adequate meta programming facilities. We need systems that can reason about and supllement themselves.
 
 Such systems tend to be large and resource-hungry. We need lean systems that can do useful work in a low resource environment and evolve to meet new demands.
 
