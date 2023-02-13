@@ -18,7 +18,7 @@ help:
 	@echo "    uninstall - uninstall distribution (needs sudo)"
 	@echo "--- development options"
 	@echo "    clean - remove build artifacts"
-	@echo "    commit - run clippy and rustfmt"
+	@echo "    commit - run clippy, rustfmt, make test summary"
 	@echo "    tags - make etags"
 	@echo "--- commit test options"
 	@echo "    tests/rust - rust tests"
@@ -62,6 +62,7 @@ commit:
 	@cargo -q test | sed -e '/^$$/d'
 	@echo ";;; clippy tests"
 	@cargo clippy
+	@make -C tests commit
 
 clean:
 	@rm -f TAGS

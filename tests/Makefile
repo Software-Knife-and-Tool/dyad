@@ -1,7 +1,7 @@
 #
 # tests makefile
 #
-.PHONY: help cargo clean report report-all summary mu core results
+.PHONY: help cargo clean commit report report-all summary mu core results
 
 TMPF:=$(shell mktemp)
 NAMESPACES=\
@@ -14,6 +14,7 @@ help:
 	@echo "--- test options"
 	@echo "    cargo - run rust tests"
 	@echo "    namespaces - list namespaces"
+	@echo "    commit - create test summary"
 	@echo "    list - tests in \$$NAMESPACE"
 	@echo "    \$$NAMESPACE - run all tests in namespace, raw output"
 	@echo "    summary - run all tests in all namespaces and print summary"
@@ -55,6 +56,13 @@ report-all:
 report:
 	@bash $(NAMESPACE)/run-test $(NAMESPACE)/$(TEST) > $(TMPF)
 	@python3 report.py $(TMPF)
+	@rm -f $(TMPF)
+
+commit:
+	@for namespace in $(NAMESPACES); do	\
+	    make $$namespace >> $(TMPF);	\
+	done
+	@python3 summary.py $(TMPF) > tests.summary
 	@rm -f $(TMPF)
 
 summary:
