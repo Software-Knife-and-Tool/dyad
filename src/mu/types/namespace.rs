@@ -14,7 +14,7 @@ use {
         image,
         types::{
             cons::{Cons, Core as _},
-            indirect_vector::{TypedVec, VecType},
+            ivector::{TypedVec, VecType},
             symbol::{Core as _, Symbol},
             vector::{Core as _, Vector},
         },

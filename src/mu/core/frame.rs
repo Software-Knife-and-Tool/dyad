@@ -20,7 +20,7 @@ use {
             cons::{Cons, ConsIter, Properties as _},
             fixnum::Fixnum,
             function::{Function, Properties as _},
-            indirect_vector::{TypedVec, VecType, VectorIter},
+            ivector::{TypedVec, VecType, VectorIter},
             symbol::{Core as _, Properties as _, Symbol},
             vector::{Core as _, Vector},
         },
@@ -118,8 +118,8 @@ impl Frame {
     fn from_vector(mu: &Mu, vec: Tag) -> Self {
         match Tag::type_of(mu, vec) {
             Type::Vector => {
-                let vtype = Vector::svref(mu, vec, 0).unwrap();
-                let func = Vector::svref(mu, vec, 1).unwrap();
+                let vtype = Vector::r#ref(mu, vec, 0).unwrap();
+                let func = Vector::r#ref(mu, vec, 1).unwrap();
 
                 match Tag::type_of(mu, func) {
                     Type::Function => {

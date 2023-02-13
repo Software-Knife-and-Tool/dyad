@@ -18,6 +18,7 @@ use crate::{
         float::{Float, MuFunction as _},
         function::{Function, MuFunction as _},
         namespace::{Core as _, MuFunction as _, Namespace, Scope},
+        r#struct::{MuFunction as _, Struct},
         stream::{MuFunction as _, Stream},
         symbol::{MuFunction as _, Symbol},
         vector::{MuFunction as _, Vector},
@@ -99,6 +100,10 @@ lazy_static! {
         ("sv-len", Scope::Extern, 1, Vector::mu_length),
         ("sv-ref", Scope::Extern, 2, Vector::mu_svref),
         ("sv-type", Scope::Extern, 1, Vector::mu_type),
+        // structs
+        ("struct", Scope::Extern, 2, Struct::mu_make_struct),
+        ("st-type", Scope::Extern, 1, Struct::mu_struct_type),
+        ("st-vec", Scope::Extern, 1, Struct::mu_struct_vector),
         // streams
         ("close", Scope::Extern, 1, Stream::mu_close),
         ("eof", Scope::Extern, 1, Stream::mu_eof),
@@ -110,6 +115,7 @@ lazy_static! {
         ("un-char", Scope::Extern, 2, Stream::mu_unread_char),
         ("wr-byte", Scope::Extern, 2, Stream::mu_write_byte),
         ("wr-char", Scope::Extern, 2, Stream::mu_write_char),
+        // interns
         ("if", Scope::Intern, 3, Mu::mu_if),
         ("fr-ref", Scope::Intern, 2, Frame::mu_fr_ref),
     ];

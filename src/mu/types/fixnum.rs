@@ -11,7 +11,7 @@ use crate::{
         mu::{Core as _, Mu},
     },
     types::{
-        indirect_vector::{TypedVec, VecType},
+        ivector::{TypedVec, VecType},
         vector::Core as _,
     },
 };

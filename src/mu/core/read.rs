@@ -16,6 +16,7 @@ use crate::{
         fixnum::Fixnum,
         float::Float,
         namespace::{Core as _, Namespace, Scope},
+        r#struct::{Core as _, Struct},
         stream::{Core as _, Stream},
         symbol::{Core as _, Symbol, UNBOUND},
         vector::{Core as _, Vector},
@@ -401,8 +402,12 @@ impl Read for Mu {
                     Err(e) => Err(e),
                 },
                 '\\' => Self::read_char_literal(mu, stream),
+                'S' | 's' => match Struct::read(mu, stream) {
+                    Ok(tag) => Ok(Some(tag)),
+                    Err(e) => Err(e),
+                },
                 '(' => match Vector::read(mu, '(', stream) {
-                    Ok(vec) => Ok(Some(vec)),
+                    Ok(tag) => Ok(Some(tag)),
                     Err(e) => Err(e),
                 },
                 'x' => match Self::read_token(mu, stream) {

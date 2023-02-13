@@ -13,7 +13,7 @@ use {
         },
         image,
         types::{
-            indirect_vector::{TypedVec, VecType},
+            ivector::{TypedVec, VecType},
             namespace::{Namespace, Properties as _, Scope},
             stream::{Core as _, Stream},
             vector::{Core as _, Vector},

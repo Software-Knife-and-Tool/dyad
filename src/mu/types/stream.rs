@@ -23,7 +23,7 @@ use {
             char::Char,
             cons::{Cons, ConsIter, Core as _, Properties as _},
             fixnum::Fixnum,
-            indirect_vector::{TypedVec, VecType},
+            ivector::{TypedVec, VecType},
             symbol::{Core as _, Symbol},
             vector::{Core as _, Properties as _, Vector},
         },
@@ -413,7 +413,7 @@ impl Core for Stream {
                 if unch.null_() {
                     let mut index = Fixnum::as_i64(mu, image.count) as usize;
                     let length = Vector::length_of(mu, image.source);
-                    let ch = Vector::svref(mu, image.source, index);
+                    let ch = Vector::r#ref(mu, image.source, index);
 
                     index += 1;
                     if index == length {

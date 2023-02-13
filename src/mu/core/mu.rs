@@ -23,6 +23,7 @@ use {
             float::{Core as _, Float},
             function::{Core as _, Function},
             namespace::{Core as _, Namespace},
+            r#struct::{Core as _, Struct},
             stream::{Core as _, Stream},
             symbol::{Core as _, Properties as _, Symbol},
             vector::{Core as _, Vector},
@@ -72,7 +73,7 @@ pub struct Mu {
 }
 
 pub trait Core {
-    const VERSION: &'static str = "0.0.8";
+    const VERSION: &'static str = "0.0.9";
 
     fn new(config: String) -> Self;
     fn apply(&self, _: Tag, _: Tag) -> exception::Result<Tag>;
@@ -227,6 +228,7 @@ impl Core for Mu {
             Type::Null | Type::Symbol | Type::Keyword => Symbol::write(self, tag, escape, stream),
             Type::Stream => Stream::write(self, tag, escape, stream),
             Type::Vector => Vector::write(self, tag, escape, stream),
+            Type::Struct => Struct::write(self, tag, escape, stream),
             _ => panic!("internal: write type inconsistency"),
         }
     }
