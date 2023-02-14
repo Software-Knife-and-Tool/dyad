@@ -9,7 +9,7 @@ CORE = \
         compile.l    	\
         exceptions.l 	\
 	fixnums.l  	\
-	functions.l  	\
+	closures.l  	\
         format.l     	\
         lambda.l     	\
         lists.l      	\

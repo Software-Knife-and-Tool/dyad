@@ -23,9 +23,9 @@ function assert_eq () {
 
 source "$1" >> $TMP/dyad-test.$$.log 2>&1
 
-total=`cat $1 | wc -l`
-failed=`grep failed $TMP/dyad-test.$$.log | wc -l`
-aborted=`grep aborted $TMP/dyad-test.$$.log | wc -l`
+total=`egrep -c -v "^#" $1`
+failed=`grep -c failed $TMP/dyad-test.$$.log`
+aborted=`grep -c aborted $TMP/dyad-test.$$.log`
 file=`basename "$1"`
 
 echo "mu:",$file,$total,$failed,$aborted

@@ -40,15 +40,19 @@
   (:lambda (sym)
     (core:null (mu:sy-ns sym))))
 
+(mu:intern core::ns :extern "closurep"
+  (:lambda (t)
+    (core::logical-and (mu:eq :struct (mu:type-of t)) (mu:eq (mu:st-type t) :closure))))
+
+(mu:intern core::ns :extern "numberp"
+  (:lambda (n)
+    (:if (core:fixnump n) :t (core:floatp n))))
+
 (mu:intern core::ns :extern "zerop"
   (:lambda (n)
     (:if (mu:eq 0 n)
          :t
          (mu:eq 0.0 n))))
-
-(mu:intern core::ns :extern "numberp"
-  (:lambda (n)
-    (:if (core:fixnump n) :t (core:floatp n))))
 
 ;;;
 ;;; syntactic sugar
