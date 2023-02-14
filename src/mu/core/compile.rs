@@ -9,7 +9,7 @@ use {
         core::{
             classes::{Tag, Type},
             exception,
-            exception::{Condition, Except, Result},
+            exception::{Condition, Exception, Result},
             mu::Mu,
         },
         types::{
@@ -37,7 +37,7 @@ lazy_static! {
 
 fn compile_if(mu: &Mu, args: Tag) -> exception::Result<Tag> {
     if Cons::length(mu, args) != 3 {
-        return Err(Except::raise(
+        return Err(Exception::raise(
             mu,
             Condition::Syntax,
             "compile::compile_quote",
@@ -82,7 +82,7 @@ fn compile_if(mu: &Mu, args: Tag) -> exception::Result<Tag> {
 
 fn compile_quote(mu: &Mu, args: Tag) -> exception::Result<Tag> {
     if Cons::length(mu, args) != 1 {
-        return Err(Except::raise(
+        return Err(Exception::raise(
             mu,
             Condition::Syntax,
             "compile::compile_quote",
@@ -96,7 +96,7 @@ fn compile_quote(mu: &Mu, args: Tag) -> exception::Result<Tag> {
 fn compile_special_form(mu: &Mu, name: Tag, args: Tag) -> exception::Result<Tag> {
     match SPECMAP.iter().copied().find(|spec| name.eq_(spec.0)) {
         Some(spec) => spec.1(mu, args),
-        None => Err(Except::raise(
+        None => Err(Exception::raise(
             mu,
             Condition::Syntax,
             "compile::special_form",
@@ -128,7 +128,7 @@ fn compile_frame_symbols(mu: &Mu, lambda: Tag) -> exception::Result<Vec<Tag>> {
         if Tag::type_of(mu, symbol) == Type::Symbol {
             match symv.iter().rev().position(|lex| symbol.eq_(*lex)) {
                 Some(_) => {
-                    return Err(Except::raise(
+                    return Err(Exception::raise(
                         mu,
                         Condition::Syntax,
                         "compile::compile_frame_symbols",
@@ -138,7 +138,7 @@ fn compile_frame_symbols(mu: &Mu, lambda: Tag) -> exception::Result<Vec<Tag>> {
                 _ => symv.push(symbol),
             }
         } else {
-            return Err(Except::raise(
+            return Err(Exception::raise(
                 mu,
                 Condition::Type,
                 "compile::compile_frame_symbols",
@@ -187,7 +187,7 @@ fn compile_lambda(mu: &Mu, args: Tag) -> exception::Result<Tag> {
             match Tag::type_of(mu, lambda) {
                 Type::Null | Type::Cons => (lambda, Cons::cdr(mu, args)),
                 _ => {
-                    return Err(Except::raise(
+                    return Err(Exception::raise(
                         mu,
                         Condition::Type,
                         "compile::compile_lambda",
@@ -197,7 +197,7 @@ fn compile_lambda(mu: &Mu, args: Tag) -> exception::Result<Tag> {
             }
         }
         _ => {
-            return Err(Except::raise(
+            return Err(Exception::raise(
                 mu,
                 Condition::Syntax,
                 "compile::compile_lambda",
@@ -247,13 +247,23 @@ pub fn compile(mu: &Mu, expr: Tag) -> exception::Result<Tag> {
                     Ok(arglist) => match compile(mu, func) {
                         Ok(fnc) => match Tag::type_of(mu, fnc) {
                             Type::Function => Ok(Cons::new(fnc, arglist).evict(mu)),
-                            _ => Err(Except::raise(mu, Condition::Type, "compile::compile", func)),
+                            _ => Err(Exception::raise(
+                                mu,
+                                Condition::Type,
+                                "compile::compile",
+                                func,
+                            )),
                         },
                         Err(e) => Err(e),
                     },
                     Err(e) => Err(e),
                 },
-                _ => Err(Except::raise(mu, Condition::Type, "compile::compile", func)),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "compile::compile",
+                    func,
+                )),
             }
         }
         _ => Ok(expr),

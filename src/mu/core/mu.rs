@@ -9,7 +9,7 @@ use {
         core::{
             classes::{Tag, Type},
             compile, exception,
-            exception::{Condition, Except},
+            exception::{Condition, Exception},
             frame::Frame,
             namespace::Core as _,
             read::Read,
@@ -174,22 +174,34 @@ impl Core for Mu {
                     }
                     Type::Symbol => {
                         if Symbol::is_unbound(self, func) {
-                            Err(Except::raise(self, Condition::Unbound, "core::eval", func))
+                            Err(Exception::raise(
+                                self,
+                                Condition::Unbound,
+                                "core::eval",
+                                func,
+                            ))
                         } else {
                             let fnc = Symbol::value_of(self, func);
                             match Tag::type_of(self, fnc) {
                                 Type::Function => self.apply(fnc, args),
-                                _ => Err(Except::raise(self, Condition::Type, "core::eval", func)),
+                                _ => {
+                                    Err(Exception::raise(self, Condition::Type, "core::eval", func))
+                                }
                             }
                         }
                     }
                     Type::Function => self.apply(func, args),
-                    _ => Err(Except::raise(self, Condition::Type, "core::eval", func)),
+                    _ => Err(Exception::raise(self, Condition::Type, "core::eval", func)),
                 }
             }
             Type::Symbol => {
                 if Symbol::is_unbound(self, expr) {
-                    Err(Except::raise(self, Condition::Unbound, "core:eval", expr))
+                    Err(Exception::raise(
+                        self,
+                        Condition::Unbound,
+                        "core:eval",
+                        expr,
+                    ))
                 } else {
                     Ok(Symbol::value_of(self, expr))
                 }

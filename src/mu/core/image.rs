@@ -7,7 +7,7 @@ use {
         core::{
             classes::{Tag, Type},
             exception,
-            exception::{Condition, Except},
+            exception::{Condition, Exception},
             frame::Frame,
             mu::Mu,
         },
@@ -104,16 +104,31 @@ impl MuFunction for Mu {
                         } else if of_key.eq_(Symbol::keyword("size")) {
                             Fixnum::as_tag(type_info.4 as i64)
                         } else {
-                            return Err(Except::raise(mu, Condition::Type, "mu:hp-type", of_key));
+                            return Err(Exception::raise(
+                                mu,
+                                Condition::Type,
+                                "mu:hp-type",
+                                of_key,
+                            ));
                         };
 
                         Ok(())
                     }
-                    _ => Err(Except::raise(mu, Condition::Type, "mu:hp-type", of_key)),
+                    _ => Err(Exception::raise(mu, Condition::Type, "mu:hp-type", of_key)),
                 },
-                None => Err(Except::raise(mu, Condition::Range, "mu:hp-type", type_key)),
+                None => Err(Exception::raise(
+                    mu,
+                    Condition::Range,
+                    "mu:hp-type",
+                    type_key,
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:hp-type", type_key)),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:hp-type",
+                type_key,
+            )),
         }
     }
 }

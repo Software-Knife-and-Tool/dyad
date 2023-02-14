@@ -12,7 +12,7 @@ use {
         core::{
             classes::{Tag, Type},
             exception,
-            exception::{Condition, Except},
+            exception::{Condition, Exception},
             mu::{Core as _, Mu},
             namespace::Core as _,
         },
@@ -42,7 +42,12 @@ impl Frame {
         match Tag::type_of(mu, func) {
             Type::Symbol => {
                 if Symbol::is_unbound(mu, func) {
-                    Err(Except::raise(mu, Condition::Unbound, "frame::apply", func))
+                    Err(Exception::raise(
+                        mu,
+                        Condition::Unbound,
+                        "frame::apply",
+                        func,
+                    ))
                 } else {
                     self.apply(mu, Symbol::value_of(mu, func))
                 }
@@ -54,7 +59,7 @@ impl Frame {
                     let nargs = self.argv.len();
 
                     if nargs != nreqs {
-                        return Err(Except::raise(mu, Condition::Arity, "frame::apply", func));
+                        return Err(Exception::raise(mu, Condition::Arity, "frame::apply", func));
                     }
 
                     let fn_off = Fixnum::as_i64(mu, Function::form_of(mu, func)) as usize;
@@ -74,7 +79,7 @@ impl Frame {
                     let nargs = self.argv.len();
 
                     if nargs != nreqs {
-                        return Err(Except::raise(mu, Condition::Arity, "frame::apply", func));
+                        return Err(Exception::raise(mu, Condition::Arity, "frame::apply", func));
                     }
 
                     let mut value = Tag::nil();
@@ -94,14 +99,14 @@ impl Frame {
 
                     Ok(value)
                 }
-                _ => Err(Except::raise(
+                _ => Err(Exception::raise(
                     mu,
                     Condition::Type,
                     "frame::apply::car",
                     func,
                 )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "frame::apply", func)),
+            _ => Err(Exception::raise(mu, Condition::Type, "frame::apply", func)),
         }
     }
 
@@ -212,7 +217,7 @@ impl MuFunction for Frame {
 
                 vec_ref[0].to_vector(mu)
             }
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:fr-lexv", func)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:fr-lexv", func)),
         };
 
         Ok(())
@@ -223,7 +228,7 @@ impl MuFunction for Frame {
 
         match Tag::type_of(mu, fp.value) {
             Type::Function => Self::lexical_pop(mu, fp.value),
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:fr-pop", fp.value)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:fr-pop", fp.value)),
         }
 
         Ok(())
@@ -234,7 +239,14 @@ impl MuFunction for Frame {
 
         match Tag::type_of(mu, fp.value) {
             Type::Vector => Self::from_vector(mu, fp.value).lexical_push(mu),
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:fr-push", fp.value)),
+            _ => {
+                return Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fr-push",
+                    fp.value,
+                ))
+            }
         }
 
         Ok(())
@@ -255,11 +267,11 @@ impl MuFunction for Frame {
                         fp.value = tag;
                         Ok(())
                     }
-                    None => Err(Except::raise(mu, Condition::Type, "mu:lex-ref", frame)),
+                    None => Err(Exception::raise(mu, Condition::Type, "mu:lex-ref", frame)),
                 },
-                _ => Err(Except::raise(mu, Condition::Type, "mu:lex-ref", offset)),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:lex-ref", offset)),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:lex-ref", frame)),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:lex-ref", frame)),
         }
     }
 }

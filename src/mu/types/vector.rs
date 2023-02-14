@@ -7,7 +7,7 @@ use {
         core::{
             classes::{DirectType, Tag, Type},
             exception,
-            exception::{Condition, Except},
+            exception::{Condition, Exception},
             frame::Frame,
             mu::{Core as _, Mu},
         },
@@ -280,7 +280,12 @@ impl<'a> Core<'a> for Vector {
                         Ok(Some('"')) => break,
                         Ok(Some(ch)) => str.push(ch),
                         Ok(None) => {
-                            return Err(Except::raise(mu, Condition::Eof, "vector::read", stream));
+                            return Err(Exception::raise(
+                                mu,
+                                Condition::Eof,
+                                "vector::read",
+                                stream,
+                            ));
                         }
                         Err(e) => return Err(e),
                     }
@@ -292,7 +297,7 @@ impl<'a> Core<'a> for Vector {
                 let vec_list = match Cons::read(mu, stream) {
                     Ok(list) => {
                         if list.null_() {
-                            return Err(Except::raise(
+                            return Err(Exception::raise(
                                 mu,
                                 Condition::Type,
                                 "vector::read",
@@ -302,7 +307,12 @@ impl<'a> Core<'a> for Vector {
                         list
                     }
                     Err(_) => {
-                        return Err(Except::raise(mu, Condition::Syntax, "vector::read", stream));
+                        return Err(Exception::raise(
+                            mu,
+                            Condition::Syntax,
+                            "vector::read",
+                            stream,
+                        ));
                     }
                 };
 
@@ -327,7 +337,7 @@ impl<'a> Core<'a> for Vector {
                                         vec.push(ch)
                                     }
                                     _ => {
-                                        return Err(Except::raise(
+                                        return Err(Exception::raise(
                                             mu,
                                             Condition::Type,
                                             "vector::read",
@@ -347,7 +357,7 @@ impl<'a> Core<'a> for Vector {
                                     Type::Fixnum => {
                                         let byte = Fixnum::as_i64(mu, el);
                                         if !(0..255).contains(&byte) {
-                                            return Err(Except::raise(
+                                            return Err(Exception::raise(
                                                 mu,
                                                 Condition::Range,
                                                 "vector::read",
@@ -357,7 +367,7 @@ impl<'a> Core<'a> for Vector {
                                         vec.push(byte as u8)
                                     }
                                     _ => {
-                                        return Err(Except::raise(
+                                        return Err(Exception::raise(
                                             mu,
                                             Condition::Type,
                                             "vector::read",
@@ -377,7 +387,7 @@ impl<'a> Core<'a> for Vector {
                                 match Tag::type_of(mu, el) {
                                     Type::Fixnum => vec.push(Fixnum::as_i64(mu, el)),
                                     _ => {
-                                        return Err(Except::raise(
+                                        return Err(Exception::raise(
                                             mu,
                                             Condition::Type,
                                             "vector::read",
@@ -397,7 +407,7 @@ impl<'a> Core<'a> for Vector {
                                 match Tag::type_of(mu, el) {
                                     Type::Float => vec.push(Float::as_f32(mu, el)),
                                     _ => {
-                                        return Err(Except::raise(
+                                        return Err(Exception::raise(
                                             mu,
                                             Condition::Type,
                                             "vector::read",
@@ -411,7 +421,12 @@ impl<'a> Core<'a> for Vector {
                         }
                         _ => panic!("internal: vector type inconsistency"),
                     },
-                    None => Err(Except::raise(mu, Condition::Type, "vector::read", vec_type)),
+                    None => Err(Exception::raise(
+                        mu,
+                        Condition::Type,
+                        "vector::read",
+                        vec_type,
+                    )),
                 }
             }
             _ => panic!("internal: vector type required"),
@@ -464,7 +479,12 @@ impl MuFunction for Vector {
         fp.value = match Self::to_type(type_sym) {
             Some(vtype) => match vtype {
                 Type::Null => {
-                    return Err(Except::raise(mu, Condition::Type, "mu:sv-list", type_sym))
+                    return Err(Exception::raise(
+                        mu,
+                        Condition::Type,
+                        "mu:sv-list",
+                        type_sym,
+                    ))
                 }
                 Type::T => {
                     let mut vec = Vec::new();
@@ -484,7 +504,9 @@ impl MuFunction for Vector {
                             Type::Char => {
                                 vec.push(Char::as_char(mu, el));
                             }
-                            _ => return Err(Except::raise(mu, Condition::Type, "mu:sv-list", el)),
+                            _ => {
+                                return Err(Exception::raise(mu, Condition::Type, "mu:sv-list", el))
+                            }
                         }
                     }
 
@@ -501,7 +523,7 @@ impl MuFunction for Vector {
                                 let byte = Fixnum::as_i64(mu, el);
 
                                 if !(0..=255).contains(&byte) {
-                                    return Err(Except::raise(
+                                    return Err(Exception::raise(
                                         mu,
                                         Condition::Range,
                                         "mu:sv-list",
@@ -511,7 +533,9 @@ impl MuFunction for Vector {
 
                                 vec.push(byte as u8);
                             }
-                            _ => return Err(Except::raise(mu, Condition::Type, "mu:sv-list", el)),
+                            _ => {
+                                return Err(Exception::raise(mu, Condition::Type, "mu:sv-list", el))
+                            }
                         }
                     }
 
@@ -526,7 +550,9 @@ impl MuFunction for Vector {
                             Type::Fixnum => {
                                 vec.push(Fixnum::as_i64(mu, el));
                             }
-                            _ => return Err(Except::raise(mu, Condition::Type, "mu:sv-list", el)),
+                            _ => {
+                                return Err(Exception::raise(mu, Condition::Type, "mu:sv-list", el))
+                            }
                         }
                     }
 
@@ -541,18 +567,30 @@ impl MuFunction for Vector {
                             Type::Float => {
                                 vec.push(Float::as_f32(mu, el));
                             }
-                            _ => return Err(Except::raise(mu, Condition::Type, "mu:sv-list", el)),
+                            _ => {
+                                return Err(Exception::raise(mu, Condition::Type, "mu:sv-list", el))
+                            }
                         }
                     }
 
                     TypedVec::<Vec<f32>> { vec }.vec.to_vector().evict(mu)
                 }
                 _ => {
-                    return Err(Except::raise(mu, Condition::Type, "mu:sv-list", type_sym));
+                    return Err(Exception::raise(
+                        mu,
+                        Condition::Type,
+                        "mu:sv-list",
+                        type_sym,
+                    ));
                 }
             },
             None => {
-                return Err(Except::raise(mu, Condition::Type, "mu:sv-list", type_sym));
+                return Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:sv-list",
+                    type_sym,
+                ));
             }
         };
 
@@ -568,7 +606,7 @@ impl MuFunction for Vector {
                 let nth = Fixnum::as_i64(mu, index);
 
                 if nth < 0 || nth as usize >= Self::length_of(mu, vector) {
-                    return Err(Except::raise(mu, Condition::Range, "mu:svref", index));
+                    return Err(Exception::raise(mu, Condition::Range, "mu:svref", index));
                 }
 
                 match Tag::type_of(mu, vector) {
@@ -579,10 +617,10 @@ impl MuFunction for Vector {
                         };
                         Ok(())
                     }
-                    _ => Err(Except::raise(mu, Condition::Type, "mu:sy-ns", vector)),
+                    _ => Err(Exception::raise(mu, Condition::Type, "mu:sy-ns", vector)),
                 }
             }
-            _ => Err(Except::raise(mu, Condition::Type, "mu:svref", index)),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:svref", index)),
         }
     }
 
@@ -598,7 +636,7 @@ impl MuFunction for Vector {
 
                 Ok(())
             }
-            _ => Err(Except::raise(mu, Condition::Type, "mu:sv-type", vector)),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:sv-type", vector)),
         }
     }
 
@@ -610,7 +648,7 @@ impl MuFunction for Vector {
                 fp.value = Fixnum::as_tag(Self::length_of(mu, vector) as i64);
                 Ok(())
             }
-            _ => Err(Except::raise(mu, Condition::Type, "mu:sv-len", vector)),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:sv-len", vector)),
         }
     }
 }

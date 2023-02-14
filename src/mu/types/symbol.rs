@@ -7,7 +7,7 @@ use {
             classes::DirectType,
             classes::{Tag, TagType, TagU64, Type},
             exception,
-            exception::{Condition, Except},
+            exception::{Condition, Exception},
             frame::Frame,
             mu::{Core as _, Mu},
         },
@@ -292,7 +292,7 @@ impl MuFunction for Symbol {
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Keyword | Type::Symbol => Symbol::name_of(mu, symbol),
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:sy-name", symbol)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:sy-name", symbol)),
         };
 
         Ok(())
@@ -304,7 +304,7 @@ impl MuFunction for Symbol {
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Symbol => Symbol::namespace_of(mu, symbol),
             Type::Keyword => Self::keyword("keyword"),
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:sy-ns", symbol)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:sy-ns", symbol)),
         };
 
         Ok(())
@@ -316,13 +316,13 @@ impl MuFunction for Symbol {
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Symbol => {
                 if Symbol::is_unbound(mu, symbol) {
-                    return Err(Except::raise(mu, Condition::Type, "mu:sy-value", symbol));
+                    return Err(Exception::raise(mu, Condition::Type, "mu:sy-value", symbol));
                 } else {
                     Symbol::value_of(mu, symbol)
                 }
             }
             Type::Keyword => symbol,
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:sy-ns", symbol)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:sy-ns", symbol)),
         };
 
         Ok(())
@@ -340,7 +340,7 @@ impl MuFunction for Symbol {
                     symbol
                 }
             }
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:unboundp", symbol)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:unboundp", symbol)),
         };
 
         Ok(())
@@ -370,7 +370,7 @@ impl MuFunction for Symbol {
                 fp.value = Self::keyword(&str);
                 Ok(())
             }
-            _ => Err(Except::raise(mu, Condition::Type, "mu:make-kw", symbol)),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:make-kw", symbol)),
         }
     }
 
@@ -383,7 +383,7 @@ impl MuFunction for Symbol {
                 fp.value = Self::new(mu, mu.nil_ns, Scope::Extern, &str, *UNBOUND).evict(mu);
                 Ok(())
             }
-            _ => Err(Except::raise(mu, Condition::Type, "mu:symbol", symbol)),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:symbol", symbol)),
         }
     }
 }
