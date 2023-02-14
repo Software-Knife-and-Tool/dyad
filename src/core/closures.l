@@ -24,16 +24,6 @@
   (:lambda (fn)
     (mu:fn-prop :form fn)))
 
-(mu:intern core::ns :intern "fn-lambda-desc"
-   (:lambda (fn)
-     ((:lambda (form)
-        (:if (core:consp form)
-             (:if (core:vectorp (mu:car form))
-                  (mu:car form)
-                  ())
-             ()))
-      (mu:fn-prop :form fn))))
-
 (mu:intern core::ns :intern "fn-applyp"
    (:lambda (fn)
      ((:lambda (desc)
@@ -69,6 +59,42 @@
      (core:debug (core::fn-form fn) "fn-form")
      (core:debug (core::fn-frame-id fn) "fn-frame-id")
      (core:debug (core::fn-lambda-desc fn) "fn-lambda-desc")
+     (core:debug (core::fn-nreqs fn) "fn-nreqs")
+     (core:debug (core::fn-restp fn) "fn-restp")
+     fn))
+
+;;;
+;;; closure struct
+;;; #s(:closure env nreqs rest func form)
+;;;
+(mu:intern core::ns :intern "closure-arity"
+  (:lambda (fn)
+    ((:lambda (lambda)                                      
+      (:if (core:fixnump lambda)
+           lambda
+           (mu:length lambda)))
+     (mu:fn-prop :lambda fn))))
+
+(mu:intern core::ns :intern "closure-nreqs"
+  (:lambda (fn)
+    (mu:fn-prop :lambda fn)))
+
+(mu:intern core::ns :intern "closure-frame-id"
+  (:lambda (fn)
+    (mu:fn-prop :frame fn)))
+
+(mu:intern core::ns :intern "closure-form"
+  (:lambda (fn)
+    (mu:fn-prop :form fn)))
+
+(mu:intern core::ns :intern "closure-dump"
+   (:lambda (fn)
+     (core:errorp-unless core:functionp fn "fn-dump: not a function")           
+     (core:debug fn "-= fn-dump =-")
+     (core:debug (mu::tag-of fn) "tag")
+     (core:debug (core::fn-arity fn) "fn-arity")
+     (core:debug (core::fn-form fn) "fn-form")
+     (core:debug (core::fn-frame-id fn) "fn-frame-id")
      (core:debug (core::fn-nreqs fn) "fn-nreqs")
      (core:debug (core::fn-restp fn) "fn-restp")
      fn))
@@ -173,6 +199,15 @@
               (core::lambda-closure lambda-desc))
              ()))
       (core::fn-lambda-desc fn))))
+
+(mu:intern core::ns :intern "make-closure"
+  (:lambda (nreq rest env form)
+    (mu:struct :closure
+      (mu:cons env
+        (mu:cons nreqs
+          (mu:cons rest                
+            (mu:cons (:lambda (closure)) 
+              (mu:cons form ()))))))))
 
 (mu:intern core::ns :intern "apply"
    (:lambda (fn args)

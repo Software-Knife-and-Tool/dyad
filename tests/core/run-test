@@ -3,24 +3,24 @@ BASE_CORE=../src/core
 EXEC=../dist/runtime
 LOAD_LIST=( \
         -l $BASE_CORE/core.l            \
+	-l $BASE_CORE/closures.l  	\
+	-l $BASE_CORE/fixnums.l         \
+	-l $BASE_CORE/read-macro.l 	\
+	-l $BASE_CORE/read.l       	\
+	-l $BASE_CORE/sequences.l  	\
+	-l $BASE_CORE/symbol-macro.l	\
+	-l $BASE_CORE/symbols.l    	\
+	-l $BASE_CORE/vectors.l         \
         -l $BASE_CORE/compile.l         \
         -l $BASE_CORE/exceptions.l      \
-	-l $BASE_CORE/fixnums.l         \
-	-l $BASE_CORE/functions.l  	\
         -l $BASE_CORE/format.l     	\
         -l $BASE_CORE/lambda.l     	\
         -l $BASE_CORE/lists.l      	\
         -l $BASE_CORE/load.l       	\
         -l $BASE_CORE/macro.l      	\
-	-l $BASE_CORE/read.l       	\
-	-l $BASE_CORE/symbol-macro.l	\
-	-l $BASE_CORE/read-macro.l 	\
         -l $BASE_CORE/quasiquote.l 	\
-	-l $BASE_CORE/sequences.l  	\
         -l $BASE_CORE/streams.l    	\
         -l $BASE_CORE/strings.l    	\
-	-l $BASE_CORE/symbols.l    	\
-	-l $BASE_CORE/vectors.l         \
         )
 
 TMP=/var/tmp
@@ -46,9 +46,9 @@ function assert_eq () {
 
 source "$1" > $TMP/core-test.$$.log 2>&1
 
-total=`cat $1 | wc -l`
-failed=`grep failed $TMP/core-test.$$.log | wc -l`
-aborted=`grep aborted $TMP/core-test.$$.log | wc -l`
+total=`egrep -c -v "^#" $1`
+failed=`grep -c failed $TMP/core-test.$$.log`
+aborted=`grep -c aborted $TMP/core-test.$$.log`
 file=`basename "$1"`
 
 echo "core:",$file,$total,$failed,$aborted
