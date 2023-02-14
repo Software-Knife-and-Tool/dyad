@@ -15,9 +15,8 @@ use {
         image,
         types::{
             fixnum::Fixnum,
-            ivector::{TypedVec, VecType},
+            r#struct::Struct,
             symbol::{Core as _, Symbol},
-            vector::Core as _,
         },
     },
     std::cell::RefMut,
@@ -140,16 +139,16 @@ pub trait Core {
 
 impl Core for Function {
     fn view(mu: &Mu, func: Tag) -> Tag {
-        let vec = TypedVec::<Vec<Tag>> {
-            vec: vec![
+        Struct::to_tag(
+            mu,
+            Symbol::keyword("func"),
+            vec![
                 Self::lambda_of(mu, func),
                 Self::nreq_of(mu, func),
                 Self::form_of(mu, func),
                 Self::frame_of(mu, func),
             ],
-        };
-
-        vec.vec.to_vector().evict(mu)
+        )
     }
 
     fn write(mu: &Mu, func: Tag, _: bool, stream: Tag) -> exception::Result<()> {

@@ -13,8 +13,8 @@ use {
         },
         image,
         types::{
-            ivector::{TypedVec, VecType},
             namespace::{Namespace, Properties as _, Scope},
+            r#struct::Struct,
             stream::{Core as _, Stream},
             vector::{Core as _, Vector},
         },
@@ -169,8 +169,10 @@ pub trait Core {
 
 impl Core for Symbol {
     fn view(mu: &Mu, symbol: Tag) -> Tag {
-        let vec = TypedVec::<Vec<Tag>> {
-            vec: vec![
+        Struct::to_tag(
+            mu,
+            Symbol::keyword("symbol"),
+            vec![
                 Self::namespace_of(mu, symbol),
                 Self::scope_of(mu, symbol),
                 Self::name_of(mu, symbol),
@@ -180,9 +182,7 @@ impl Core for Symbol {
                     Self::value_of(mu, symbol)
                 },
             ],
-        };
-
-        vec.vec.to_vector().evict(mu)
+        )
     }
 
     fn evict(&self, mu: &Mu) -> Tag {

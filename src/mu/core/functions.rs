@@ -17,6 +17,7 @@ use crate::{
         float::{Core as _, Float},
         function::{Core as _, Function},
         namespace::{Core as _, Namespace},
+        r#struct::{Core as _, Struct},
         stream::{Core as _, Stream},
         symbol::{Core as _, Symbol},
         vector::{Core as _, Vector},
@@ -139,6 +140,7 @@ impl MuFunction for Mu {
             Type::Namespace => Namespace::view(mu, tag),
             Type::Null | Type::Symbol | Type::Keyword => Symbol::view(mu, tag),
             Type::Stream => Stream::view(mu, tag),
+            Type::Struct => Struct::view(mu, tag),
             Type::Vector => Vector::view(mu, tag),
             _ => return Err(Except::raise(mu, Condition::Type, "mu:view", tag)),
         };

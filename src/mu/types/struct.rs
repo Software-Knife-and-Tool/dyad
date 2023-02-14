@@ -16,6 +16,7 @@ use {
             cons::{Cons, ConsIter, Core as _, Properties as _},
             ivector::{TypedVec, VecType, VectorIter},
             stream::{Core as _, Stream},
+            symbol::{Core as _, Symbol},
             vector::Core as _,
         },
     },
@@ -48,6 +49,16 @@ impl Struct {
             _ => panic!("internal: struct type required"),
         }
     }
+
+    pub fn to_tag(mu: &Mu, stype: Tag, vec: Vec<Tag>) -> Tag {
+        match Tag::type_of(mu, stype) {
+            Type::Keyword => {
+                let vector = TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu);
+                Struct { stype, vector }.evict(mu)
+            }
+            _ => panic!("internal: struct type inconsistency"),
+        }
+    }
 }
 
 // core
@@ -62,11 +73,12 @@ pub trait Core<'a> {
 impl<'a> Core<'a> for Struct {
     fn view(mu: &Mu, tag: Tag) -> Tag {
         let image = Self::to_image(mu, tag);
-        let vec = TypedVec::<Vec<Tag>> {
-            vec: vec![image.stype, image.vector],
-        };
 
-        vec.vec.to_vector().evict(mu)
+        Self::to_tag(
+            mu,
+            Symbol::keyword("struct"),
+            vec![image.stype, image.vector],
+        )
     }
 
     fn write(mu: &Mu, tag: Tag, _: bool, stream: Tag) -> exception::Result<()> {
@@ -133,8 +145,7 @@ impl<'a> Core<'a> for Struct {
                                 vec.push(Cons::car(mu, cons));
                             }
 
-                            let vector = TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu);
-                            Ok(Struct { stype, vector }.evict(mu))
+                            Ok(Self::to_tag(mu, stype, vec))
                         }
                         _ => Err(Except::raise(mu, Condition::Type, "struct::read", stype)),
                     }

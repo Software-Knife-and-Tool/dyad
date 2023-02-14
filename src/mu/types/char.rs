@@ -9,9 +9,9 @@ use crate::{
         mu::{Core as _, Mu},
     },
     types::{
-        ivector::{TypedVec, VecType as _},
+        r#struct::Struct,
         stream::{Core as _, Stream},
-        vector::Core as _,
+        symbol::{Core as _, Symbol},
     },
 };
 
@@ -68,9 +68,7 @@ impl Core for Char {
     }
 
     fn view(mu: &Mu, chr: Tag) -> Tag {
-        let vec = TypedVec::<Vec<Tag>> { vec: vec![chr] };
-
-        vec.vec.to_vector().evict(mu)
+        Struct::to_tag(mu, Symbol::keyword("char"), vec![chr])
     }
 }
 
