@@ -6,7 +6,7 @@ use crate::{
     core::{
         classes::{DirectType, Tag, Type},
         exception,
-        exception::{Condition, Except},
+        exception::{Condition, Exception},
         mu::Mu,
         readtable::{map_char_syntax, SyntaxType},
     },
@@ -92,7 +92,7 @@ impl Read for Mu {
                     }
                 }
                 Ok(None) => {
-                    return Err(Except::raise(
+                    return Err(Exception::raise(
                         mu,
                         Condition::Eof,
                         "read::read_comment",
@@ -124,7 +124,7 @@ impl Read for Mu {
                                 }
                             }
                             Ok(None) => {
-                                return Err(Except::raise(
+                                return Err(Exception::raise(
                                     mu,
                                     Condition::Eof,
                                     "read::read_block_comment",
@@ -136,7 +136,7 @@ impl Read for Mu {
                     }
                 }
                 Ok(None) => {
-                    return Err(Except::raise(
+                    return Err(Exception::raise(
                         mu,
                         Condition::Eof,
                         "read::read_block_comment",
@@ -168,7 +168,7 @@ impl Read for Mu {
                             break;
                         }
                         _ => {
-                            return Err(Except::raise(
+                            return Err(Exception::raise(
                                 mu,
                                 Condition::Range,
                                 "read::read_token",
@@ -177,7 +177,7 @@ impl Read for Mu {
                         }
                     },
                     None => {
-                        return Err(Except::raise(
+                        return Err(Exception::raise(
                             mu,
                             Condition::Range,
                             "read::read_token",
@@ -215,7 +215,7 @@ impl Read for Mu {
                             break;
                         }
                         _ => {
-                            return Err(Except::raise(
+                            return Err(Exception::raise(
                                 mu,
                                 Condition::Range,
                                 "read::read_atom",
@@ -224,7 +224,7 @@ impl Read for Mu {
                         }
                     },
                     None => {
-                        return Err(Except::raise(
+                        return Err(Exception::raise(
                             mu,
                             Condition::Range,
                             "read::read_atom",
@@ -258,7 +258,7 @@ impl Read for Mu {
                                     Some(ns) => {
                                         Ok(Namespace::intern(mu, ns, Scope::Extern, name, *UNBOUND))
                                     }
-                                    None => Err(Except::raise(
+                                    None => Err(Exception::raise(
                                         mu,
                                         Condition::Unbound,
                                         "read::read_atom",
@@ -274,7 +274,7 @@ impl Read for Mu {
                                     Some(ns) => {
                                         Ok(Namespace::intern(mu, ns, Scope::Intern, name, *UNBOUND))
                                     }
-                                    None => Err(Except::raise(
+                                    None => Err(Exception::raise(
                                         mu,
                                         Condition::Unbound,
                                         "read::read_atom",
@@ -282,7 +282,7 @@ impl Read for Mu {
                                     )),
                                 }
                             }
-                            _ => Err(Except::raise(
+                            _ => Err(Exception::raise(
                                 mu,
                                 Condition::Syntax,
                                 "read::read_atom",
@@ -325,7 +325,7 @@ impl Read for Mu {
                                         "return" => Ok(Some(Char::as_tag('\r'))),
                                         _ => {
                                             println!("erad_char_literal: {str}");
-                                            Err(Except::raise(
+                                            Err(Exception::raise(
                                                 mu,
                                                 Condition::Range,
                                                 "read::read_char_literal",
@@ -334,7 +334,7 @@ impl Read for Mu {
                                         }
                                     }
                                 }
-                                Ok(None) => Err(Except::raise(
+                                Ok(None) => Err(Exception::raise(
                                     mu,
                                     Condition::Eof,
                                     "read::read_char_literal",
@@ -348,7 +348,7 @@ impl Read for Mu {
                             Ok(Some(Char::as_tag(ch)))
                         }
                     },
-                    None => Err(Except::raise(
+                    None => Err(Exception::raise(
                         mu,
                         Condition::Syntax,
                         "read::read_char_literal",
@@ -358,7 +358,7 @@ impl Read for Mu {
                 Ok(None) => Ok(Some(Char::as_tag(ch))),
                 Err(e) => Err(e),
             },
-            Ok(None) => Err(Except::raise(
+            Ok(None) => Err(Exception::raise(
                 mu,
                 Condition::Eof,
                 "read::read_char_literal",
@@ -380,7 +380,7 @@ impl Read for Mu {
                     Ok(Some(ch)) => match Self::read_atom(mu, ch, stream) {
                         Ok(atom) => match Tag::type_of(mu, atom) {
                             Type::Symbol => Ok(Some(atom)),
-                            _ => Err(Except::raise(
+                            _ => Err(Exception::raise(
                                 mu,
                                 Condition::Type,
                                 "read::sharp_macro",
@@ -389,7 +389,7 @@ impl Read for Mu {
                         },
                         Err(e) => Err(e),
                     },
-                    Ok(None) => Err(Except::raise(
+                    Ok(None) => Err(Exception::raise(
                         mu,
                         Condition::Eof,
                         "read::sharp_macro",
@@ -414,7 +414,7 @@ impl Read for Mu {
                     Ok(token) => match token {
                         Some(hex) => match i64::from_str_radix(&hex, 16) {
                             Ok(fx) => Ok(Some(Fixnum::as_tag(fx))),
-                            Err(_) => Err(Except::raise(
+                            Err(_) => Err(Exception::raise(
                                 mu,
                                 Condition::Syntax,
                                 "read::sharp_macro",
@@ -423,21 +423,21 @@ impl Read for Mu {
                         },
                         None => panic!(),
                     },
-                    Err(_) => Err(Except::raise(
+                    Err(_) => Err(Exception::raise(
                         mu,
                         Condition::Syntax,
                         "read::sharp_macro",
                         Char::as_tag(ch),
                     )),
                 },
-                _ => Err(Except::raise(
+                _ => Err(Exception::raise(
                     mu,
                     Condition::Type,
                     "read::sharp_macro",
                     Char::as_tag(ch),
                 )),
             },
-            Ok(None) => Err(Except::raise(
+            Ok(None) => Err(Exception::raise(
                 mu,
                 Condition::Eof,
                 "read::sharp_macro",
@@ -466,7 +466,7 @@ impl Read for Mu {
                 if eofp {
                     return Ok(eof_value);
                 } else {
-                    return Err(Except::raise(mu, Condition::Eof, "read::read", stream));
+                    return Err(Exception::raise(mu, Condition::Eof, "read::read", stream));
                 }
             }
             Ok(_) => (),
@@ -478,7 +478,7 @@ impl Read for Mu {
                 if eofp {
                     Ok(eof_value)
                 } else {
-                    Err(Except::raise(mu, Condition::Eof, "read::read", stream))
+                    Err(Exception::raise(mu, Condition::Eof, "read::read", stream))
                 }
             }
             Ok(Some(ch)) => match map_char_syntax(ch) {
@@ -490,7 +490,7 @@ impl Read for Mu {
                             Ok(None) => Self::read(mu, stream, eofp, eof_value, recursivep),
                             Err(e) => Err(e),
                         },
-                        _ => Err(Except::raise(
+                        _ => Err(Exception::raise(
                             mu,
                             Condition::Type,
                             "read::read",
@@ -518,28 +518,28 @@ impl Read for Mu {
                             if recursivep {
                                 Ok(*EOL)
                             } else {
-                                Err(Except::raise(mu, Condition::Syntax, "read:read", stream))
+                                Err(Exception::raise(mu, Condition::Syntax, "read:read", stream))
                             }
                         }
                         ';' => match Self::read_comment(mu, stream) {
                             Ok(_) => Self::read(mu, stream, eofp, eof_value, recursivep),
                             Err(e) => Err(e),
                         },
-                        _ => Err(Except::raise(
+                        _ => Err(Exception::raise(
                             mu,
                             Condition::Range,
                             "read::read_atom",
                             Char::as_tag(ch),
                         )),
                     },
-                    _ => Err(Except::raise(
+                    _ => Err(Exception::raise(
                         mu,
                         Condition::Read,
                         "read::read_atom",
                         Char::as_tag(ch),
                     )),
                 },
-                _ => Err(Except::raise(
+                _ => Err(Exception::raise(
                     mu,
                     Condition::Read,
                     "read::read_atom",

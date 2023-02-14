@@ -9,7 +9,7 @@ use {
             classes::{DirectType, Type},
             classes::{Tag, TagType, TagU64},
             exception,
-            exception::{Condition, Except},
+            exception::{Condition, Exception},
             frame::Frame,
             mu::{Core as _, Mu},
             read::{Read, EOL},
@@ -135,9 +135,12 @@ impl Core for Cons {
                                 Ok(cdr) => {
                                     match <Mu as Read>::read(mu, stream, false, Tag::nil(), true) {
                                         Ok(eol) if EOL.eq_(eol) => Ok(cdr),
-                                        Ok(_) => {
-                                            Err(Except::raise(mu, Condition::Eof, "mu:car", stream))
-                                        }
+                                        Ok(_) => Err(Exception::raise(
+                                            mu,
+                                            Condition::Eof,
+                                            "mu:car",
+                                            stream,
+                                        )),
                                         Err(e) => Err(e),
                                     }
                                 }
@@ -289,7 +292,7 @@ impl MuFunction for Cons {
         fp.value = match Tag::type_of(mu, list) {
             Type::Null => list,
             Type::Cons => Self::car(mu, list),
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:car", list)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:car", list)),
         };
 
         Ok(())
@@ -301,7 +304,7 @@ impl MuFunction for Cons {
         fp.value = match Tag::type_of(mu, list) {
             Type::Null => list,
             Type::Cons => Self::cdr(mu, list),
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:cdr", list)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:cdr", list)),
         };
 
         Ok(())
@@ -318,7 +321,7 @@ impl MuFunction for Cons {
         match Tag::type_of(mu, list) {
             Type::Null => fp.value = Fixnum::as_tag(0),
             Type::Cons => fp.value = Fixnum::as_tag(Cons::length(mu, list) as i64),
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:length", list)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:length", list)),
         }
 
         Ok(())
@@ -326,7 +329,7 @@ impl MuFunction for Cons {
 
     fn mu_nth(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         if Tag::type_of(mu, fp.argv[0]) != Type::Fixnum || Fixnum::as_i64(mu, fp.argv[0]) < 0 {
-            return Err(Except::raise(mu, Condition::Type, "mu:nth", fp.argv[0]));
+            return Err(Exception::raise(mu, Condition::Type, "mu:nth", fp.argv[0]));
         }
 
         match Tag::type_of(mu, fp.argv[1]) {
@@ -339,13 +342,18 @@ impl MuFunction for Cons {
                     Self::nth(mu, Fixnum::as_i64(mu, fp.argv[0]) as usize, fp.argv[1]).unwrap();
                 Ok(())
             }
-            _ => Err(Except::raise(mu, Condition::Type, "mu:nth", fp.argv[1])),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:nth", fp.argv[1])),
         }
     }
 
     fn mu_nthcdr(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         if Tag::type_of(mu, fp.argv[0]) != Type::Fixnum || Fixnum::as_i64(mu, fp.argv[0]) < 0 {
-            return Err(Except::raise(mu, Condition::Type, "mu:nthcdr", fp.argv[0]));
+            return Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:nthcdr",
+                fp.argv[0],
+            ));
         }
 
         match Tag::type_of(mu, fp.argv[1]) {
@@ -358,7 +366,12 @@ impl MuFunction for Cons {
                     Self::nthcdr(mu, Fixnum::as_i64(mu, fp.argv[0]) as usize, fp.argv[1]).unwrap();
                 Ok(())
             }
-            _ => Err(Except::raise(mu, Condition::Type, "mu:nthcdr", fp.argv[1])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:nthcdr",
+                fp.argv[1],
+            )),
         }
     }
 }

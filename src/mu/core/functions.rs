@@ -6,7 +6,7 @@ use crate::{
     core::{
         classes::{Tag, Type},
         exception,
-        exception::{Condition, Except},
+        exception::{Condition, Exception},
         frame::Frame,
         mu::{Core as _, Mu},
     },
@@ -74,9 +74,9 @@ impl MuFunction for Mu {
                         Err(e) => return Err(e),
                     }
                 }
-                _ => return Err(Except::raise(mu, Condition::Type, "mu:apply", args)),
+                _ => return Err(Exception::raise(mu, Condition::Type, "mu:apply", args)),
             },
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:apply", func)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:apply", func)),
         };
 
         Ok(())
@@ -94,7 +94,7 @@ impl MuFunction for Mu {
                 Ok(_) => Ok(()),
                 Err(e) => Err(e),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:write", stream)),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:write", stream)),
         }
     }
 
@@ -111,9 +111,9 @@ impl MuFunction for Mu {
                         Err(e) => return Err(e),
                     }
                 }
-                _ => return Err(Except::raise(mu, Condition::Type, "mu::if", false_fn)),
+                _ => return Err(Exception::raise(mu, Condition::Type, "mu::if", false_fn)),
             },
-            _ => return Err(Except::raise(mu, Condition::Type, "mu::if", true_fn)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu::if", true_fn)),
         };
 
         Ok(())
@@ -124,7 +124,7 @@ impl MuFunction for Mu {
 
         match Tag::type_of(mu, rc) {
             Type::Fixnum => std::process::exit(Fixnum::as_i64(mu, rc) as i32),
-            _ => Err(Except::raise(mu, Condition::Type, "mu:exit", rc)),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:exit", rc)),
         }
     }
 
@@ -142,7 +142,7 @@ impl MuFunction for Mu {
             Type::Stream => Stream::view(mu, tag),
             Type::Struct => Struct::view(mu, tag),
             Type::Vector => Vector::view(mu, tag),
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:view", tag)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:view", tag)),
         };
 
         Ok(())
@@ -180,7 +180,7 @@ impl MuFunction for Mu {
 
                 Ok(())
             }
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fix", func)),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fix", func)),
         }
     }
 }

@@ -6,7 +6,7 @@ use crate::{
     core::{
         classes::{Tag, Type},
         exception,
-        exception::{Condition, Except, Result},
+        exception::{Condition, Exception, Result},
         frame::Frame,
         mu::{Core as _, Mu},
     },
@@ -73,9 +73,19 @@ impl MuFunction for Fixnum {
                     );
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fx-add", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fx-add",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fx-add", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fx-add",
+                fp.argv[0],
+            )),
         }
     }
 
@@ -88,9 +98,19 @@ impl MuFunction for Fixnum {
                     );
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fx-sub", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fx-sub",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fx-sub", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fx-sub",
+                fp.argv[0],
+            )),
         }
     }
 
@@ -103,9 +123,19 @@ impl MuFunction for Fixnum {
                     );
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fx-mul", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fx-mul",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fx-mul", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fx-mul",
+                fp.argv[0],
+            )),
         }
     }
 
@@ -121,9 +151,19 @@ impl MuFunction for Fixnum {
 
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fx-lt", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fx-lt",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fx-lt", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fx-lt",
+                fp.argv[0],
+            )),
         }
     }
 
@@ -135,7 +175,7 @@ impl MuFunction for Fixnum {
                     let divisor = Fixnum::as_i64(mu, fp.argv[1]);
 
                     if divisor == 0 {
-                        return Err(Except::raise(
+                        return Err(Exception::raise(
                             mu,
                             Condition::ZeroDivide,
                             "mu:fx-div",
@@ -146,9 +186,19 @@ impl MuFunction for Fixnum {
                     fp.value = Self::as_tag(dividend / divisor);
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fx-div", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fx-div",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fx-div", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fx-div",
+                fp.argv[0],
+            )),
         }
     }
 
@@ -161,9 +211,19 @@ impl MuFunction for Fixnum {
                     );
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:logand", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:logand",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:logand", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:logand",
+                fp.argv[0],
+            )),
         }
     }
 
@@ -176,9 +236,19 @@ impl MuFunction for Fixnum {
                     );
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:logor", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:logor",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:logor", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:logor",
+                fp.argv[0],
+            )),
         }
     }
 }

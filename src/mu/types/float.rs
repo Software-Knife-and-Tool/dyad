@@ -7,7 +7,7 @@ use crate::{
         classes::DirectType,
         classes::{Tag, Type},
         exception,
-        exception::{Condition, Except},
+        exception::{Condition, Exception},
         frame::Frame,
         mu::{Core as _, Mu},
     },
@@ -77,9 +77,19 @@ impl MuFunction for Float {
                         Self::as_tag(Self::as_f32(mu, fp.argv[0]) + Self::as_f32(mu, fp.argv[1]));
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fl-add", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fl-add",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fl-add", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fl-add",
+                fp.argv[0],
+            )),
         }
     }
 
@@ -91,9 +101,19 @@ impl MuFunction for Float {
                         Self::as_tag(Self::as_f32(mu, fp.argv[0]) - Self::as_f32(mu, fp.argv[1]));
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fl-sub", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fl-sub",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fl-sub", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fl-sub",
+                fp.argv[0],
+            )),
         }
     }
 
@@ -105,9 +125,19 @@ impl MuFunction for Float {
                         Self::as_tag(Self::as_f32(mu, fp.argv[0]) * Self::as_f32(mu, fp.argv[1]));
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fl-mul", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fl-mul",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fl-mul", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fl-mul",
+                fp.argv[0],
+            )),
         }
     }
 
@@ -123,9 +153,19 @@ impl MuFunction for Float {
 
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fl-lt", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fl-lt",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fl-lt", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fl-lt",
+                fp.argv[0],
+            )),
         }
     }
 
@@ -137,9 +177,19 @@ impl MuFunction for Float {
                         Self::as_tag(Self::as_f32(mu, fp.argv[0]) / Self::as_f32(mu, fp.argv[1]));
                     Ok(())
                 }
-                _ => Err(Except::raise(mu, Condition::Type, "mu:fl-div", fp.argv[1])),
+                _ => Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:fl-div",
+                    fp.argv[1],
+                )),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:fl-div", fp.argv[0])),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fl-div",
+                fp.argv[0],
+            )),
         }
     }
 }

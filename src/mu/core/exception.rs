@@ -16,6 +16,7 @@ use {
         },
         types::{
             cons::{Cons, Core as _},
+            r#struct::Struct,
             symbol::{Core as _, Symbol},
         },
     },
@@ -31,7 +32,7 @@ pub struct Exception {
     pub source: String,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub enum Condition {
     Arity,
     Eof,
@@ -76,13 +77,8 @@ impl fmt::Display for Exception {
     }
 }
 
-pub trait Except {
-    fn print(&self, _: &Mu);
-    fn raise(_: &Mu, _: Condition, _: &str, _: Tag) -> Self;
-}
-
-impl Except for Exception {
-    fn print(&self, mu: &Mu) {
+impl Exception {
+    pub fn print(&self, mu: &Mu) {
         eprintln!();
         eprint!(
             "exception: raised from {1}, {:?} condition on ",
@@ -95,34 +91,47 @@ impl Except for Exception {
         }
     }
 
-    fn raise(mu: &Mu, condition: Condition, src: &str, tag: Tag) -> Self {
-        let except = Exception {
+    pub fn raise(mu: &Mu, condition: Condition, src: &str, tag: Tag) -> Self {
+        let ex = Exception {
             condition,
             source: src.to_string(),
             tag,
         };
 
-        except.print(mu);
+        ex.print(mu);
 
-        except
+        ex
     }
-}
 
-fn map_condition(mu: &Mu, keyword: Tag) -> Result<Condition> {
-    #[allow(clippy::unnecessary_to_owned)]
-    let condmap = CONDMAP
-        .to_vec()
-        .into_iter()
-        .find(|cond| keyword.eq_(cond.0));
+    fn map_condition(mu: &Mu, keyword: Tag) -> Result<Condition> {
+        #[allow(clippy::unnecessary_to_owned)]
+        let condmap = CONDMAP
+            .to_vec()
+            .into_iter()
+            .find(|cond| keyword.eq_(cond.0));
 
-    match condmap {
-        Some(entry) => Ok(entry.1),
-        _ => Err(Except::raise(
-            mu,
-            Condition::Syntax,
-            "exception::map_condition",
-            keyword,
-        )),
+        match condmap {
+            Some(entry) => Ok(entry.1),
+            _ => Err(Exception::raise(
+                mu,
+                Condition::Syntax,
+                "exception::map_condition",
+                keyword,
+            )),
+        }
+    }
+
+    fn map_condkey(cond: Condition) -> Result<Tag> {
+        #[allow(clippy::unnecessary_to_owned)]
+        let condmap = CONDMAP
+            .to_vec()
+            .into_iter()
+            .find(|condtab| cond == condtab.1);
+
+        match condmap {
+            Some(entry) => Ok(entry.0),
+            _ => panic!("internal: unmapped condition"),
+        }
     }
 }
 
@@ -136,17 +145,18 @@ impl MuFunction for Exception {
         let condition = fp.argv[0];
         let src = fp.argv[1];
 
-        fp.value = src;
-        match Tag::type_of(mu, condition) {
-            Type::Keyword => match map_condition(mu, condition) {
+        fp.value = match Tag::type_of(mu, condition) {
+            Type::Keyword => match Self::map_condition(mu, condition) {
                 Ok(cond) => {
-                    Exception::raise(mu, cond, "mu:raise", src);
-                    Ok(())
+                    Self::raise(mu, cond, "mu:raise", src);
+                    Struct::to_tag(mu, Symbol::keyword("except"), vec![condition, src])
                 }
-                Err(_) => Err(Except::raise(mu, Condition::Type, "mu:raise", condition)),
+                Err(_) => return Err(Exception::raise(mu, Condition::Type, "mu:raise", condition)),
             },
-            _ => Err(Except::raise(mu, Condition::Type, "mu:raise", condition)),
-        }
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:raise", condition)),
+        };
+
+        Ok(())
     }
 
     fn mu_with_ex(mu: &Mu, fp: &mut Frame) -> Result<()> {
@@ -157,21 +167,22 @@ impl MuFunction for Exception {
             Type::Function => match Tag::type_of(mu, handler) {
                 Type::Function => match mu.apply(thunk, Tag::nil()) {
                     Ok(v) => v,
-                    Err(e) => match mu.apply(
-                        handler,
-                        Cons::new(
-                            Symbol::keyword("error"),
-                            Cons::new(e.tag, Tag::nil()).evict(mu),
-                        )
-                        .evict(mu),
-                    ) {
-                        Ok(v) => v,
-                        Err(e) => return Err(e),
-                    },
+                    Err(e) => {
+                        let except = Struct::to_tag(
+                            mu,
+                            Symbol::keyword("except"),
+                            vec![Self::map_condkey(e.condition).unwrap(), e.tag],
+                        );
+
+                        match mu.apply(handler, Cons::new(except, Tag::nil()).evict(mu)) {
+                            Ok(v) => v,
+                            Err(e) => return Err(e),
+                        }
+                    }
                 },
-                _ => return Err(Except::raise(mu, Condition::Type, "mu:with-ex", handler)),
+                _ => return Err(Exception::raise(mu, Condition::Type, "mu:with-ex", handler)),
             },
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:with-ex", thunk)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:with-ex", thunk)),
         };
 
         Ok(())

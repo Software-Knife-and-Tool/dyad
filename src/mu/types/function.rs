@@ -7,7 +7,7 @@ use {
         core::{
             classes::{Tag, TagType, TagU64, Type},
             exception,
-            exception::{Condition, Except},
+            exception::{Condition, Exception},
             frame::Frame,
             mu::{Core as _, Mu},
             namespace::Core as _,
@@ -187,7 +187,7 @@ impl MuFunction for Function {
 
         match Tag::type_of(mu, func) {
             Type::Function => (),
-            _ => return Err(Except::raise(mu, Condition::Type, "mu:fn-prop", func)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:fn-prop", func)),
         }
 
         fp.value = if prop_key.eq_(Symbol::keyword("lambda")) {
@@ -199,7 +199,12 @@ impl MuFunction for Function {
         } else if prop_key.eq_(Symbol::keyword("frame")) {
             Self::frame_of(mu, func)
         } else {
-            return Err(Except::raise(mu, Condition::Type, "mu:fn-prop", prop_key));
+            return Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "mu:fn-prop",
+                prop_key,
+            ));
         };
 
         Ok(())
