@@ -23,7 +23,7 @@ use {
             char::Char,
             cons::{Cons, ConsIter, Core as _, Properties as _},
             fixnum::Fixnum,
-            ivector::{TypedVec, VecType},
+            r#struct::Struct,
             symbol::{Core as _, Symbol},
             vector::{Core as _, Properties as _, Vector},
         },
@@ -145,17 +145,18 @@ pub trait Core {
 impl Core for Stream {
     fn view(mu: &Mu, stream: Tag) -> Tag {
         let image = Self::to_image(mu, stream);
-        let vec = TypedVec::<Vec<Tag>> {
-            vec: vec![
+
+        Struct::to_tag(
+            mu,
+            Symbol::keyword("stream"),
+            vec![
                 image.source,
                 image.count,
                 image.direction,
                 image.eof,
                 image.unch,
             ],
-        };
-
-        vec.vec.to_vector().evict(mu)
+        )
     }
 
     fn is_eof(mu: &Mu, stream: Tag) -> bool {

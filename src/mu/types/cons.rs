@@ -17,9 +17,8 @@ use {
         image,
         types::{
             fixnum::Fixnum,
-            ivector::{TypedVec, VecType},
-            symbol::{Properties as _, Symbol},
-            vector::Core as _,
+            r#struct::Struct,
+            symbol::{Core as _, Properties as _, Symbol},
         },
     },
     std::cell::RefMut,
@@ -103,11 +102,11 @@ pub trait Core {
 
 impl Core for Cons {
     fn view(mu: &Mu, cons: Tag) -> Tag {
-        let vec = TypedVec::<Vec<Tag>> {
-            vec: vec![Self::car(mu, cons), Self::cdr(mu, cons)],
-        };
-
-        vec.vec.to_vector().evict(mu)
+        Struct::to_tag(
+            mu,
+            Symbol::keyword("cons"),
+            vec![Self::car(mu, cons), Self::cdr(mu, cons)],
+        )
     }
 
     fn evict(&self, mu: &Mu) -> Tag {

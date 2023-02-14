@@ -19,6 +19,7 @@ use {
             float::Float,
             ivector::{IVec, IVector, Image, IndirectVector},
             ivector::{TypedVec, VecType, VectorIter},
+            r#struct::Struct,
             stream::{Core as _, Stream},
             symbol::{Core as _, Symbol},
         },
@@ -125,17 +126,17 @@ pub trait Core<'a> {
 
 impl<'a> Core<'a> for Vector {
     fn view(mu: &Mu, vector: Tag) -> Tag {
-        let vec = TypedVec::<Vec<Tag>> {
-            vec: vec![
+        Struct::to_tag(
+            mu,
+            Symbol::keyword("vector"),
+            vec![
                 Fixnum::as_tag(Self::length_of(mu, vector) as i64),
                 match Tag::type_key(Self::type_of(mu, vector)) {
                     Some(key) => key,
                     None => panic!("internal: type inconsistency"),
                 },
             ],
-        };
-
-        vec.vec.to_vector().evict(mu)
+        )
     }
 
     fn from_string(str: &str) -> Vector {

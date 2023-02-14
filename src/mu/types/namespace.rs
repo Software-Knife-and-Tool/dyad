@@ -14,7 +14,7 @@ use {
         image,
         types::{
             cons::{Cons, Core as _},
-            ivector::{TypedVec, VecType},
+            r#struct::Struct,
             symbol::{Core as _, Symbol},
             vector::{Core as _, Vector},
         },
@@ -206,11 +206,11 @@ pub trait Core {
 
 impl Core for Namespace {
     fn view(mu: &Mu, ns: Tag) -> Tag {
-        let vec = TypedVec::<Vec<Tag>> {
-            vec: vec![Self::name_of(mu, ns), Self::import_of(mu, ns)],
-        };
-
-        vec.vec.to_vector().evict(mu)
+        Struct::to_tag(
+            mu,
+            Symbol::keyword("ns"),
+            vec![Self::name_of(mu, ns), Self::import_of(mu, ns)],
+        )
     }
 
     fn write(mu: &Mu, ns: Tag, _: bool, stream: Tag) -> exception::Result<()> {

@@ -11,8 +11,8 @@ use crate::{
         mu::{Core as _, Mu},
     },
     types::{
-        ivector::{TypedVec, VecType},
-        vector::Core as _,
+        r#struct::Struct,
+        symbol::{Core as _, Symbol},
     },
 };
 
@@ -49,9 +49,7 @@ impl Core for Fixnum {
     }
 
     fn view(mu: &Mu, fx: Tag) -> Tag {
-        let vec = TypedVec::<Vec<Tag>> { vec: vec![fx] };
-
-        vec.vec.to_vector().evict(mu)
+        Struct::to_tag(mu, Symbol::keyword("fixnum"), vec![fx])
     }
 }
 

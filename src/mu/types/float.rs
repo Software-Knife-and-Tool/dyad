@@ -12,8 +12,8 @@ use crate::{
         mu::{Core as _, Mu},
     },
     types::{
-        ivector::{TypedVec, VecType},
-        vector::Core as _,
+        r#struct::Struct,
+        symbol::{Core as _, Symbol},
     },
 };
 
@@ -52,9 +52,7 @@ pub trait Core {
 
 impl Core for Float {
     fn view(mu: &Mu, fl: Tag) -> Tag {
-        let vec = TypedVec::<Vec<Tag>> { vec: vec![fl] };
-
-        vec.vec.to_vector().evict(mu)
+        Struct::to_tag(mu, Symbol::keyword("float"), vec![fl])
     }
 
     fn write(mu: &Mu, tag: Tag, _escape: bool, stream: Tag) -> exception::Result<()> {
