@@ -16,6 +16,7 @@ type OptDef = (OptType, String);
 #[derive(Debug, PartialEq)]
 enum OptType {
     Config,
+    Debug,
     Eval,
     Load,
     Pipe,
@@ -24,7 +25,7 @@ enum OptType {
 }
 
 fn options(mut argv: Vec<String>) -> Option<Vec<OptDef>> {
-    let mut opts = getopt::Parser::new(&argv, "h?psvc:e:l:q:");
+    let mut opts = getopt::Parser::new(&argv, "h?psdvc:e:l:q:");
     let mut optv = Vec::new();
 
     loop {
@@ -49,6 +50,9 @@ fn options(mut argv: Vec<String>) -> Option<Vec<OptDef>> {
                     }
                     Opt('p', None) => {
                         optv.push((OptType::Pipe, String::from("")));
+                    }
+                    Opt('d', None) => {
+                        optv.push((OptType::Debug, String::from("")));
                     }
                     Opt('s', None) => {
                         optv.push((OptType::Script, String::from("")));
@@ -86,6 +90,7 @@ fn usage() {
     eprintln!("?: usage message");
     eprintln!("h: usage message");
     eprintln!("c: [name:value,...]");
+    eprintln!("d: debugging on");
     eprintln!("e: eval [form] and print result");
     eprintln!("l: load [path]");
     eprintln!("p: pipe mode");
@@ -96,7 +101,7 @@ fn usage() {
     std::process::exit(0);
 }
 
-fn load(mu: &Mu, path: &str) -> Option<()> {
+fn load(mu: &Mu, path: &str, debug: bool) -> Option<()> {
     let about = fs::metadata(path).ok()?;
 
     if !about.is_file() {
@@ -115,13 +120,31 @@ fn load(mu: &Mu, path: &str) -> Option<()> {
                     break;
                 }
 
+                if debug {
+                    print!("{path}: ");
+                    mu.write(form, true, mu.stdout).unwrap();
+                    print!(",");
+                }
+
                 match mu.compile(form) {
-                    Ok(form) => match mu.eval(form) {
-                        Ok(_) => (),
-                        Err(_) => {
-                            break;
+                    Ok(form) => {
+                        if debug {
+                            mu.write(form, true, mu.stdout).unwrap();
+                            print!(",");
                         }
-                    },
+
+                        match mu.eval(form) {
+                            Ok(eval) => {
+                                if debug {
+                                    mu.write(eval, true, mu.stdout).unwrap();
+                                    println!();
+                                }
+                            }
+                            Err(_) => {
+                                break;
+                            }
+                        }
+                    }
                     Err(_) => {
                         break;
                     }
@@ -137,9 +160,10 @@ fn load(mu: &Mu, path: &str) -> Option<()> {
 }
 
 pub fn main() {
-    let mut script = false;
-    let mut pipe = false;
     let mut config = String::new();
+    let mut debug = false;
+    let mut pipe = false;
+    let mut script = false;
 
     match options(std::env::args().collect()) {
         Some(opts) => {
@@ -167,13 +191,16 @@ pub fn main() {
                             }
                         }
                     }
+                    OptType::Debug => {
+                        debug = true;
+                    }
                     OptType::Script => {
                         script = true;
                     }
                     OptType::Pipe => {
                         pipe = true;
                     }
-                    OptType::Load => match load(&mu, &opt.1) {
+                    OptType::Load => match load(&mu, &opt.1, debug) {
                         Some(_) => (),
                         None => {
                             eprintln!("runtime: failed to load {}", &opt.1);
