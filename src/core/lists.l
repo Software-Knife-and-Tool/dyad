@@ -119,6 +119,64 @@
        (mu:cons () list)))))
 
 ;;;
+;;; finds
+;;;
+(mu:intern core::ns :extern "findl-if"
+   (:lambda (fn seq)
+     (core:errorp-unless core:functionp fn "core:findl-if: not a function")
+     (core:errorp-unless core:listp seq "core:findl-if: not a list")
+     (core:foldl
+      (:lambda (el acc)
+        (:if (core::apply fn (core::list el)) el acc))
+      ()
+      list)))
+
+(mu:intern core::ns :extern "findr-if"
+   (:lambda (fn list)
+     (core:errorp-unless core:functionp fn "core:findr-if not a function")
+     (core:errorp-unless core:sequencep list "core:findr-if not a list")
+     (core:foldr
+      (:lambda (el acc)
+        (:if (core::apply fn (core::list el)) el acc))
+      ()
+      list)))
+
+;;;
+;;; position
+;;;
+(mu:intern core::ns :extern "positionl"
+   (:lambda (fn item list)
+     (core:errorp-unless core:functionp fn "core:positionl: not a function")
+     (core:errorp-unless core:listp list "core:positionl: not a list")
+     (:if (core:null list)
+          ()
+          (mu:fix
+           (:lambda (list)
+             (:if (core:null list)
+                  ()
+                  (:if (core::apply fn (core::list2 item (mu:car list)))
+                       list
+                       (mu:cdr list))))
+           list))))
+
+(mu:intern core::ns :extern "positionr"
+   (:lambda (fn item list)
+     (core:errorp-unless core:functionp fn "core:positionr: not a function")           
+     (core:errorp-unless core:sequencep list "core:positionr: not a list")
+     (:if (core:null list)
+          ()
+          (mu:fix
+           (:lambda (nth)
+             (:if (core:listp nth)
+                  nth
+                  (:if (mu:fx-lt nth 0)
+                       ()
+                       (:if (core::apply fn (core::list2 item (mu:nth nth list)))
+                            (mu:nthcdr nth list)
+                            (core:1- nth)))))
+           (core:1- (mu:length list))))))
+
+;;;
 ;;; fixed argument list functions
 ;;;
 (mu:intern core::ns :extern "append"
@@ -182,3 +240,4 @@
      (:if list
           (mu:nthcdr (core:1- (mu:length list)) list)
           ())))
+

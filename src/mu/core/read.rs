@@ -245,6 +245,16 @@ impl Read for Mu {
                 Ok(fl) => Ok(Float::as_tag(fl)),
                 Err(_) => match token.find(':') {
                     Some(0) => {
+                        if token.starts_with(':')
+                            && (token.len() > Tag::DIRECT_STR_MAX + 1 || token.len() == 1)
+                        {
+                            return Err(Exception::raise(
+                                mu,
+                                Condition::Syntax,
+                                "read::read_atom",
+                                Vector::from_string(&token).evict(mu),
+                            ));
+                        }
                         Ok(Symbol::new(mu, Tag::nil(), Scope::Extern, &token, *UNBOUND).evict(mu))
                     }
                     Some(_) => {

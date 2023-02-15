@@ -16,7 +16,7 @@ use crate::{
         cons::{Cons, MuFunction as _},
         fixnum::{Fixnum, MuFunction as _},
         float::{Float, MuFunction as _},
-        function::{Function, MuFunction as _},
+        function::Function,
         namespace::{Core as _, MuFunction as _, Namespace, Scope},
         r#struct::{MuFunction as _, Struct},
         stream::{MuFunction as _, Stream},
@@ -49,7 +49,7 @@ lazy_static! {
         ("raise", Scope::Extern, 2, Exception::mu_raise),
         // frames
         ("context", Scope::Intern, 0, Frame::mu_context),
-        ("fr-lexv", Scope::Extern, 1, Frame::mu_fr_lexv),
+        ("fr-get", Scope::Extern, 1, Frame::mu_fr_get),
         ("fr-pop", Scope::Extern, 1, Frame::mu_fr_pop),
         ("fr-push", Scope::Extern, 1, Frame::mu_fr_push),
         // types
@@ -70,8 +70,6 @@ lazy_static! {
         ("fl-lt", Scope::Extern, 2, Float::mu_fllt),
         ("fl-mul", Scope::Extern, 2, Float::mu_flmul),
         ("fl-div", Scope::Extern, 2, Float::mu_fldiv),
-        // functions
-        ("fn-prop", Scope::Extern, 2, Function::mu_fn_prop),
         // heap
         ("hp-info", Scope::Extern, 0, Mu::mu_hp_info),
         ("hp-type", Scope::Extern, 2, Mu::mu_hp_type),

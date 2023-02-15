@@ -194,7 +194,7 @@ impl Frame {
 
 pub trait MuFunction {
     fn mu_context(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
-    fn mu_fr_lexv(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
+    fn mu_fr_get(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_pop(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_push(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_ref(mu: &Mu, fp: &mut Frame) -> exception::Result<()>;
@@ -206,7 +206,7 @@ impl MuFunction for Frame {
         Ok(())
     }
 
-    fn mu_fr_lexv(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+    fn mu_fr_get(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let func = fp.argv[0];
 
         fp.value = match Tag::type_of(mu, func) {
@@ -217,7 +217,7 @@ impl MuFunction for Frame {
 
                 vec_ref[0].to_vector(mu)
             }
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:fr-lexv", func)),
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:fr-get", func)),
         };
 
         Ok(())

@@ -7,8 +7,6 @@ use {
         core::{
             classes::{Tag, TagType, TagU64, Type},
             exception,
-            exception::{Condition, Exception},
-            frame::Frame,
             mu::{Core as _, Mu},
             namespace::Core as _,
         },
@@ -173,41 +171,6 @@ impl Core for Function {
             }
             _ => panic!("internal: function type inconsistency"),
         }
-    }
-}
-
-pub trait MuFunction {
-    fn mu_fn_prop(_: &Mu, _: &mut Frame) -> exception::Result<()>;
-}
-
-impl MuFunction for Function {
-    fn mu_fn_prop(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let prop_key = fp.argv[0];
-        let func = fp.argv[1];
-
-        match Tag::type_of(mu, func) {
-            Type::Function => (),
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:fn-prop", func)),
-        }
-
-        fp.value = if prop_key.eq_(Symbol::keyword("lambda")) {
-            Self::lambda_of(mu, func)
-        } else if prop_key.eq_(Symbol::keyword("nreq")) {
-            Self::nreq_of(mu, func)
-        } else if prop_key.eq_(Symbol::keyword("form")) {
-            Self::form_of(mu, func)
-        } else if prop_key.eq_(Symbol::keyword("frame")) {
-            Self::frame_of(mu, func)
-        } else {
-            return Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fn-prop",
-                prop_key,
-            ));
-        };
-
-        Ok(())
     }
 }
 
