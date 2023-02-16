@@ -141,7 +141,7 @@
       (:if (core:consp form)
           ((:lambda (fn args)
              (:if (mu:keyp fn)
-                  (mu:compile form)    ;;; libmu special form (:key ...)
+                  (mu:compile form)     ;;; libmu special form (:key ...)
                   (:if (core:consp fn)  ;;; application ((...) ...), native or core
                        (core::compile-function-application fn args env)
                        ((:lambda (specf)
