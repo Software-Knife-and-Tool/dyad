@@ -32,26 +32,15 @@
 
 (mu:intern core::ns :intern "read-symbol-externp"
    (:lambda (name)
-      (mu:eq (core:positionl mu:eq #\: name) (core:positionr mu:eq #\: name))))
+     ()))
 
 (mu:intern core::ns :intern "read-symbol-ns"
    (:lambda (name)
-      ((:lambda (colon)
-          (:if (core:null colon)
-               ()
-               (core:substr name 0 (core:1- colon))))
-       (core:positionl mu:eq #\: name))))
+     ()))
 
 (mu:intern core::ns :intern "read-symbol-name"
    (:lambda (name)
-      ((:lambda (colon)
-          (:if (core:null colon)
-               name
-               (core:substr
-                 name
-                 (core:1+ colon)
-                 (core:1- (mu:sv-len name)))))
-       (core:positionr mu:eq #\: name))))
+     ()))
 
 (mu:intern core::ns :intern "read-resolve-symbol"
    (:lambda (symbol)

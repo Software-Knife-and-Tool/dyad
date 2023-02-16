@@ -207,6 +207,6 @@
                 (:if offset
                      (mu:cons (core::lambda-frame-id frame) offset)
                      ()))
-              (core:positionl mu:eq symbol (core::lambda-syms frame)))))
+              (core:positionl (:lambda (el) (mu:eq el symbol)) (core::lambda-syms frame)))))
       ()
       env)))
