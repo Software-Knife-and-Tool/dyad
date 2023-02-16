@@ -74,7 +74,7 @@
   (:lambda (dir dest args)
     ((:lambda (fn)
        (:if fn
-            (mu:apply (mu:sy-val fn) (core::list2 dest args))
+            (core::apply (mu:sy-val fn) (core::list2 dest args))
             (core:error dir "core:format: unrecognized format directive")))
      (core::fmt-op-table dir))))
 

@@ -105,46 +105,32 @@
 ;;;
 ;;; core apply
 ;;;
-(mu:intern core::ns :intern "enter-env"
-   (:lambda (fn)
-     ((:lambda (lambda-desc)
-        (:if lambda-desc
-             (core:mapc
-              mu:fr-push
-              (core::lambda-closure lambda-desc))
-             ()))
-      (core::fn-lambda-desc fn))))
-
-(mu:intern core::ns :intern "exit-env"
-   (:lambda (fn)
-     ((:lambda (lambda-desc)
-        (:if lambda-desc
-             (core:mapc
-              (:lambda (frame)
-                (mu:fr-pop (mu:car frame)))
-              (core::lambda-closure lambda-desc))
-             ()))
-      (core::fn-lambda-desc fn))))
-
 (mu:intern core::ns :intern "apply"
    (:lambda (fn args)
-     (core::enter-env fn)
-     (core::prog1
-       (:if (core::fn-restp fn)
-           (mu:apply fn (core::quoted-lambda-arg-list fn args))
-           (mu:apply fn args))
-       (core::exit-env fn))))
+     (:if (core:functionp fn)
+          (mu:apply fn args)
+          ((:lambda ()
+             (core:errorp-unless core:closurep fn "core::apply: not a function or closure")
+             (core:mapc
+              (:lambda (frame)
+                (mu:fr-push frame))
+              (core::closure-prop fn :env))
+             (core::prog1
+               (:if (core::closure-prop fn :rest)
+                    (mu:apply fn (core::quoted-lambda-arg-list fn args))
+                    (mu:apply fn args))
+               (core:mapc
+                (:lambda (frame)
+                  (mu:fr-pop frame))
+                (core::closure-prop fn :env))))))))
 
 (mu:intern core::ns :extern "apply"
    (:lambda (fn args)
-     (core:errorp-unless core:functionp fn "core:apply: not a function")
-     (core:errorp-unless core:listp args "core:apply: not a list")
-     (core::enter-env fn)
-     (core::prog1
-         (:if (core::fn-restp fn)
-              (mu:apply fn (core::lambda-arg-list fn args))
-              (mu:apply fn args))
-       (core::exit-env fn))))
+     (core:errorp-unless
+      (:lambda (fn) (core::logical-or (core:functionp fn) (core:closurep fn)))
+      fn
+      "core:apply: not a function or closure")
+     (core::apply fn args)))
 
 ;;;
 ;;; compile-function-application
@@ -156,17 +142,17 @@
    (:lambda (fn args env)
      ((:lambda (cons-call fn-call macro-call symbol-call)
         (:if (core:functionp fn)
-             (fn-call fn)
+             (mu:apply fn-call (core::list fn))
              (:if (core:consp fn)
-                  (cons-call fn)
+                  (mu:apply cons-call (core::list fn))
                   (:if (core:symbolp fn)
                        (:if (core:boundp fn)
                             ((:lambda (macro-fn)
                                (:if macro-fn
-                                    (macro-call fn)
-                                    (symbol-call fn)))
+                                    (mu:apply macro-call (core::list fn))
+                                    (mu:apply symbol-call (core::list fn))))
                              (core:macro-function fn env))
-                            (symbol-call fn))
+                            (mu:apply symbol-call (core::list fn)))
                        (core:error fn "compile-function-application: not a function designator")))))
       (:lambda (form)     ;;; lambda expression call
         ((:lambda (fn)
