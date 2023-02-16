@@ -158,7 +158,3 @@
 (mu:intern core::ns :extern "compile"
    (:lambda (form)
      (core::compile form ())))
-          ((:lambda (nthcdr)
-             (:if (core:null nthcdr)
-                  ()
-                  (mu:fx-sub (mu:length list) (mu:length nthcdr))))

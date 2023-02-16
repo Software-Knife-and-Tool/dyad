@@ -19,16 +19,16 @@ for label in labels:
     for test in test_results:
         fields=test[:-1].split(',')
         if fields[0] == label:
-            print(f'{fields[0]:<8} {fields[1]:<14} total: {fields[2]:<8} failed: {fields[3]:<8} aborted: {fields[4]:<8}')
+            print(f'{fields[0]:<10} {fields[1]:<14} total: {fields[2]:<8} failed: {fields[3]:<8} aborted: {fields[4]:<8}')
             test_total += int(fields[2])
             test_fails += int(fields[3])
             test_aborts += int(fields[4])
 
     test_passes = test_total - (test_fails + test_aborts)
     print('-----------------------')
-    print(f'{label:<6}', end='')
-    print(f'total: {test_total:<11}', end='')
-    print(f'passed: {test_passes:<8}', end='')
+    print(f'{label:<11}', end='')
+    print(f'passed: {test_passes:<7}', end='')
+    print(f'total: {test_total:<9}', end='')
     print(f'failed: {test_fails:<9}', end='')
     print(f'aborted: {test_aborts:<10}')
     print()
