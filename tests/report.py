@@ -28,9 +28,9 @@ for test in test_results:
                 pass
             else:
                 if len(fields) == 2:
-                    if fields[0].find("panicked") != -1:
+                    if fields[0].find('panicked') != -1:
                         pass
-                    elif fields[0].find("exception") != -1:
+                    elif fields[0].find('exception') != -1:
                         pass
                     else:
                         line_no += 1

@@ -31,7 +31,7 @@
      (core:errorp-unless core:functionp fn "core:fix: not a function")
      (core:errorp-unless core:listp list "core:fix: not a list")
      (:if (core::fn-applyp fn)
-          (mu:fix (:lambda (arg) (core::apply fn (core::list arg))) list)
+          (mu:fix (:lambda (arg) (mu:apply fn (core::list arg))) list)
           (mu:fix fn list))))
 
 ;;;
@@ -48,7 +48,7 @@
              (:if lst
                   (mu:cons
                    (mu:cdr lst)
-                   (core:apply fn (core::list2 (mu:car lst) acc)))
+                   (mu:apply fn (core::list2 (mu:car lst) acc)))
                   arg))
            (mu:car arg)
            (mu:cdr arg)))
@@ -71,7 +71,7 @@
       (:lambda (lst)
         (:if lst
              (core::prog2
-                 (core::apply fn (core::list (mu:car lst)))
+                 (mu:apply fn (core::list (mu:car lst)))
                  (mu:cdr lst))
              ()))
       list)
@@ -83,7 +83,7 @@
      (core:errorp-unless core:listp list "core:mapcar: not a list")
      (core:foldl
       (:lambda (elt acc)
-        (core::append acc (core::list (core:apply fn (core::list elt)))))
+        (core::append acc (core::list (mu:apply fn (core::list elt)))))
       ()
       list)))
    
@@ -95,7 +95,7 @@
        (:lambda (lst)
          (:if lst
               (core::prog2
-                  (core::apply fn (core::list lst))
+                  (mu:apply fn (core::list lst))
                   (mu:cdr lst))
               ()))
        list)
@@ -111,7 +111,7 @@
          ((:lambda (acc lst)
             (:if lst
                  (mu:cons
-                  (core::append acc (core::list (core::apply fn (core::list lst))))
+                  (core::append acc (core::list (mu:apply fn (core::list lst))))
                   (mu:cdr lst))
                  loop))
           (mu:car loop)
@@ -121,23 +121,27 @@
 ;;;
 ;;; finds
 ;;;
-(mu:intern core::ns :extern "findl-if"
-   (:lambda (fn seq)
-     (core:errorp-unless core:functionp fn "core:findl-if: not a function")
-     (core:errorp-unless core:listp seq "core:findl-if: not a list")
-     (core:foldl
+(mu:intern core::ns :extern "findl"
+   (:lambda (fn list)
+     (core:errorp-unless core:functionp fn "core:findl: not a function")
+     (core:errorp-unless core:listp list "core:findl: not a list")
+     (core:foldr
       (:lambda (el acc)
-        (:if (core::apply fn (core::list el)) el acc))
+        (:if (mu:apply fn (core::list el))
+             el
+             acc))
       ()
       list)))
 
-(mu:intern core::ns :extern "findr-if"
+(mu:intern core::ns :extern "findr"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:findr-if not a function")
-     (core:errorp-unless core:sequencep list "core:findr-if not a list")
-     (core:foldr
+     (core:errorp-unless core:functionp fn "core:findr not a function")
+     (core:errorp-unless core:sequencep list "core:findr not a list")
+     (core:foldl
       (:lambda (el acc)
-        (:if (core::apply fn (core::list el)) el acc))
+        (:if (mu:apply fn (core::list el))
+             el
+             acc))
       ()
       list)))
 
@@ -145,36 +149,42 @@
 ;;; position
 ;;;
 (mu:intern core::ns :extern "positionl"
-   (:lambda (fn item list)
-     (core:errorp-unless core:functionp fn "core:positionl: not a function")
-     (core:errorp-unless core:listp list "core:positionl: not a list")
+   (:lambda (fn list)
+     (core:errorp-unless core:functionp fn "core:positionl: not a function")           
+     (core:errorp-unless core:sequencep list "core:positionl: not a list")
      (:if (core:null list)
           ()
-          (mu:fix
-           (:lambda (list)
-             (:if (core:null list)
-                  ()
-                  (:if (core::apply fn (core::list2 item (mu:car list)))
-                       list
-                       (mu:cdr list))))
-           list))))
+          ((:lambda (len)
+             (mu:car
+              (mu:fix
+               (:lambda (loop)
+                 (:if (core:listp loop)
+                      loop
+                      (:if (mu:fx-lt len loop)
+                           ()
+                           (:if (mu:apply fn (core::list (mu:nth loop list)))
+                                (core::list loop)
+                                (core:1+ loop)))))
+               0)))
+           (mu:length list)))))
 
 (mu:intern core::ns :extern "positionr"
-   (:lambda (fn item list)
+   (:lambda (fn list)
      (core:errorp-unless core:functionp fn "core:positionr: not a function")           
      (core:errorp-unless core:sequencep list "core:positionr: not a list")
      (:if (core:null list)
           ()
-          (mu:fix
-           (:lambda (nth)
-             (:if (core:listp nth)
-                  nth
-                  (:if (mu:fx-lt nth 0)
-                       ()
-                       (:if (core::apply fn (core::list2 item (mu:nth nth list)))
-                            (mu:nthcdr nth list)
-                            (core:1- nth)))))
-           (core:1- (mu:length list))))))
+          (mu:car
+           (mu:fix
+            (:lambda (loop)
+              (:if (core:listp loop)
+                   loop
+                   (:if (mu:fx-lt loop 0)
+                        ()
+                        (:if (mu:apply fn (core::list (mu:nth loop list)))
+                             (core::list loop)
+                             (core:1- loop)))))
+            (core:1- (mu:length list)))))))
 
 ;;;
 ;;; fixed argument list functions
@@ -240,4 +250,3 @@
      (:if list
           (mu:nthcdr (core:1- (mu:length list)) list)
           ())))
-
