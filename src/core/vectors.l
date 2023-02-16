@@ -25,7 +25,7 @@
             (:if (mu:eq nth (mu:sv-len vector))
                  ()
                  (core::prog2
-                     (mu:apply fn (core::list (mu:sv-ref vector nth)))
+                     (core::apply fn (core::list (mu:sv-ref vector nth)))
                      (core:1+ nth)))
             ()))
      0)))

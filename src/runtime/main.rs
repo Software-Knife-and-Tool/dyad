@@ -122,21 +122,21 @@ fn load(mu: &Mu, path: &str, debug: bool) -> Option<()> {
 
                 if debug {
                     print!("{path}: ");
-                    mu.write(form, true, mu.stdout).unwrap();
+                    mu.write(form, true, mu.errout).unwrap();
                     print!(",");
                 }
 
                 match mu.compile(form) {
                     Ok(form) => {
                         if debug {
-                            mu.write(form, true, mu.stdout).unwrap();
+                            mu.write(form, true, mu.errout).unwrap();
                             print!(",");
                         }
 
                         match mu.eval(form) {
                             Ok(eval) => {
                                 if debug {
-                                    mu.write(eval, true, mu.stdout).unwrap();
+                                    mu.write(eval, true, mu.errout).unwrap();
                                     println!();
                                 }
                             }
