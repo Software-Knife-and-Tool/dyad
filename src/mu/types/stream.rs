@@ -21,7 +21,7 @@ use {
         system::stream::{STDERR, STDIN, STDOUT},
         types::{
             char::Char,
-            cons::{Cons, ConsIter, Core as _, Properties as _},
+            cons::{Cons, ConsIter, Core as _},
             fixnum::Fixnum,
             r#struct::Struct,
             symbol::{Core as _, Symbol},

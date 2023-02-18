@@ -98,17 +98,8 @@ impl Symbol {
             _ => panic!("internal: symbol type required"),
         }
     }
-}
 
-pub trait Properties {
-    fn namespace_of(_: &Mu, _: Tag) -> Tag;
-    fn scope_of(_: &Mu, _: Tag) -> Tag;
-    fn name_of(_: &Mu, _: Tag) -> Tag;
-    fn value_of(_: &Mu, _: Tag) -> Tag;
-}
-
-impl Properties for Symbol {
-    fn namespace_of(mu: &Mu, symbol: Tag) -> Tag {
+    pub fn namespace_of(mu: &Mu, symbol: Tag) -> Tag {
         match Tag::type_of(mu, symbol) {
             Type::Keyword => Tag::nil(),
             Type::Symbol => match symbol {
@@ -119,7 +110,7 @@ impl Properties for Symbol {
         }
     }
 
-    fn scope_of(mu: &Mu, symbol: Tag) -> Tag {
+    pub fn scope_of(mu: &Mu, symbol: Tag) -> Tag {
         match Tag::type_of(mu, symbol) {
             Type::Keyword => match symbol {
                 Tag::Direct(_) => Symbol::keyword("extern"),
@@ -133,7 +124,7 @@ impl Properties for Symbol {
         }
     }
 
-    fn name_of(mu: &Mu, symbol: Tag) -> Tag {
+    pub fn name_of(mu: &Mu, symbol: Tag) -> Tag {
         match Tag::type_of(mu, symbol) {
             Type::Keyword => match symbol {
                 Tag::Direct(dir) => Tag::to_direct(dir.data(), dir.length(), DirectType::Byte),
@@ -147,7 +138,7 @@ impl Properties for Symbol {
         }
     }
 
-    fn value_of(mu: &Mu, symbol: Tag) -> Tag {
+    pub fn value_of(mu: &Mu, symbol: Tag) -> Tag {
         match Tag::type_of(mu, symbol) {
             Type::Keyword => symbol,
             Type::Symbol => match symbol {

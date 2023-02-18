@@ -14,7 +14,7 @@ use {
         image,
         types::{
             char::Char,
-            cons::{Cons, ConsIter, Core as _, Properties as _},
+            cons::{Cons, ConsIter, Core as _},
             fixnum::Fixnum,
             float::Float,
             ivector::{IVec, IVector, Image, IndirectVector},

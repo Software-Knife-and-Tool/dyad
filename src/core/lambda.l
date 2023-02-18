@@ -6,41 +6,30 @@
 ;;;
 
 ;;;
-;;; [*lambda descriptor*] #(:t lambda-syms req-syms rest-sym env closure)
+;;; [*lambda descriptor*] #s(:lambda lambda-syms req-syms rest-sym env closure)
 ;;;
-
-(mu:intern core::ns :intern "lambda-closure" (:lambda (desc) (mu:sv-ref desc 4)))
-(mu:intern core::ns :intern "lambda-env" (:lambda (desc) (mu:sv-ref desc 3)))
-(mu:intern core::ns :intern "lambda-frame-id" (:lambda (desc) (mu::tag-of (mu:sv-ref desc 0))))
-(mu:intern core::ns :intern "lambda-nreqs" (:lambda (desc) (mu:length (core::lambda-req-symbols desc))))
-(mu:intern core::ns :intern "lambda-req-symbols" (:lambda (desc) (mu:sv-ref desc 1)))
-(mu:intern core::ns :intern "lambda-rest-symbol" (:lambda (desc) (mu:sv-ref desc 2)))
-(mu:intern core::ns :intern "lambda-syms" (:lambda (desc) (mu:sv-ref desc 0)))
-
-#|
-(mu:intern core::ns :intern "lambda-dump"
-   (:lambda (lambda-desc)
-     (core:debug lambda-desc "-= lambda-dump =-")
-     (core:debug (mu::tag-of lambda-desc) "tag")
-     (core:debug (core::lambda-closure lambda-desc) "lambda-closure")
-     (core:debug (core::lambda-env lambda-desc) "lambda-env")
-     (core:debug (core::lambda-frame-id lambda-desc) "lambda-frame-id")
-     (core:debug (core::lambda-nreqs lambda-desc) "lambda-nreqs")
-     (core:debug (core::lambda-req-symbols lambda-desc) "lambda-req-symbols")
-     (core:debug (core::lambda-rest-symbol lambda-desc) "lambda-res-symbol")
-     (core:debug (core::lambda-syms lambda-desc) "lambda-syms")))
-|#
-
+;;; lambda-syms: list of symbols, suitable for :lambda
+;;; req-syms:    list of required symbols
+;;; rest-sym:    rest symbol or nil
+;;; env:         list of lambda descriptors
+;;; closure:     list of closed symbol bindings
 ;;;
-;;; lambda-syms: list of symbols, suitable for giving to :lambda
-;;; req-syms: list of required symbols
-;;; rest-sym: rest symbol or nil
-;;; env: environment, list of lambda descriptors
-;;; closure: closed symbol state, list of bindings
-;;;
-(mu:intern core::ns :intern "lambda-descriptor"
+(mu:intern core::ns :intern "lambda-prop"
+  (:lambda (desc key)
+    (mu:sv-ref
+     (mu:cdr
+      (core:assoc
+       key
+       '((:symbols . 0)
+         (:reqsyms . 1)
+         (:restsym . 2)
+         (:env . 3)
+         (:closure . 4)))))
+     (mu:st-vec desc)))
+
+(mu:intern core::ns :intern "make-lambda"
    (:lambda (lambda req-syms rest-sym env closure)
-     (mu:vector :t
+     (mu:struct :lambda
         (mu:cons lambda
           (mu:cons req-syms
             (mu:cons rest-sym

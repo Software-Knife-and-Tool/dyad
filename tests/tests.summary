@@ -1,4 +1,4 @@
-Test Summary: 02/16/2023 17:35:54
+Test Summary: 02/18/2023 12:45:12
 -----------------------
 mu:        chars          total: 2        failed: 0        aborted: 0       
 mu:        compile        total: 7        failed: 0        aborted: 0       
@@ -15,19 +15,19 @@ mu:        vectors        total: 23       failed: 0        aborted: 0
 -----------------------
 mu:        passed: 219    total: 219      failed: 0        aborted: 0         
 
-core:      closures       total: 14       failed: 7        aborted: 6       
+core:      closures       total: 14       failed: 13       aborted: 0       
 core:      compile        total: 29       failed: 6        aborted: 16      
 core:      core           total: 22       failed: 0        aborted: 0       
 core:      exceptions     total: 7        failed: 0        aborted: 0       
 core:      format         total: 12       failed: 0        aborted: 0       
-core:      lambda         total: 42       failed: 24       aborted: 3       
+core:      lambda         total: 35       failed: 27       aborted: 0       
 core:      lists          total: 76       failed: 0        aborted: 1       
-core:      macro          total: 9        failed: 1        aborted: 2       
+core:      macro          total: 9        failed: 3        aborted: 0       
 core:      read           total: 9        failed: 7        aborted: 0       
 core:      sequences      total: 3        failed: 0        aborted: 0       
 core:      streams        total: 23       failed: 0        aborted: 0       
 core:      strings        total: 16       failed: 0        aborted: 0       
 core:      vectors        total: 13       failed: 0        aborted: 0       
 -----------------------
-core:      passed: 202    total: 275      failed: 45       aborted: 28        
+core:      passed: 195    total: 268      failed: 56       aborted: 17        
 

@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: MIT
 
 //! mu cons class
-
 use {
     crate::{
         core::{
@@ -18,7 +17,7 @@ use {
         types::{
             fixnum::Fixnum,
             r#struct::Struct,
-            symbol::{Core as _, Properties as _, Symbol},
+            symbol::{Core as _, Symbol},
         },
     },
     std::cell::RefMut,
@@ -54,16 +53,8 @@ impl Cons {
             _ => panic!("internal: cons type required"),
         }
     }
-}
 
-/// properties
-pub trait Properties {
-    fn car(_: &Mu, _: Tag) -> Tag;
-    fn cdr(_: &Mu, _: Tag) -> Tag;
-}
-
-impl Properties for Cons {
-    fn car(mu: &Mu, cons: Tag) -> Tag {
+    pub fn car(mu: &Mu, cons: Tag) -> Tag {
         match Tag::type_of(mu, cons) {
             Type::Null => cons,
             Type::Cons => match cons {
@@ -74,7 +65,7 @@ impl Properties for Cons {
         }
     }
 
-    fn cdr(mu: &Mu, cons: Tag) -> Tag {
+    pub fn cdr(mu: &Mu, cons: Tag) -> Tag {
         match Tag::type_of(mu, cons) {
             Type::Null => cons,
             Type::Cons => match cons {
