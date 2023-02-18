@@ -13,7 +13,7 @@ use {
         },
         image,
         types::{
-            cons::{Cons, ConsIter, Core as _, Properties as _},
+            cons::{Cons, ConsIter, Core as _},
             ivector::{TypedVec, VecType, VectorIter},
             stream::{Core as _, Stream},
             symbol::{Core as _, Symbol},
@@ -25,11 +25,33 @@ use {
 
 // a struct is a vector with an arbitrary type
 pub struct Struct {
-    stype: Tag,
-    vector: Tag,
+    pub stype: Tag,
+    pub vector: Tag,
 }
 
 impl Struct {
+    pub fn stype(mu: &Mu, tag: Tag) -> Tag {
+        match Tag::type_of(mu, tag) {
+            Type::Struct => {
+                let r#struct = Self::to_image(mu, tag);
+
+                r#struct.stype
+            }
+            _ => panic!("internal: struct type inconsistency"),
+        }
+    }
+
+    pub fn vector(mu: &Mu, tag: Tag) -> Tag {
+        match Tag::type_of(mu, tag) {
+            Type::Struct => {
+                let r#struct = Self::to_image(mu, tag);
+
+                r#struct.vector
+            }
+            _ => panic!("internal: struct type inconsistency"),
+        }
+    }
+
     pub fn to_image(mu: &Mu, tag: Tag) -> Self {
         match Tag::type_of(mu, tag) {
             Type::Struct => match tag {
@@ -63,14 +85,21 @@ impl Struct {
 
 // core
 pub trait Core<'a> {
+    fn new(_: &Mu, _: String, _: Vec<Tag>) -> Self;
     fn read(_: &Mu, _: Tag) -> exception::Result<Tag>;
     fn write(_: &Mu, _: Tag, _: bool, _: Tag) -> exception::Result<()>;
-
     fn evict(&self, _: &Mu) -> Tag;
     fn view(_: &Mu, _: Tag) -> Tag;
 }
 
 impl<'a> Core<'a> for Struct {
+    fn new(mu: &Mu, key: String, vec: Vec<Tag>) -> Self {
+        Struct {
+            stype: Symbol::keyword(&key),
+            vector: TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu),
+        }
+    }
+
     fn view(mu: &Mu, tag: Tag) -> Tag {
         let image = Self::to_image(mu, tag);
 

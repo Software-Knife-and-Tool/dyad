@@ -13,7 +13,7 @@ use {
             mu::Mu,
         },
         types::{
-            cons::{Cons, ConsIter, Core as _, Properties as _},
+            cons::{Cons, ConsIter, Core as _},
             fixnum::Fixnum,
             function::Function,
             namespace::{Core as _, Namespace, Scope},

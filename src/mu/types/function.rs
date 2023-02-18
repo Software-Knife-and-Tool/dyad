@@ -79,17 +79,8 @@ impl Function {
             _ => panic!("internal: function type inconsistency"),
         }
     }
-}
 
-pub trait Properties {
-    fn form_of(_: &Mu, _: Tag) -> Tag;
-    fn frame_of(_: &Mu, _: Tag) -> Tag;
-    fn lambda_of(_: &Mu, _: Tag) -> Tag;
-    fn nreq_of(_: &Mu, _: Tag) -> Tag;
-}
-
-impl Properties for Function {
-    fn nreq_of(mu: &Mu, func: Tag) -> Tag {
+    pub fn nreq_of(mu: &Mu, func: Tag) -> Tag {
         match Tag::type_of(mu, func) {
             Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).nreq,
@@ -99,7 +90,7 @@ impl Properties for Function {
         }
     }
 
-    fn lambda_of(mu: &Mu, func: Tag) -> Tag {
+    pub fn lambda_of(mu: &Mu, func: Tag) -> Tag {
         match Tag::type_of(mu, func) {
             Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).lambda,
@@ -109,7 +100,7 @@ impl Properties for Function {
         }
     }
 
-    fn form_of(mu: &Mu, func: Tag) -> Tag {
+    pub fn form_of(mu: &Mu, func: Tag) -> Tag {
         match Tag::type_of(mu, func) {
             Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).form,
@@ -119,7 +110,7 @@ impl Properties for Function {
         }
     }
 
-    fn frame_of(mu: &Mu, func: Tag) -> Tag {
+    pub fn frame_of(mu: &Mu, func: Tag) -> Tag {
         match Tag::type_of(mu, func) {
             Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).frame,

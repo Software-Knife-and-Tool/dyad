@@ -12,7 +12,7 @@ use crate::{
     },
     types::{
         char::{Char, Core as _},
-        cons::{Cons, ConsIter, Core as _, Properties},
+        cons::{Cons, ConsIter, Core as _},
         fixnum::{Core as _, Fixnum},
         float::{Core as _, Float},
         function::{Core as _, Function},

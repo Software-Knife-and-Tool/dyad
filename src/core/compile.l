@@ -143,11 +143,11 @@
              (:if (mu:keyp fn)
                   (mu:compile form)     ;;; libmu special form (:key ...)
                   (:if (core:consp fn)  ;;; application ((...) ...), native or core
-                       (core::compile-function-application fn args env)
+                       (core::compile-application fn args env)
                        ((:lambda (specf)
                           (:if specf
                                (mu:apply (mu:sy-val specf) (core::list2 form env))
-                               (core::compile-function-application fn args env)))
+                               (core::compile-application fn args env)))
                         (core::special-table fn)))))
            (mu:car form)
            (mu:cdr form))

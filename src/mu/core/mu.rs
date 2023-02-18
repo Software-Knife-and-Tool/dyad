@@ -18,14 +18,14 @@ use {
         system::sys as system,
         types::{
             char::{Char, Core as _},
-            cons::{Cons, ConsIter, Core as _, Properties as _},
+            cons::{Cons, ConsIter, Core as _},
             fixnum::{Core as _, Fixnum},
             float::{Core as _, Float},
             function::{Core as _, Function},
             namespace::{Core as _, Namespace},
             r#struct::{Core as _, Struct},
             stream::{Core as _, Stream},
-            symbol::{Core as _, Properties as _, Symbol},
+            symbol::{Core as _, Symbol},
             vector::{Core as _, Vector},
         },
     },
@@ -47,7 +47,7 @@ pub struct Mu {
 
     // environments
     pub compile: RefCell<Vec<(Tag, Vec<Tag>)>>,
-    pub dynamic: RefCell<Vec<(Tag, Vec<Tag>)>>,
+    pub dynamic: RefCell<Vec<(u64, usize)>>,
     pub lexical: RefCell<HashMap<u64, RefCell<Vec<Frame>>>>,
 
     // namespaces

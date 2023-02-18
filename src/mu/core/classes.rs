@@ -164,10 +164,6 @@ impl Tag {
         }
     }
 
-    pub fn as_u64(&self) -> u64 {
-        u64::from_le_bytes(self.as_slice())
-    }
-
     pub fn eq_(&self, tag: Tag) -> bool {
         self.as_u64() == tag.as_u64()
     }
@@ -192,6 +188,14 @@ impl Tag {
             .with_tag(TagType::Direct);
 
         Tag::Direct(dir)
+    }
+
+    pub fn as_u64(&self) -> u64 {
+        u64::from_le_bytes(self.as_slice())
+    }
+
+    pub fn from_u64(tag: u64) -> Tag {
+        Self::from_slice(&tag.to_le_bytes())
     }
 
     pub fn from_slice(bits: &[u8]) -> Tag {
