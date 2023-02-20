@@ -58,7 +58,7 @@
              (:if (core:symbolp fn-symbol)
                   ((:lambda (macro-fn)
                      (:if macro-fn
-                          (core::apply macro-fn args)
+                          (core:apply macro-fn args)
                           form))
                    (core:macro-function fn-symbol env))
                   form))

@@ -31,7 +31,7 @@
      (core:errorp-unless core:functionp fn "core:fix: not a function")
      (core:errorp-unless core:listp list "core:fix: not a list")
      (:if (core::fn-applyp fn)
-          (mu:fix (:lambda (arg) (core::apply fn (core::list arg))) list)
+          (mu:fix (:lambda (arg) (core:apply fn (core::list arg))) list)
           (mu:fix fn list))))
 
 ;;;
@@ -48,7 +48,7 @@
              (:if lst
                   (mu:cons
                    (mu:cdr lst)
-                   (core::apply fn (core::list2 (mu:car lst) acc)))
+                   (core:apply fn (core::list2 (mu:car lst) acc)))
                   arg))
            (mu:car arg)
            (mu:cdr arg)))
@@ -71,7 +71,7 @@
       (:lambda (lst)
         (:if lst
              (core::prog2
-                 (core::apply fn (core::list (mu:car lst)))
+                 (core:apply fn (core::list (mu:car lst)))
                  (mu:cdr lst))
              ()))
       list)
@@ -83,7 +83,7 @@
      (core:errorp-unless core:listp list "core:mapcar: not a list")
      (core:foldl
       (:lambda (elt acc)
-        (core::append acc (core::list (core::apply fn (core::list elt)))))
+        (core::append acc (core::list (core:apply fn (core::list elt)))))
       ()
       list)))
    
@@ -95,7 +95,7 @@
        (:lambda (lst)
          (:if lst
               (core::prog2
-                  (core::apply fn (core::list lst))
+                  (core:apply fn (core::list lst))
                   (mu:cdr lst))
               ()))
        list)
@@ -111,7 +111,7 @@
          ((:lambda (acc lst)
             (:if lst
                  (mu:cons
-                  (core::append acc (core::list (core::apply fn (core::list lst))))
+                  (core::append acc (core::list (core:apply fn (core::list lst))))
                   (mu:cdr lst))
                  loop))
           (mu:car loop)
@@ -127,7 +127,7 @@
      (core:errorp-unless core:listp list "core:findl: not a list")
      (core:foldr
       (:lambda (el acc)
-        (:if (core::apply fn (core::list el))
+        (:if (core:apply fn (core::list el))
              el
              acc))
       ()
@@ -139,7 +139,7 @@
      (core:errorp-unless core:sequencep list "core:findr not a list")
      (core:foldl
       (:lambda (el acc)
-        (:if (core::apply fn (core::list el))
+        (:if (core:apply fn (core::list el))
              el
              acc))
       ()
@@ -162,7 +162,7 @@
                       loop
                       (:if (mu:fx-lt len loop)
                            ()
-                           (:if (core::apply fn (core::list (mu:nth loop list)))
+                           (:if (core:apply fn (core::list (mu:nth loop list)))
                                 (core::list loop)
                                 (core:1+ loop)))))
                0)))
@@ -181,7 +181,7 @@
                    loop
                    (:if (mu:fx-lt loop 0)
                         ()
-                        (:if (core::apply fn (core::list (mu:nth loop list)))
+                        (:if (core:apply fn (core::list (mu:nth loop list)))
                              (core::list loop)
                              (core:1- loop)))))
             (core:1- (mu:length list)))))))

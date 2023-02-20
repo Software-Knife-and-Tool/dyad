@@ -100,7 +100,7 @@
       (core:errorp-unless (:lambda (form) (mu:fx-lt (mu:length form) 5)) form "core:if: takes two or three arguments")
       (core::compile
         ((:lambda (thunk if-impl)
-            (mu:cons 'core::apply
+            (mu:cons 'core:apply
               (mu:cons (thunk
                         (mu:cons if-impl
                           (mu:cons (core::compile (mu:nth 1 form) env)
@@ -113,8 +113,8 @@
               env))
          (:lambda (term true-fn false-fn)
             (:if term
-                 (core::apply true-fn ())
-                 (core::apply false-fn ()))))
+                 (core:apply true-fn ())
+                 (core:apply false-fn ()))))
         env)))
 
 (mu:intern core::ns :intern "special-table"
