@@ -8,24 +8,24 @@
 ;;;
 ;;; [*lambda descriptor*] #s(:lambda lambda-syms req-syms rest-sym env closure)
 ;;;
-;;; lambda-syms: list of symbols, suitable for :lambda
-;;; req-syms:    list of required symbols
-;;; rest-sym:    rest symbol or nil
-;;; env:         list of lambda descriptors
-;;; closure:     list of closed symbol bindings
+;;; symbols:    list of symbols, suitable for :lambda
+;;; reqsyms:    list of required symbols
+;;; restsym:    rest symbol or nil
+;;; env:        list of lambda descriptors
+;;; closure:    list of closed symbol bindings
 ;;;
 (mu:intern core::ns :intern "lambda-prop"
-  (:lambda (desc key)
+  (:lambda (key desc)
     (mu:sv-ref
+     (mu:st-vec desc)
      (mu:cdr
       (core:assoc
        key
        '((:symbols . 0)
          (:reqsyms . 1)
          (:restsym . 2)
-         (:env . 3)
-         (:closure . 4)))))
-     (mu:st-vec desc)))
+         (:env     . 3)
+         (:closure . 4)))))))
 
 (mu:intern core::ns :intern "make-lambda"
    (:lambda (lambda req-syms rest-sym env closure)
@@ -48,11 +48,11 @@
 ;;;
 (mu:intern core::ns :intern "core-lambda"
    (:lambda (form env)
-      (:if (core:findl-if (:lambda (el) (core:null (core:symbolp el))) form)
+      (:if (core:findl (:lambda (el) (core:null (core:symbolp el))) form)
          (core:error form "core::core-lambda: list syntax")
          ((:lambda (desc)
             (:if (core:fixnump desc)
-                 (core::lambda-descriptor form form () env ())
+                 (core::make-lambda form form () env ())
                  desc))
           (core:foldl
             (:lambda (el acc)
@@ -60,7 +60,7 @@
                   acc
                   (:if (mu:eq '&rest el)
                      (:if (mu:eq (mu:length form) (mu:fx-add 2 acc))
-                          (core::lambda-descriptor
+                          (core::make-lambda
                            (core::append (core:dropr form 2) (core:dropl form (core:1- (mu:length form))))
                            (core:dropr form 2)
                            (mu:nth (core:1- (mu:length form)) form)
@@ -79,7 +79,7 @@
      ((:lambda (lambda-desc body)
         (mu:compile
            (mu:cons :lambda
-              (mu:cons (core::lambda-syms lambda-desc)
+              (mu:cons (core::lambda-prop :symbols lambda-desc)
                        (core::compile-lambda-body lambda-desc body env)))))
       (core::core-lambda (mu:car form) env)
       (mu:nth 1 form))))
@@ -95,15 +95,15 @@
            (mu:compile
             (mu:cons :lambda
                (mu:cons
-                (core::lambda-syms desc)
+                (core::lambda-prop :symbols desc)
                 (mu:cons desc (mu:cdr (core::fn-form fn)))))))
-         (core::lambda-descriptor
-          (core::lambda-syms lambda-desc)
-          (core::lambda-req-symbols lambda-desc)
-          (core::lambda-rest-symbol lambda-desc)
-          (core::lambda-env lambda-desc)
-          (core:mapcar (:lambda (desc) (mu:fr-get (core::lambda-frame-id desc)))
-                       (core::lambda-env lambda-desc)))
+         (core::make-lambda
+          (core::lambda-prop :symbols lambda-desc)
+          (core::lambda-prop :reqsyms lambda-desc)
+          (core::lambda-prop :restsym lambda-desc)
+          (core::lambda-prop :env lambda-desc)
+          (core:mapcar (:lambda (desc-) (mu:fr-get (core::lambda-prop :frame desc-)))
+                       (core::lambda-prop :env lambda-desc)))
          (mu:cdr (core::fn-form fn))))
         (core::fn-lambda-desc fn))))
 
@@ -111,17 +111,18 @@
 ;;; [*closure-descriptor*] `(function . values)` 
 ;;;
 (mu:intern core::ns :intern "compile-closure"
-   (:lambda (form env)
-     (core:maplist
-      (:lambda (form-cons)
-        ((:lambda (compiled-form)
-           (:if (mu:cdr form-cons)
-                compiled-form
-                (:if (core:functionp compiled-form)
-                     (core:compile (mu:cons 'core::closure (core::list compiled-form)))
-                     compiled-form)))
-         (core::compile (mu:car form-cons) env)))
-      form)))
+  (:lambda (form env)
+    (core:warn env "compile-closure")
+    (core:maplist
+     (:lambda (form-cons)
+       ((:lambda (compiled-form)
+          (:if (mu:cdr form-cons)
+               compiled-form
+               (:if (core:functionp compiled-form)
+                    (core:compile (mu:cons 'core::closure (core::list compiled-form)))
+                    compiled-form)))
+        (core::compile (mu:car form-cons) env)))
+     form)))
 
 ;;;
 ;;; `core::compile-lambda-body` resolves body symbols with `core::compile-symbol`, uses
@@ -136,8 +137,10 @@
 ;;;
 (mu:intern core::ns :intern "compile-lambda-body"
   (:lambda (lambda-desc body env)
-      (:if body
-           ((:lambda (env)
+    (core:warn body "compile-lambda-body")
+    (:if body
+         ((:lambda (env)
+              (core:warn env "about to compile-closure")
               (core::compile-closure (mu:cons lambda-desc body) env))
             (core::compile-add-env lambda-desc env))
            ())))
@@ -161,7 +164,8 @@
 ;;;
 (mu:intern core::ns :intern "compile-symbol"
    (:lambda (symbol env)
-      ((:lambda (env-ref)
+     (core:warn symbol "compile-symbol")
+     ((:lambda (env-ref)
           (:if env-ref
                (core::compile
                 (mu:cons 'mu::fr-ref
@@ -188,14 +192,18 @@
 ;;;
 (mu:intern core::ns :intern "symbol-frame"
    (:lambda (symbol env)
+     (core:warn env "symbol-frame")
      (core:foldl
       (:lambda (frame acc)
+        (core:warn frame "symbol-frame/frame")
+        (core:warn (core::lambda-prop :frame frame) "symbol-frame/frame/id")
         (:if acc
              acc
              ((:lambda (offset)
+                (core:warn offset "symbol-frame/frame/offset")
                 (:if offset
-                     (mu:cons (core::lambda-frame-id frame) offset)
+                     (mu:cons (core::lambda-prop :func frame) offset)
                      ()))
-              (core:positionl (:lambda (el) (mu:eq el symbol)) (core::lambda-syms frame)))))
+              (core:positionl (:lambda (el) (mu:eq el symbol)) (core::lambda-prop :symbols frame)))))
       ()
       env)))

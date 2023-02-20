@@ -20,7 +20,7 @@
 ;;;
 (mu:intern core::ns :intern "compile-add-env"
   (:lambda (lambda-desc env)
-     (core:errorp-unless core:vectorp lambda-desc "compile-add-env: not a lambda descriptor")
+     (core:errorp-unless core:structp lambda-desc "compile-add-env: not a lambda descriptor")
      (core:errorp-unless core:listp env "compile-add-env: not a list") 
      (mu:cons lambda-desc env)))
 
@@ -137,6 +137,7 @@
 
 (mu:intern core::ns :intern "compile"
     (:lambda (form env)
+      (core:warn form "core::compile")
       (core:errorp-unless core:listp env "compile: env not a list")
       (:if (core:consp form)
           ((:lambda (fn args)
