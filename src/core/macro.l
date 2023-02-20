@@ -101,11 +101,11 @@
 ;;;
 (mu:intern core::ns :intern "core-macro"
    (:lambda (form env)
-      (:if (core:findl-if (:lambda (el) (core:null (core:symbolp el))) form)
+      (:if (core:findl (:lambda (el) (core:null (core:symbolp el))) form)
          (core:error-if form "core::core-macro: lambda syntax")
          ((:lambda (desc)
              (:if (core:fixnump desc)
-                  (core::lambda-descriptor form form () env ())
+                  (core::make-lambda form form () env ())
                   desc))
           (core:foldl
             (:lambda (el acc)
@@ -113,7 +113,7 @@
                   acc
                   (:if (mu:eq '&rest el)
                      (:if (mu:eq (mu:length form) (mu:fx-addXs 2 acc))
-                          (core::lambda-descriptor
+                          (core::make-lambda
                            (core::append (core:dropr form 2) (core:dropl form (core:1- (mu:length form))))
                            (core:dropr form 2)
                            (mu:nth (core:1- (mu:length form)) form)
@@ -129,7 +129,7 @@
      ((:lambda (lambda-desc body)
         (mu:compile
          (mu:cons :lambda
-                  (mu:cons (core::lambda-syms lambda-desc)
+                  (mu:cons (core::lambda-props :symbols lambda-desc)
                            (core::compile-lambda-body lambda-desc body env)))))
       (core::core-macro (mu:car form) env)
       (mu:nth 1 form))))

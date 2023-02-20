@@ -58,25 +58,21 @@
 ;;;
 ;;; control ops
 ;;;
-(mu:intern core::ns :intern "fmt-op-table"
-  (:lambda (ch)
-    (mu:cdr
-      (core:assoc
-       ch
-       '((#\A . core::fmt-aesthetic)
-         (#\S . core::fmt-standard)
-         (#\X . core::fmt-hex)
-         (#\D . core::fmt-decimal)
-         (#\~ . core::fmt-tilde)
-         (#\% . core::fmt-percent))))))
-
 (mu:intern core::ns :intern "fmt-op"
   (:lambda (dir dest args)
     ((:lambda (fn)
        (:if fn
             (core::apply (mu:sy-val fn) (core::list2 dest args))
             (core:error dir "core:format: unrecognized format directive")))
-     (core::fmt-op-table dir))))
+     (mu:cdr
+      (core:assoc
+       dir
+       '((#\A . core::fmt-aesthetic)
+         (#\S . core::fmt-standard)
+         (#\X . core::fmt-hex)
+         (#\D . core::fmt-decimal)
+         (#\~ . core::fmt-tilde)
+         (#\% . core::fmt-percent)))))))
 
 (mu:intern core::ns :intern "fmt-loop"
   (:lambda (stream dest fmt args)

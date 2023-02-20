@@ -10,16 +10,16 @@
 ;;; func:  function, mu applyable
 ;;;
 (mu:intern core::ns :intern "closure-prop"
-  (:lambda (closure key)
+  (:lambda (key closure)
     (mu:sv-ref
+     (mu:st-vec closure)
      (mu:cdr
       (core:assoc
        key
-       '((:env . 0)
+       '((:env   . 0)
          (:nreqs . 1)
-         (:rest . 2)
-         (:func . 3))))
-     (mu:st-vec closure))))
+         (:rest  . 2)
+         (:func  . 3)))))))
 
 (mu:intern core::ns :intern "make-closure"
   (:lambda (env nreq rest func)
@@ -97,17 +97,17 @@
              (core:errorp-unless core:closurep fn "core::apply: not a function or closure")
              (core:mapc mu:fr-push env)
              ((:lambda (mu-fn)
-                (:if (core::closure-prop fn :rest)
+                (:if (core::closure-prop :rest fn)
                      (mu:apply mu-fn (core::quoted-lambda-arg-list fn args))
                      (mu:apply mu-fn args)))
-              (core::closure-prop fn :func))
+              (core::closure-prop :func fn))
              (core:mapc mu:fr-pop env))
-           (core::closure-prop fn :env)))))
+           (core::closure-prop :env fn)))))
 
 (mu:intern core::ns :extern "apply"
    (:lambda (fn args)
      (core:errorp-unless
-      (:lambda (fn) (core::logical-or (core:functionp fn) (core:closurep fn)))
+      (:lambda (fn-) (core::logical-or (core:functionp fn-) (core:closurep fn-)))
       fn
       "core:apply: not a function or closure")
      (core::apply fn args)))

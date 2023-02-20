@@ -19,6 +19,7 @@
 (mu:intern core::ns :extern "functionp" (:lambda (t) (mu:eq :func (mu:type-of t))))
 (mu:intern core::ns :extern "namespacep" (:lambda (t) (mu:eq :ns (mu:type-of t))))
 (mu:intern core::ns :extern "streamp" (:lambda (t) (mu:eq :stream (mu:type-of t))))
+(mu:intern core::ns :extern "structp" (:lambda (t) (mu:eq :struct (mu:type-of t))))
 (mu:intern core::ns :extern "symbolp" (:lambda (t) (mu:eq :symbol (mu:type-of t))))
 (mu:intern core::ns :extern "vectorp" (:lambda (t) (mu:eq :vector (mu:type-of t))))
 (mu:intern core::ns :extern "listp" (:lambda (t) (:if (core:consp t) :t (core:null t))))
@@ -42,7 +43,9 @@
 
 (mu:intern core::ns :extern "closurep"
   (:lambda (t)
-    (core::logical-and (mu:eq :struct (mu:type-of t)) (mu:eq (mu:st-type t) :closure))))
+    (:if (mu:eq :struct (mu:type-of t))
+         (mu:eq (mu:st-type t) :closure)
+         ())))
 
 (mu:intern core::ns :extern "numberp"
   (:lambda (n)

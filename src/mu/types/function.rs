@@ -147,12 +147,14 @@ impl Core for Function {
                 let form = Function::form_of(mu, func);
 
                 let desc = match Tag::type_of(mu, form) {
-                    Type::Cons => ("lambda".to_string(), form.as_u64().to_string()),
+                    Type::Cons | Type::Null => ("lambda".to_string(), form.as_u64().to_string()),
                     Type::Fixnum => {
                         let (name, _, _, _) = Mu::map_core(Fixnum::as_i64(mu, form) as usize);
                         ("native".to_string(), name.to_string())
                     }
-                    _ => panic!("internal: function type inconsistency"),
+                    _ => {
+                        panic!("internal: function type inconsistency")
+                    }
                 };
 
                 mu.write_string(

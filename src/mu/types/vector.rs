@@ -606,7 +606,7 @@ impl MuFunction for Vector {
                 let nth = Fixnum::as_i64(mu, index);
 
                 if nth < 0 || nth as usize >= Self::length_of(mu, vector) {
-                    return Err(Exception::raise(mu, Condition::Range, "mu:svref", index));
+                    return Err(Exception::raise(mu, Condition::Range, "mu:sv-ref", index));
                 }
 
                 match Tag::type_of(mu, vector) {
@@ -617,10 +617,10 @@ impl MuFunction for Vector {
                         };
                         Ok(())
                     }
-                    _ => Err(Exception::raise(mu, Condition::Type, "mu:sy-ns", vector)),
+                    _ => Err(Exception::raise(mu, Condition::Type, "mu:sv-ref", vector)),
                 }
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:svref", index)),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:sv-ref", index)),
         }
     }
 
