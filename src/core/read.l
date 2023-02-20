@@ -59,7 +59,7 @@
      (core:errorp-when mu:eof stream "core::read-atom: unexpected eof")
      (mu:fix
       (:lambda (self end atom)
-        (:if (core::logical-or (core:fixnump end) (mu:eof stream))
+        (:if (core::logi-or (core:fixnump end) (mu:eof stream))
              atom
              ((:lambda (ch)
                 (:if (mu:eq :const (core::read-char-syntax ch))
@@ -104,7 +104,7 @@
    (:lambda (stream)
      (mu:fix
       (:lambda (loop)
-        (:if (core::logical-or (core:streamp loop) (core:charp loop))
+        (:if (core::log-or (core:streamp loop) (core:charp loop))
              loop
              ((:lambda (ch)
                 (:if (mu:eof stream)
@@ -140,14 +140,14 @@
                 ()
                 ((:lambda (macro)
                    (:if macro
-                        (core::apply (mu:car macro) (core::list2 stream ch))
+                        (core:apply (mu:car macro) (core::list2 stream ch))
                         (core::read-dispatch ch stream)))
                  (core:get-macro-character ch))))
          (mu:apply read-consume-ws ())))
       (:lambda ()
         (mu:fix
          (:lambda (loop)
-           (:if (core::logical-or (core:streamp loop) (core:charp loop))
+           (:if (core::log-or (core:streamp loop) (core:charp loop))
                 loop
                 ((:lambda (ch)
                    (:if (mu:eof stream)

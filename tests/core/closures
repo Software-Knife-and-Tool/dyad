@@ -1,7 +1,7 @@
 #
 # core closure tests
 #
-assert_eq "(mu:type-of core::apply)" ":func"
+assert_eq "(mu:type-of core:apply)" ":func"
 assert_eq "(mu:type-of core::fn-arity)" ":func"
 assert_eq "(mu:type-of core::fn-frame-id)" ":func"
 assert_eq "(mu:type-of core::fn-form)" ":func"
@@ -14,4 +14,4 @@ assert_eq "(mu:eval (core:compile '((lambda () (defun core:a-defun (a b) (mu:con
 assert_eq "(mu:eval (core:compile '((lambda () (defun core:a-defun (&rest a) a) (core:a-defun 1 2 3)))))" "(1 2 3)"
 assert_eq "(mu:eval (core:compile '((lambda () (defun core:a-defun (a &rest b) (mu:cons a b)) (core:a-defun 0 1 2 3)))))" "(0 1 2 3)"
 assert_eq "(mu:eval (core:compile '((lambda () (defun core:a-defun (a b &rest c) (mu:cons a (mu:cons b c))) (core:a-defun 0 1 2 3)))))" "(0 1 2 3)"
-assert_eq "(core::apply (core::apply (core:compile '(lambda (a) (lambda (b) (mu:fx-add a b)))) '(5)) '(10))" "15"
+assert_eq "(core:apply (core:apply (core:compile '(lambda (a) (lambda (b) (mu:fx-add a b)))) '(5)) '(10))" "15"

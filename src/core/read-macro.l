@@ -51,7 +51,7 @@
    (:lambda (base stream)
      (mu:fix           
       (:lambda (loop)
-        (:if (core::logical-or (mu:eof stream) (core:numberp loop))
+        (:if (core::log-or (mu:eof stream) (core:numberp loop))
              loop
              ((:lambda (ch)
                 ((:lambda (syntax-type)
@@ -104,7 +104,7 @@
                         (:if (mu:eq form core::read-list-eol)
                              (mu:fr-setv (core::fn-frame-id self) 1 core::read-list-eol)
                              (:if (core:symbolp form)
-                                  (:if (core::logical-and (core:uninternedp form) (mu:eq (mu:sy-name form) "."))
+                                  (:if (core::log-and (core:uninternedp form) (mu:eq (mu:sy-name form) "."))
                                        ((:lambda (dotted)
                                           (core:error-if (core:null list) dotted "read-list: malformed dotted list")
                                           ((:lambda (eol)
