@@ -137,7 +137,6 @@
 
 (mu:intern core::ns :intern "compile"
     (:lambda (form env)
-      (core:warn form "core::compile")
       (core:errorp-unless core:listp env "compile: env not a list")
       (:if (core:consp form)
           ((:lambda (fn args)

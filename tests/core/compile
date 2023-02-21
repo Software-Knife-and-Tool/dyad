@@ -1,10 +1,6 @@
 #
 # general core compiler tests
 #
-assert_eq "(mu:eq :func (mu:type-of (core:compile '(lambda () 1))))" ":t"
-assert_eq "(mu:eq :func (mu:type-of (core:compile '(lambda (a b) b))))" ":t"
-assert_eq "(mu:eq :func (mu:type-of (core:compile '(lambda (a) "hoo"))))" ":t"
-assert_eq "(mu:eq :func (mu:type-of (core:compile '(lambda (a) a))))" ":t"
 assert_eq "(mu:eq :func (mu:type-of core::compile-add-env))" ":t"
 assert_eq "(mu:eq :func (mu:type-of core::compile-lambda))" ":t"
 assert_eq "(mu:eq :func (mu:type-of core::compile-lambda-body))" ":t"
@@ -12,7 +8,11 @@ assert_eq "(mu:eq :func (mu:type-of core::compile-symbol))" ":t"
 assert_eq "(mu:eq :func (mu:type-of core::core-lambda))" ":t"
 assert_eq "(mu:eq :func (mu:type-of core::symbol-frame))" ":t"
 assert_eq "(mu:eq :func (mu:type-of core:compile))" ":t"
-# special forms if, defconst
+# special forms if, defconst, lambda
+assert_eq "(mu:eq :func (mu:type-of (core:compile '(lambda () 1))))" ":t"
+assert_eq "(mu:eq :func (mu:type-of (core:compile '(lambda (a b) b))))" ":t"
+assert_eq "(mu:eq :func (mu:type-of (core:compile '(lambda (a) "hoo"))))" ":t"
+assert_eq "(mu:eq :func (mu:type-of (core:compile '(lambda (a) a))))" ":t"
 assert_eq "(core:compile '(defconst foo ()))" "(:quote foo)"
 assert_eq "(mu:apply (core:compile '(lambda () (defconst core:foo 'foo) core:foo)) ())" "foo"
 assert_eq "(mu:eval (core:compile '(if :t :t ())))" ":t"
@@ -31,3 +31,4 @@ assert_eq "(mu:eval (core:compile '(if (core:null ()) (mu:fx-add 0 1) (mu:fx-add
 assert_eq "(mu:eval (core:compile '(if (core:not (core:null :t)) (mu:fx-add 0 1) (mu:fx-add 0 0))))" "1"
 assert_eq "(mu:eval (core:compile '(if (core:null ()) (mu:fx-add 0 1) (core:write \"should not eval\" () ()))))" "1"
 assert_eq "(mu:eval (core:compile '(if (core:null :t) (core:write \"should not eval\" () ()) (mu:fx-add 0 0))))" "0"
+assert_eq "(mu:eval (core:compile '((:lambda (fn) (core:apply (:lambda (fn) (mu:eq :func (mu:type-of fn))) (core::list fn))) mu:eq)))" ":t"
