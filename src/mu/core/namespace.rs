@@ -1,11 +1,10 @@
-//  SPDX-FileCopyrightText: Copyright 2022-2023 James M. Putnam (putnamjm.design@gmail.com)
+//  SPDX-FileCopyrightText: Copyright 2022 James M. Putnam (putnamjm.design@gmail.com)
 //  SPDX-License-Identifier: MIT
 
 //! mu namespace symbols
 use crate::{
     core::{
         classes::{MuFunction as _, Tag},
-        coerce::MuFunction as _,
         exception::{Exception, MuFunction as _},
         frame::{Frame, MuFunction as _},
         functions::MuFunction as _,
@@ -13,6 +12,7 @@ use crate::{
         mu::{Mu, MuFunctionType},
     },
     types::{
+        coerce::MuFunction as _,
         cons::{Cons, MuFunction as _},
         fixnum::{Fixnum, MuFunction as _},
         float::{Float, MuFunction as _},
