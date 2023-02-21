@@ -1,4 +1,4 @@
-//  SPDX-FileCopyrightText: Copyright 2022-2023 James M. Putnam (putnamjm.design@gmail.com)
+//  SPDX-FileCopyrightText: Copyright 2022 James M. Putnam (putnamjm.design@gmail.com)
 //  SPDX-License-Identifier: MIT
 
 //! mu environment
@@ -8,11 +8,12 @@ use {
     crate::{
         core::{
             classes::{Tag, Type},
-            compile, exception,
+            compile::Compiler,
+            exception,
             exception::{Condition, Exception},
             frame::Frame,
             namespace::Core as _,
-            read::Read,
+            read::Reader,
         },
         image::heap::Heap,
         system::sys as system,
@@ -211,7 +212,7 @@ impl Core for Mu {
     }
 
     fn compile(&self, tag: Tag) -> exception::Result<Tag> {
-        compile::compile(self, tag)
+        <Mu as Compiler>::compile(self, tag)
     }
 
     fn eof(&self, stream: Tag) -> bool {
@@ -219,12 +220,12 @@ impl Core for Mu {
     }
 
     fn read(&self, stream: Tag, eofp: bool, eof_value: Tag) -> exception::Result<Tag> {
-        <Mu as Read>::read(self, stream, eofp, eof_value, false)
+        <Mu as Reader>::read(self, stream, eofp, eof_value, false)
     }
 
     fn read_string(&self, string: String) -> exception::Result<Tag> {
         match Stream::open_string(self, &string, true) {
-            Ok(stream) => <Mu as Read>::read(self, stream, true, Tag::nil(), false),
+            Ok(stream) => <Mu as Reader>::read(self, stream, true, Tag::nil(), false),
             Err(e) => Err(e),
         }
     }

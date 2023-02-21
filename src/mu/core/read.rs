@@ -1,4 +1,4 @@
-//  SPDX-FileCopyrightText: Copyright 2022-2023 James M. Putnam (putnamjm.design@gmail.com)
+//  SPDX-FileCopyrightText: Copyright 2022 James M. Putnam (putnamjm.design@gmail.com)
 //  SPDX-License-Identifier: MIT
 
 //! mu reader
@@ -36,7 +36,7 @@ lazy_static! {
 //     errors propagate out of read()
 //
 
-pub trait Read {
+pub trait Reader {
     fn read(_: &Mu, _: Tag, _: bool, _: Tag, _: bool) -> exception::Result<Tag>;
     fn read_atom(_: &Mu, _: char, _: Tag) -> exception::Result<Tag>;
     fn read_block_comment(_: &Mu, _: Tag) -> exception::Result<Option<()>>;
@@ -47,7 +47,7 @@ pub trait Read {
     fn read_token(_: &Mu, _: Tag) -> exception::Result<Option<String>>;
 }
 
-impl Read for Mu {
+impl Reader for Mu {
     //
     // read whitespace:
     //

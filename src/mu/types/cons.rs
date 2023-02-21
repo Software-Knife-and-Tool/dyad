@@ -1,4 +1,4 @@
-//  SPDX-FileCopyrightText: Copyright 2022-2023 James M. Putnam (putnamjm.design@gmail.com)
+//  SPDX-FileCopyrightText: Copyright 2022 James M. Putnam (putnamjm.design@gmail.com)
 //  SPDX-License-Identifier: MIT
 
 //! mu cons class
@@ -11,7 +11,7 @@ use {
             exception::{Condition, Exception},
             frame::Frame,
             mu::{Core as _, Mu},
-            read::{Read, EOL},
+            read::{Reader, EOL},
         },
         image,
         types::{
@@ -114,17 +114,18 @@ impl Core for Cons {
     fn read(mu: &Mu, stream: Tag) -> exception::Result<Tag> {
         let dot = Tag::to_direct('.' as u64, 1, DirectType::Byte);
 
-        match <Mu as Read>::read(mu, stream, false, Tag::nil(), true) {
+        match <Mu as Reader>::read(mu, stream, false, Tag::nil(), true) {
             Ok(car) => {
                 if EOL.eq_(car) {
                     Ok(Tag::nil())
                 } else {
                     match Tag::type_of(mu, car) {
                         Type::Symbol if dot.eq_(Symbol::name_of(mu, car)) => {
-                            match <Mu as Read>::read(mu, stream, false, Tag::nil(), true) {
+                            match <Mu as Reader>::read(mu, stream, false, Tag::nil(), true) {
                                 Ok(cdr) if EOL.eq_(cdr) => Ok(Tag::nil()),
                                 Ok(cdr) => {
-                                    match <Mu as Read>::read(mu, stream, false, Tag::nil(), true) {
+                                    match <Mu as Reader>::read(mu, stream, false, Tag::nil(), true)
+                                    {
                                         Ok(eol) if EOL.eq_(eol) => Ok(cdr),
                                         Ok(_) => Err(Exception::raise(
                                             mu,
