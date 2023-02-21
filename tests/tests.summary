@@ -1,7 +1,7 @@
-Test Summary: 02/21/2023 11:44:42
+Test Summary: 02/21/2023 15:53:50
 -----------------------
 mu:        chars          total: 2        failed: 0        aborted: 0       
-mu:        compile        total: 7        failed: 0        aborted: 0       
+mu:        compile        total: 8        failed: 0        aborted: 0       
 mu:        core           total: 33       failed: 0        aborted: 0       
 mu:        lists          total: 22       failed: 0        aborted: 0       
 mu:        namespace      total: 14       failed: 0        aborted: 0       
@@ -13,10 +13,10 @@ mu:        structs        total: 7        failed: 0        aborted: 0
 mu:        symbols        total: 10       failed: 0        aborted: 0       
 mu:        vectors        total: 23       failed: 0        aborted: 0       
 -----------------------
-mu:        passed: 219    total: 219      failed: 0        aborted: 0         
+mu:        passed: 220    total: 220      failed: 0        aborted: 0         
 
 core:      closures       total: 14       failed: 13       aborted: 0       
-core:      compile        total: 29       failed: 5        aborted: 16      
+core:      compile        total: 30       failed: 22       aborted: 0       
 core:      core           total: 22       failed: 0        aborted: 0       
 core:      exceptions     total: 7        failed: 0        aborted: 0       
 core:      format         total: 12       failed: 0        aborted: 0       
@@ -29,5 +29,5 @@ core:      streams        total: 23       failed: 0        aborted: 0
 core:      strings        total: 16       failed: 0        aborted: 0       
 core:      vectors        total: 13       failed: 0        aborted: 0       
 -----------------------
-core:      passed: 201    total: 268      failed: 50       aborted: 17        
+core:      passed: 201    total: 269      failed: 67       aborted: 1         
 

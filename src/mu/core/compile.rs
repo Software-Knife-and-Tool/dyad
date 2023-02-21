@@ -228,7 +228,7 @@ impl Compiler for Mu {
             Err(e) => return Err(e),
         };
 
-        match Self::compile_list(mu, body) {
+        let form = match Self::compile_list(mu, body) {
             Ok(form) => Ok(Function::new(
                 lambda,
                 Fixnum::as_tag(Cons::length(mu, lambda) as i64),
@@ -237,7 +237,12 @@ impl Compiler for Mu {
             )
             .evict(mu)),
             Err(e) => Err(e),
-        }
+        };
+
+        let mut lexenv_ref: RefMut<Vec<(Tag, Vec<Tag>)>> = mu.compile.borrow_mut();
+        lexenv_ref.pop();
+
+        form
     }
 
     fn compile(mu: &Mu, expr: Tag) -> exception::Result<Tag> {
