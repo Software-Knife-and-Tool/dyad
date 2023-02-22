@@ -112,7 +112,6 @@
 ;;;
 (mu:intern core::ns :intern "compile-closure"
   (:lambda (form env)
-    (core:warn env "compile-closure")
     (core:maplist
      (:lambda (form-cons)
        ((:lambda (compiled-form)
@@ -137,10 +136,8 @@
 ;;;
 (mu:intern core::ns :intern "compile-lambda-body"
   (:lambda (lambda-desc body env)
-    (core:warn body "compile-lambda-body")
     (:if body
          ((:lambda (env)
-              (core:warn env "about to compile-closure")
               (core::compile-closure (mu:cons lambda-desc body) env))
             (core::compile-add-env lambda-desc env))
            ())))
@@ -164,7 +161,6 @@
 ;;;
 (mu:intern core::ns :intern "compile-symbol"
    (:lambda (symbol env)
-     (core:warn symbol "compile-symbol")
      ((:lambda (env-ref)
           (:if env-ref
                (core::compile
@@ -192,15 +188,11 @@
 ;;;
 (mu:intern core::ns :intern "symbol-frame"
    (:lambda (symbol env)
-     (core:warn env "symbol-frame")
      (core:foldl
       (:lambda (frame acc)
-        (core:warn frame "symbol-frame/frame")
-        (core:warn (core::lambda-prop :frame frame) "symbol-frame/frame/id")
         (:if acc
              acc
              ((:lambda (offset)
-                (core:warn offset "symbol-frame/frame/offset")
                 (:if offset
                      (mu:cons (core::lambda-prop :func frame) offset)
                      ()))
