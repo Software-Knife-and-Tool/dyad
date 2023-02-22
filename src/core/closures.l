@@ -1,4 +1,4 @@
-;;;  SPDX-FileCopyrightText: Copyright 2017-2022 James M. Putnam (putnamjm.design@gmail.com)
+;;;  SPDX-FileCopyrightText: Copyright 2017 James M. Putnam (putnamjm.design@gmail.com)
 ;;;  SPDX-License-Identifier: MIT
 
 ;;;
@@ -92,54 +92,52 @@
 (mu:intern core::ns :extern "apply"
    (:lambda (fn args)
      (core:errorp-unless
-      (:lambda (fn-) (core::log-or (core:functionp fn-) (core:closurep fn-)))
+      (:lambda (fn) (core::log-or (core:functionp fn) (core:closurep fn)))
       fn
       "core:apply: not a function or closure")
      (:if (core:functionp fn)
           (mu:apply fn args)
-          ((:lambda (env)
-             (core:errorp-unless core:closurep fn "core:apply: not a function or closure")
-             (core:mapc mu:fr-push env)
-             ((:lambda (mu-fn)
-                (:if (core::closure-prop :rest fn)
-                     (mu:apply mu-fn (core::quoted-lambda-arg-list fn args))
-                     (mu:apply mu-fn args)))
-              (core::closure-prop :func fn))
-             (core:mapc mu:fr-pop env))
-           (core::closure-prop :env fn)))))
+          (core::closure-apply fn args))))
+
+(mu:intern core::ns :intern "closure-apply"
+   (:lambda (fn args)
+     ((:lambda (env)
+        (core:mapc mu:fr-push env)
+        ((:lambda (mu-fn)
+           (:if (core::closure-prop :rest fn)
+                (mu:apply mu-fn (core::quoted-lambda-arg-list fn args))
+                (mu:apply mu-fn args)))
+         (core::closure-prop :func fn))
+        (core:mapc mu:fr-pop env))
+      (core::closure-prop :env fn))))
 
 ;;;
 ;;; compile-application
 ;;;
 ;;; expand macros
 ;;; convert core lambdas to mu forms
+;;; compile function applications
 ;;;
-
-;;; ((lambda ...) ...)
 (mu:intern core::ns :intern "compile-lambda-call"
   (:lambda (form args env)
     ((:lambda (fn)
-       (core:errorp-unless core:functionp fn "compile-lambda-call: lambda is not a function designator")
-       (:if (core::fn-lambda-desc fn)
-            (core::list3 core:apply fn (core::compile-flat-arg-list args env))
+       (:if (core:closurep fn)
+            (core::list3 core::apply-closure fn (core::compile-flat-arg-list args env))
             (mu:cons fn (core::compile-quoted-lambda-arg-list fn args env))))
      (core::compile form env))))
 
-;;; (function ...)
 (mu:intern core::ns :intern "compile-fn-call"
-  (:lambda (fn args env)        ;;; function call
-        (:if (core::fn-lambda-desc fn)
-             (core::list3 core:apply fn (core::compile-flat-arg-list args env))
-             (mu:cons fn (core::compile-quoted-lambda-arg-list fn args env)))))
+  (:lambda (fn args env)
+    (:if (core::closurep fn)
+         (core::list3 core::apply-closure fn (core::compile-flat-arg-list args env))
+         (mu:cons fn (core::compile-quoted-lambda-arg-list fn args env)))))
 
-;;; (macro-symbol ...)
 (mu:intern core::ns :intern "compile-macro-call"
   (:lambda (macro-symbol args env)
     (core::compile
      (core:macroexpand (mu:cons macro-symbol args) env)
      env)))
 
-;;; (symbol ...)
 (mu:intern core::ns :intern "compile-symbol-call"
   (:lambda (symbol args env)
     (:if (core:boundp symbol)
@@ -154,17 +152,17 @@
 ;;; compile function application
 ;;;
 (mu:intern core::ns :intern "compile-application"
-   (:lambda (fn args env)
-     (:if (core:functionp fn)
-             (core::compile-fn-call fn args env)
-             (:if (core:consp fn)
-                  (core::compile-lambda-call fn args env)
-                  (:if (core:symbolp fn)
-                       (:if (core:boundp fn)
-                            ((:lambda (macro-fn)
-                               (:if macro-fn
-                                    (core::compile-macro-call fn args env)
-                                    (core::symbol-call fn args env)))
-                             (core:macro-function fn env))
-                            (core::compile-symbol-call fn args env))
-                       (core:error fn "compile-application: not a function designator"))))))
+  (:lambda (fn args env)
+    (:if (core:functionp fn)
+         (core::compile-fn-call fn args env)
+         (:if (core:consp fn)
+              (core::compile-lambda-call fn args env)
+              (:if (core:symbolp fn)
+                   (:if (core:boundp fn)
+                        ((:lambda (macro-fn)
+                           (:if macro-fn
+                                (core::compile-macro-call fn args env)
+                                (core::symbol-call fn args env)))
+                         (core:macro-function fn env))
+                        (core::compile-symbol-call fn args env))
+                   (core:error fn "compile-application: not a function designator"))))))

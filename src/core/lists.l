@@ -44,11 +44,11 @@
       (mu:cdr
        (mu:fix
         (:lambda (arg)
-          ((:lambda (lst acc)
-             (:if lst
+          ((:lambda (list acc)
+             (:if list
                   (mu:cons
-                   (mu:cdr lst)
-                   (core:apply fn (core::list2 (mu:car lst) acc)))
+                   (mu:cdr list)
+                   (core:apply fn (core::list2 (mu:car list) acc)))
                   arg))
            (mu:car arg)
            (mu:cdr arg)))
@@ -92,11 +92,11 @@
       (core:errorp-unless core:functionp fn "core:mapl: not a function")
       (core:errorp-unless core:listp list "core:mapl: not a list")
       (mu:fix
-       (:lambda (lst)
-         (:if lst
+       (:lambda (list)
+         (:if list
               (core::prog2
-                  (core:apply fn (core::list lst))
-                  (mu:cdr lst))
+                  (core:apply fn (core::list list))
+                  (mu:cdr list))
               ()))
        list)
       list))
@@ -108,11 +108,11 @@
      (mu:car
       (mu:fix
        (:lambda (loop)
-         ((:lambda (acc lst)
-            (:if lst
+         ((:lambda (acc list)
+            (:if list
                  (mu:cons
-                  (core::append acc (core::list (core:apply fn (core::list lst))))
-                  (mu:cdr lst))
+                  (core::append acc (core::list (core:apply fn (core::list list))))
+                  (mu:cdr list))
                  loop))
           (mu:car loop)
           (mu:cdr loop)))

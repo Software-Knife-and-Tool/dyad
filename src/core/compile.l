@@ -101,11 +101,12 @@
       (core::compile
         ((:lambda (thunk if-impl)
             (mu:cons 'core:apply
-              (mu:cons (thunk
-                        (mu:cons if-impl
-                          (mu:cons (core::compile (mu:nth 1 form) env)
-                            (mu:cons (thunk (mu:nth 2 form))
-                              (core::list (thunk (mu:nth 3 form)))))))
+              (mu:cons (mu:apply thunk
+                (core::list
+                 (mu:cons if-impl
+                   (mu:cons (core::compile (mu:nth 1 form) env)
+                     (mu:cons (mu:apply thunk (core::list (mu:nth 2 form)))
+                       (core::list (mu:apply thunk (mu:nth 3 form))))))))
                 '(()))))
          (:lambda (form)
             (core::compile
