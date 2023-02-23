@@ -48,7 +48,7 @@
 
 (mu:intern core::ns :intern "lambda"
     (:lambda (form env)
-      (core:error-if (mu:fx-lt (mu:length form) 2) form "lambda: malformed lambda expression")
+      (core:error-if (mu:fx-lt (mu:length form) 2) form "core lambda: malformed lambda expression")
       (core::compile-lambda (core::list2 (mu:nth 1 form) (mu:nthcdr 2 form)) env)))
 
 (mu:intern core::ns :intern "defconst"

@@ -135,6 +135,7 @@ pub trait Core {
     fn open_string(_: &Mu, _: &str, is_input: bool) -> exception::Result<Tag>;
     fn read_byte(_: &Mu, _: Tag) -> exception::Result<Option<u8>>;
     fn read_char(_: &Mu, _: Tag) -> exception::Result<Option<char>>;
+    fn unread_byte(_: &Mu, _: Tag, _: u8) -> exception::Result<Option<()>>;
     fn unread_char(_: &Mu, _: Tag, _: char) -> exception::Result<Option<()>>;
     fn write(_: &Mu, _: Tag, _: bool, _: Tag) -> exception::Result<()>;
     fn write_byte(_: &Mu, _: Tag, _: u8) -> exception::Result<Option<()>>;
@@ -439,6 +440,42 @@ impl Core for Stream {
         }
     }
 
+    fn unread_byte(mu: &Mu, stream: Tag, byte: u8) -> exception::Result<Option<()>> {
+        let mut image = Self::to_image(mu, stream);
+
+        if !Self::is_open(mu, stream) {
+            return Err(Exception::raise(
+                mu,
+                Condition::Open,
+                "stream::unread_byte",
+                stream,
+            ));
+        }
+
+        if image.direction.eq_(Symbol::keyword("output")) {
+            return Err(Exception::raise(
+                mu,
+                Condition::Type,
+                "stream::unread_byte",
+                stream,
+            ));
+        }
+
+        if image.unch.null_() {
+            image.unch = Fixnum::as_tag(byte as i64);
+            Self::update(mu, &image, stream);
+
+            Ok(None)
+        } else {
+            Err(Exception::raise(
+                mu,
+                Condition::Stream,
+                "stream::unread_byte",
+                Fixnum::as_tag(byte as i64),
+            ))
+        }
+    }
+
     fn unread_char(mu: &Mu, stream: Tag, ch: char) -> exception::Result<Option<()>> {
         let mut image = Self::to_image(mu, stream);
 
@@ -454,7 +491,7 @@ impl Core for Stream {
         if image.direction.eq_(Symbol::keyword("output")) {
             return Err(Exception::raise(
                 mu,
-                Condition::Stream,
+                Condition::Type,
                 "stream::unread_char",
                 stream,
             ));
@@ -468,7 +505,7 @@ impl Core for Stream {
         } else {
             Err(Exception::raise(
                 mu,
-                Condition::Error,
+                Condition::Stream,
                 "stream::unread_char",
                 Char::as_tag(ch),
             ))
@@ -491,7 +528,7 @@ impl Core for Stream {
         if image.direction.eq_(Symbol::keyword("input")) {
             return Err(Exception::raise(
                 mu,
-                Condition::Stream,
+                Condition::Type,
                 "system::write_char",
                 stream,
             ));
@@ -529,7 +566,7 @@ impl Core for Stream {
         if image.direction.eq_(Symbol::keyword("input")) {
             return Err(Exception::raise(
                 mu,
-                Condition::Stream,
+                Condition::Type,
                 "system::write_byte",
                 stream,
             ));
@@ -756,58 +793,40 @@ impl MuFunction for Stream {
     }
 
     fn mu_unread_byte(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
-        let byte = fp.argv[1];
+        let byte = fp.argv[0];
+        let stream = fp.argv[1];
 
         match Tag::type_of(mu, stream) {
-            Type::Stream => {
-                match Self::unread_char(mu, stream, (Fixnum::as_i64(mu, byte) as u8) as char) {
-                    Ok(Some(_)) => {
-                        fp.value = byte;
-                        Ok(())
-                    }
-                    Ok(None) => Err(Exception::raise(
-                        mu,
-                        Condition::Eof,
-                        "mu:unread-byte",
-                        stream,
-                    )),
-                    Err(e) => Err(e),
+            Type::Stream => match Self::unread_byte(mu, stream, Fixnum::as_i64(mu, byte) as u8) {
+                Ok(Some(_)) => {
+                    panic!("internal: unexpected return from unread_byte")
                 }
-            }
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:unread-byte",
-                stream,
-            )),
+                Ok(None) => {
+                    fp.value = byte;
+                    Ok(())
+                }
+                Err(e) => Err(e),
+            },
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:un-byte", stream)),
         }
     }
 
     fn mu_unread_char(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
-        let ch = fp.argv[1];
+        let ch = fp.argv[0];
+        let stream = fp.argv[1];
 
         match Tag::type_of(mu, stream) {
             Type::Stream => match Self::unread_char(mu, stream, Char::as_char(mu, ch)) {
                 Ok(Some(_)) => {
+                    panic!("internal: unexpected return from unread_char")
+                }
+                Ok(None) => {
                     fp.value = ch;
                     Ok(())
                 }
-                Ok(None) => Err(Exception::raise(
-                    mu,
-                    Condition::Eof,
-                    "mu:unread-char",
-                    stream,
-                )),
                 Err(e) => Err(e),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:unread-char",
-                stream,
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:un-char", stream)),
         }
     }
 
