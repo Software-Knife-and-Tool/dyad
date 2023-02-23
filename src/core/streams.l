@@ -82,12 +82,14 @@
       (core::read-stream-designator designator))))
 
 (mu:intern core::ns :extern "unread-char"
-   (:lambda (char designator)
-     (mu:un-byte (mu:coerce char :fixnum) (core::write-stream-designator designator))))
+  (:lambda (char designator)
+    (core:errorp-unless core:charp char "core:unread-char: not a char")
+    (mu:un-char char (core::write-stream-designator designator))))
 
 (mu:intern core::ns :extern "unread-byte"
-   (:lambda (byte designator)
-     (mu:un-byte byte (core::write-stream-designator designator))))
+  (:lambda (byte designator)
+    (core:errorp-unless core:fixnump char "core:unead-byte: not a byte")
+    (mu:un-byte byte (core::write-stream-designator designator))))
 
 ;;;
 ;;; read/write

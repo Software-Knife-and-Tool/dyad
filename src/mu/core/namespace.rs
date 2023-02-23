@@ -111,6 +111,7 @@ lazy_static! {
         ("rd-byte", Scope::Extern, 3, Stream::mu_read_byte),
         ("rd-char", Scope::Extern, 3, Stream::mu_read_char),
         ("un-char", Scope::Extern, 2, Stream::mu_unread_char),
+        ("un-byte", Scope::Extern, 2, Stream::mu_unread_byte),
         ("wr-byte", Scope::Extern, 2, Stream::mu_write_byte),
         ("wr-char", Scope::Extern, 2, Stream::mu_write_char),
         // interns

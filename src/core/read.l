@@ -10,7 +10,7 @@
 ;;;
 ;;; readtable
 ;;;
-(mu:intern core::ns :extern "read-char-syntax"
+(mu:intern core::ns :intern "read-char-syntax"
    (:lambda (ch)
      ((:lambda (read-table) (mu:cdr (core:assoc ch read-table)))
       '((#\return . :wspace) (#\linefeed . :wspace) (#\page . :wspace)
