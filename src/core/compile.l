@@ -93,30 +93,28 @@
 ;;;
 ;;; this if form can take two or three arguments
 ;;;
+(mu:intern core::ns :intern "thunk"
+  (:lambda (form env)
+    (core::compile
+     (core::list3 'lambda () form)
+     env)))
+
+(mu:intern core::ns :intern "if-body"
+  (:lambda (term true-fn false-fn)
+    (:if term
+         (core:apply true-fn ())
+         (core:apply false-fn ()))))
+
 (mu:intern core::ns :intern "if"
    (:lambda (form env)
-      (core:errorp-unless core:listp env "core::if: not an environment")
-      (core:errorp-unless (:lambda (form) (mu:fx-lt 2 (mu:length form))) form "core:if: takes two or three arguments")
-      (core:errorp-unless (:lambda (form) (mu:fx-lt (mu:length form) 5)) form "core:if: takes two or three arguments")
-      (core::compile
-        ((:lambda (thunk if-impl)
-            (mu:cons 'core:apply
-              (mu:cons (mu:apply thunk
-                (core::list
-                 (mu:cons if-impl
-                   (mu:cons (core::compile (mu:nth 1 form) env)
-                     (mu:cons (mu:apply thunk (core::list (mu:nth 2 form)))
-                       (core::list (mu:apply thunk (mu:nth 3 form))))))))
-                '(()))))
-         (:lambda (form)
-            (core::compile
-              (core::list3 'lambda () form)
-              env))
-         (:lambda (term true-fn false-fn)
-            (:if term
-                 (core:apply true-fn ())
-                 (core:apply false-fn ()))))
-        env)))
+      (core:errorp-unless core:listp env "core if: not an environment")
+      (core:errorp-unless (:lambda (form) (mu:fx-lt 2 (mu:length form))) form "core if: takes two or three arguments")
+      (core:errorp-unless (:lambda (form) (mu:fx-lt (mu:length form) 5)) form "core if: takes two or three arguments")
+      (mu:cons 'core::if-body
+        (core::list3
+         (core::list (core::thunk (mu:nth 1 form) env))
+         (core::thunk (mu:nth 2 form) env)
+         (core::thunk (mu:nth 3 form) env)))))
 
 (mu:intern core::ns :intern "special-table"
    (:lambda (symbol)
