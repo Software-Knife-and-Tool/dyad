@@ -96,7 +96,7 @@
 (mu:intern core::ns :intern "thunk"
   (:lambda (form env)
     (core::compile
-     (core::list3 'lambda () form)
+     (core::list3 :lambda () form)
      env)))
 
 (mu:intern core::ns :intern "if-body"

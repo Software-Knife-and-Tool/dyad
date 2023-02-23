@@ -23,7 +23,7 @@
                 (core::list2
                  (:if (core:symbolp (core::fn-form fn))
                       (core::fn-form fn)
-                      (core::string-append :intern "lambda-" (core:symbol-name (core::fn-frame-id fn))))
+                      (core:string-append :intern "lambda-" (core:symbol-name (core::fn-frame-id fn))))
                  (core:sv-list args))))
        (mu:car frame)
        (mu:cdr frame))))

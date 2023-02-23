@@ -29,9 +29,9 @@
               (mu:intern
                symbol-ns
                :intern
-               (core::string-append (mu:ns-name symbol-ns) ":macrodefs")
-               (mu:make-ns (mu:make-ns (core::string-append (mu:ns-name symbol-ns) ":macro-functions") ()))))))
-      (mu:ns-map (mu:sy-ns symbol) :intern (core::string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
+               (core:string-append (mu:ns-name symbol-ns) ":macrodefs")
+               (mu:make-ns (mu:make-ns (core:string-append (mu:ns-name symbol-ns) ":macro-functions") ()))))))
+      (mu:ns-map (mu:sy-ns symbol) :intern (core:string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
       (mu:sy-ns symbol)
       (mu:sy-name symbol)
       (mu:sy-ext symbol))))
@@ -43,7 +43,7 @@
         (:if macro-ns
              (mu:ns-map (mu:sy-val macro-ns) symbol-scope symbol-name)
              ()))
-     (mu:ns-map (mu:sy-ns symbol) :intern (core::string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
+     (mu:ns-map (mu:sy-ns symbol) :intern (core:string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
      (mu:sy-ns symbol)
      (mu:sy-name symbol)
      (mu:sy-ext symbol))))

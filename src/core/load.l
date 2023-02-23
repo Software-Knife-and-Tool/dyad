@@ -11,7 +11,7 @@
        (core:errorp-unless core:streamp ifs "core:load cannot open input file")
        (:if verbose
             (core::prog2
-                (core:write (core::string-append ";;; loading " source) () ()) 
+                (core:write (core:string-append ";;; loading " source) () ()) 
                 (core:terpri mu:std-out))
             ())
        (mu:fix
