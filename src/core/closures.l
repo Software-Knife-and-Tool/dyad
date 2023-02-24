@@ -92,7 +92,7 @@
 (mu:intern core::ns :extern "apply"
    (:lambda (fn args)
      (core:errorp-unless
-      (:lambda (fn) (core::log-or (core:functionp fn) (core:closurep fn)))
+      (:lambda (fn) (core::logor (core:functionp fn) (core:closurep fn)))
       fn
       "core:apply: not a function or closure")
      (:if (core:functionp fn)

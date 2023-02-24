@@ -151,7 +151,7 @@
 (mu:intern core::ns :extern "positionl"
    (:lambda (fn list)
      (core:errorp-unless core:functionp fn "core:positionl: not a function")           
-     (core:errorp-unless core:sequencep list "core:positionl: not a list")
+     (core:errorp-unless core:listp list "core:positionl: not a list")
      (:if (core:null list)
           ()
           ((:lambda (len)
@@ -171,7 +171,7 @@
 (mu:intern core::ns :extern "positionr"
    (:lambda (fn list)
      (core:errorp-unless core:functionp fn "core:positionr: not a function")           
-     (core:errorp-unless core:sequencep list "core:positionr: not a list")
+     (core:errorp-unless core:listp list "core:positionr: not a list")
      (:if (core:null list)
           ()
           (mu:car

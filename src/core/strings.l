@@ -40,6 +40,29 @@
               ()))))
 
 ;;;
+;;; string-positionk
+;;;
+(mu:intern core::ns :extern "string-positionl"
+   (:lambda (fn str)
+     (core:errorp-unless core:functionp fn "core:string-positionl: not a function")           
+     (core:errorp-unless core:stringp str "core:string-positionl: not a string")
+     (:if (core:zerop (core:length str))
+          ()
+          ((:lambda (len)
+             (mu:car
+              (mu:fix
+               (:lambda (loop)
+                 (:if (core:listp loop)
+                      loop
+                      (:if (mu:fx-lt len loop)
+                           ()
+                           (:if (core:apply fn (core::list (mu:sv-ref str loop)))
+                                (core::list loop)
+                                (core:1+ loop)))))
+               0)))
+           (core:length str)))))
+
+;;;
 ;;; string construction
 ;;;
 (mu:intern core::ns :extern "string"
