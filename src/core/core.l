@@ -60,11 +60,11 @@
 ;;;
 ;;; syntactic sugar
 ;;;
-(mu:intern core::ns :intern "log-or"
+(mu:intern core::ns :intern "logor"
   (:lambda (arg arg1)
     (:if arg arg arg1)))
 
-(mu:intern core::ns :intern "log-and"
+(mu:intern core::ns :intern "logand"
   (:lambda (arg arg1)
     (:if arg arg1 ())))
 

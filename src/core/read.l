@@ -43,43 +43,87 @@
 ;;;
 ;;; number reader
 ;;;
+(mu:intern core::ns :intern "parse-integer"
+  (:lambda (digits base)
+    (:if (core:zerop (core:length digits))
+         ()
+         ((:lambda (sign)
+            (mu:cdr
+             (mu:fix
+              (:lambda (loop)
+                (:if (core:null loop)
+                     ()
+                     ((:lambda (index acc)
+                        (:if (mu:fx-lt (core:1- (core:length digits)) index)
+                             loop
+                             ((:lambda (digit pos)
+                                (:if (core:null pos)
+                                     ()
+                                     (:if (mu:fx-lt base pos)
+                                          ()
+                                          (mu:cons (core:1+ index) (mu:fx-add pos (mu:fx-mul acc base))))))
+                              (core:schar digits index)
+                              (core:string-positionl (:lambda (ch) (mu:eq ch (core:schar digits index))) "0123456789abcdef"))))
+                      (mu:car loop)
+                      (mu:cdr loop))))
+              (:if (core:fixnump sign)
+                   '(1 . 0)
+                   '(0 . 0)))))         
+          ((:lambda (digit)
+             (:if (mu:eq #\- digit)
+                  -1
+                  (:if (mu:eq #\+ digit)
+                       1
+                       ())))
+           (core:schar digits 0))))))
+
+(mu:intern core::ns :intern "parse-float"
+  (:lambda (str)
+    1.0))
+
 (mu:intern core::ns :intern "read-number"
    (:lambda (atom)
      ((:lambda (fx)
         (:if fx
              fx
-             (mu::fparse atom)))
-      (mu::iparse atom 10))))
+             (core::parse-float atom)))
+      (core::parse-integer atom 10))))
 
 ;;;
 ;;; atom reader
 ;;;
 (mu:intern core::ns :intern "read-atom"
-   (:lambda (stream)
-     (core:errorp-when mu:eof stream "core::read-atom: unexpected eof")
+  (:lambda (stream)
+    (core:errorp-when mu:eof stream "core::read-atom: unexpected eof")
+    (mu:car
      (mu:fix
-      (:lambda (self end atom)
-        (:if (core::logi-or (core:fixnump end) (mu:eof stream))
-             atom
-             ((:lambda (ch)
-                (:if (mu:eq :const (core::read-char-syntax ch))
-                     (core::prog2
-                        (core:write-char ch core::reader-stream)
-                        (mu:fr-setv (core::fn-frame-id self) 1 (core:null end)))
-                     ((:lambda ()
-                        (core:unread-char ch stream)
-                        (mu:fr-setv (core::fn-frame-id self) 1 0)
-                        (mu:fr-setv (core::fn-frame-id self) 2
-                                     ((:lambda (value)
-                                        ((:lambda (number)
-                                           (:if number
-                                                number
-                                                (core::symbol-macro-expand (core::read-resolve-symbol value))))
-                                         (core::read-number value)))
-                                      (core:get-output-stream-string core::reader-stream)))
-                        atom))))
-              (core:read-char stream () ()))))
-      '(() ()))))
+      (:lambda (loop)
+        (:if (core:consp loop)
+             loop
+             (:if (mu:eof stream)
+                  ((:lambda (token)
+                     ((:lambda (number)
+                        (:if number
+                             (core::list number)
+                             (core::list (core::symbol-macro-expand (core::read-resolve-symbol token)))))
+                      (core::read-number token)))
+                   (core:get-output-stream-string core::reader-stream))
+                  ((:lambda (ch)
+                     (:if (mu:eq :const (core::read-char-syntax ch))
+                          ((:lambda ()
+                             (core:write-char ch core::reader-stream)
+                             (core:null loop)))
+                          (core::prog2
+                              (core:unread-char ch stream)
+                              ((:lambda (token)
+                                 ((:lambda (number)
+                                    (:if number
+                                         (core::list number)
+                                         (core::list (core::symbol-macro-expand (core::read-resolve-symbol token)))))
+                                  (core::read-number token)))
+                               (core:get-output-stream-string core::reader-stream)))))
+                   (core:read-char stream () ())))))
+      ()))))
 
 ;;;
 ;;; parser
@@ -91,11 +135,11 @@
         (mu:apply
          (mu:sy-val (mu:cdr (core:assoc (core::read-char-syntax ch) dispatch-table)))
          (core::list stream)))
-      '((:const . core::read-atom)
-        (:macro       . core::read-macro)
-        (:tmacro      . core::read-macro)
-        (:escape      . core::read-atom)
-        (:mescape     . core::read-atom)))))
+      '((:const   . core::read-atom)
+        (:macro   . core::read-macro)
+        (:tmacro  . core::read-macro)
+        (:escape  . core::read-atom)
+        (:mescape . core::read-atom)))))
 
 ;;;
 ;;; core reader
@@ -104,7 +148,7 @@
    (:lambda (stream)
      (mu:fix
       (:lambda (loop)
-        (:if (core::log-or (core:streamp loop) (core:charp loop))
+        (:if (core::logor (core:streamp loop) (core:charp loop))
              loop
              ((:lambda (ch)
                 (:if (mu:eof stream)
@@ -129,45 +173,18 @@
               (core:read-char stream () ()))))
       ())))
 
-
-
+;;;
+;;; recursive reader
+;;;
 (mu:intern core::ns :intern "read"
-   (:lambda (stream)
-     (core:errorp-unless core:streamp stream ":read: not a stream")
-     ((:lambda (read-consume-ws)
-        ((:lambda (ch)
-           (:if (mu:eof stream)
-                ()
-                ((:lambda (macro)
-                   (:if macro
-                        (core:apply (mu:car macro) (core::list2 stream ch))
-                        (core::read-dispatch ch stream)))
-                 (core:get-macro-character ch))))
-         (mu:apply read-consume-ws ())))
-      (:lambda ()
-        (mu:fix
-         (:lambda (loop)
-           (:if (core::log-or (core:streamp loop) (core:charp loop))
-                loop
-                ((:lambda (ch)
-                   (:if (mu:eof stream)
-                        stream
-                        (:if (mu:eq :wspace (core::read-char-syntax ch))
-                             (core:null loop)
-                             (:if (mu:eq ch #\#)
-                                  ((:lambda (ch)
-                                     (:if (mu:eq ch #\|)
-                                          (core::prog2
-                                             (core::read-sharp-comment ch stream)
-                                             (core:null loop))
-                                          (core::prog2
-                                             (core:unread-char ch stream)
-                                             #\#)))
-                                   (core:read-char stream () ()))
-                                  (:if (mu:eq ch #\;)
-                                       (core::prog2
-                                          (core::read-line-comment ch stream)
-                                          (core:null loop))
-                                       ch)))))
-                 (core:read-char stream () ()))))
-         ())))))
+  (:lambda (stream)
+    (core:errorp-unless core:streamp stream "core:read: not a stream")
+    ((:lambda (ch)
+       (:if (mu:eof stream)
+            ()
+            ((:lambda (macro)
+               (:if macro
+                    (core:apply (mu:car macro) (core::list2 stream ch))
+                    (core::read-dispatch ch stream)))
+             (core:get-macro-character ch))))
+     (core::read-consume-ws stream))))
