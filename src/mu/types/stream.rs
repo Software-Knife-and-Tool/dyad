@@ -767,29 +767,29 @@ impl MuFunction for Stream {
 
     fn mu_read_byte(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let stream = fp.argv[0];
-        let eofp = fp.argv[1];
+        let erreofp = fp.argv[1];
         let eof_value = fp.argv[2];
 
-        match Tag::type_of(mu, stream) {
+        fp.value = match Tag::type_of(mu, stream) {
             Type::Stream => match Self::read_byte(mu, stream) {
-                Ok(Some(byte)) => {
-                    fp.value = Fixnum::as_tag(byte as i64);
-                    Ok(())
+                Ok(Some(byte)) => Fixnum::as_tag(byte as i64),
+                Ok(None) if erreofp.null_() => eof_value,
+                Ok(None) => {
+                    return Err(Exception::raise(mu, Condition::Eof, "mu:read-byte", stream))
                 }
-                Ok(None) if !eofp.null_() => {
-                    fp.value = eof_value;
-                    Ok(())
-                }
-                Ok(None) => Err(Exception::raise(mu, Condition::Eof, "mu:read-byte", stream)),
-                Err(e) => Err(e),
+                Err(e) => return Err(e),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:read-byte",
-                stream,
-            )),
-        }
+            _ => {
+                return Err(Exception::raise(
+                    mu,
+                    Condition::Type,
+                    "mu:read-byte",
+                    stream,
+                ))
+            }
+        };
+
+        Ok(())
     }
 
     fn mu_unread_byte(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
