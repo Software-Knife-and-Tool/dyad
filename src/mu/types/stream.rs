@@ -350,14 +350,6 @@ impl Core for Stream {
         Ok(Stream::Indirect(image).evict(mu))
     }
 
-    fn read_char(mu: &Mu, stream: Tag) -> exception::Result<Option<char>> {
-        match Self::read_byte(mu, stream) {
-            Ok(Some(byte)) => Ok(Some(byte as char)),
-            Ok(None) => Ok(None),
-            Err(e) => Err(e),
-        }
-    }
-
     fn read_byte(mu: &Mu, stream: Tag) -> exception::Result<Option<u8>> {
         let system_stream = &mu.system.streams;
         let mut image = Self::to_image(mu, stream);
@@ -412,15 +404,19 @@ impl Core for Stream {
                 }
             }
             Type::Vector => {
+                let mut index = Fixnum::as_i64(mu, image.count) as usize;
+                let length = Vector::length_of(mu, image.source);
+
                 if unch.null_() {
-                    let mut index = Fixnum::as_i64(mu, image.count) as usize;
-                    let length = Vector::length_of(mu, image.source);
+                    if index == length {
+                        image.eof = Tag::t();
+                        Self::update(mu, &image, stream);
+                        return Ok(None);
+                    }
+
                     let ch = Vector::r#ref(mu, image.source, index);
 
                     index += 1;
-                    if index == length {
-                        image.eof = Tag::t();
-                    }
 
                     image.count = Fixnum::as_tag(index as i64);
                     Self::update(mu, &image, stream);
@@ -431,12 +427,25 @@ impl Core for Stream {
                     }
                 } else {
                     image.unch = Tag::nil();
+
+                    if index == length {
+                        image.eof = Tag::t();
+                    }
+
                     Self::update(mu, &image, stream);
 
                     Ok(Some(Char::as_char(mu, unch) as u8))
                 }
             }
             _ => panic!("internal: stream type inconsistency"),
+        }
+    }
+
+    fn read_char(mu: &Mu, stream: Tag) -> exception::Result<Option<char>> {
+        match Self::read_byte(mu, stream) {
+            Ok(Some(byte)) => Ok(Some(byte as char)),
+            Ok(None) => Ok(None),
+            Err(e) => Err(e),
         }
     }
 
@@ -740,29 +749,20 @@ impl MuFunction for Stream {
 
     fn mu_read_char(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let stream = fp.argv[0];
-        let eofp = fp.argv[1];
+        let eoferrp = fp.argv[1];
         let eof_value = fp.argv[2];
 
-        match Tag::type_of(mu, stream) {
+        fp.value = match Tag::type_of(mu, stream) {
             Type::Stream => match Self::read_char(mu, stream) {
-                Ok(Some(ch)) => {
-                    fp.value = Char::as_tag(ch);
-                    Ok(())
-                }
-                Ok(None) if !eofp.null_() => {
-                    fp.value = eof_value;
-                    Ok(())
-                }
-                Ok(None) => Err(Exception::raise(mu, Condition::Eof, "mu:read-char", stream)),
-                Err(e) => Err(e),
+                Ok(Some(ch)) => Char::as_tag(ch),
+                Ok(None) if eoferrp.null_() => eof_value,
+                Ok(None) => return Err(Exception::raise(mu, Condition::Eof, "mu:rd-char", stream)),
+                Err(e) => return Err(e),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:read-char",
-                stream,
-            )),
-        }
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:rd-char", stream)),
+        };
+
+        Ok(())
     }
 
     fn mu_read_byte(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {

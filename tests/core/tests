@@ -6,7 +6,7 @@ format
 lambda
 lists
 macro
-read
+reader
 sequences
 streams
 strings

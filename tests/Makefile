@@ -58,7 +58,12 @@ report:
 	@python3 report.py $(TMPF)
 	@rm -f $(TMPF)
 
-commit: summary
+commit:
+	@for namespace in $(NAMESPACES); do	\
+	    make $$namespace >> $(TMPF);	\
+	done
+	@python3 summary.py $(TMPF) > tests.summary
+	@git diff --unified=0 tests.summary
 
 summary:
 	@for namespace in $(NAMESPACES); do	\
