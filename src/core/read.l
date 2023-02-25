@@ -62,13 +62,10 @@
                       ((:lambda (index acc)
                          (:if (mu:fx-lt (core:1- (core:length digits)) index)
                               loop
-                              ((:lambda (digit pos)
-                                 (:if (core:null pos)
+                              ((:lambda (n)
+                                 (:if (core::logor (core:null n) (mu:fx-lt base n))
                                       ()
-                                      (:if (mu:fx-lt base pos)
-                                           ()
-                                           (mu:cons (core:1+ index) (mu:fx-add pos (mu:fx-mul acc base))))))
-                               (core:schar digits index)
+                                      (mu:cons (core:1+ index) (mu:fx-add n (mu:fx-mul acc base)))))
                                (core:string-positionl (:lambda (ch) (mu:eq ch (core:schar digits index))) "0123456789abcdef"))))
                        (mu:car loop)
                        (mu:cdr loop))))
@@ -88,7 +85,8 @@
     1.0))
 
 (mu:intern core::ns :intern "read-number"
-   (:lambda (atom)
+  (:lambda (atom)
+    (core:warn atom "read-number")
      ((:lambda (fx)
         (:if fx
              fx
@@ -99,7 +97,7 @@
 ;;; atom reader
 ;;;
 (mu:intern core::ns :intern "read-atom"
-  (:lambda (stream)
+   (:lambda (stream)
     (core:errorp-when mu:eof stream "core::read-atom: unexpected eof")
     (mu:car
      (mu:fix
@@ -142,9 +140,9 @@
          (mu:sy-val (mu:cdr (core:assoc (core::read-char-syntax ch) dispatch-table)))
          (core::list stream)))
       '((:const   . core::read-atom)
+        (:escape  . core::read-atom)
         (:macro   . core::read-macro)
         (:tmacro  . core::read-macro)
-        (:escape  . core::read-atom)
         (:mescape . core::read-atom)))))
 
 ;;;
@@ -157,7 +155,7 @@
         (:if (core::logor (core:streamp loop) (core:charp loop))
              loop
              ((:lambda (ch)
-                (:if (mu:eof stream)
+                (:if (core:null ch)
                      stream
                      (:if (mu:eq :wspace (core::read-char-syntax ch))
                           (core:null loop)
