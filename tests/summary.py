@@ -9,7 +9,7 @@ labels = [
 with open(sys.argv[1]) as f: test_results = f.readlines()
 date = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
 
-print(f'Test Summary: {date:<10}')
+print(f'Test Summary:')
 print('-----------------------')
 
 for label in labels:
