@@ -2,6 +2,13 @@
 //  SPDX-License-Identifier: MIT
 
 //! runtime loader/repl
+#[cfg(not(target_env = "msvc"))]
+use tikv_jemallocator::Jemalloc;
+
+#[cfg(not(target_env = "msvc"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
+
 extern crate mu;
 
 use {
