@@ -58,18 +58,18 @@
      (mu:wr-byte byte (core::write-stream-designator designator))))
 
 (mu:intern core::ns :extern "read-char"
-   (:lambda (designator error-eofp eof-value)
-     ((:lambda (stream)
-        (:if (mu:eof stream)
-             (:if error-eofp
-                  (core:error stream "core:read-char: end of file")
-                  eof-value)
-             ((:lambda (ch)
-                (:if ch
-                     (mu:coerce ch :char)
-                     ()))
-              (mu:rd-byte stream () ()))))
-      (core::read-stream-designator designator))))
+  (:lambda (designator error-eofp eof-value)
+    ((:lambda (stream)
+       ((:lambda (ch)
+          (:if (core:null ch)
+               (:if error-eofp
+                    (core:error stream "core:read-char: end of file")
+                    eof-value)
+               (core::prog2
+                   (core:warn ch "core:read-char")
+                   ch)))
+        (mu:rd-char stream () ())))
+     (core::read-stream-designator designator))))
 
 (mu:intern core::ns :extern "read-byte"
    (:lambda (designator error-eofp eof-value)
@@ -83,11 +83,13 @@
 
 (mu:intern core::ns :extern "unread-char"
   (:lambda (char designator)
+    (core:warn char "core:unread-char")
     (core:errorp-unless core:charp char "core:unread-char: not a char")
     (mu:un-char char (core::write-stream-designator designator))))
 
 (mu:intern core::ns :extern "unread-byte"
   (:lambda (byte designator)
+    (core:warn byte "core:unread-byte")
     (core:errorp-unless core:fixnump char "core:unead-byte: not a byte")
     (mu:un-byte byte (core::write-stream-designator designator))))
 

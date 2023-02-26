@@ -38,88 +38,59 @@
       ((:lambda (type)
           (core:errorp-unless mu:keyp type "core:read-sharp-vector: not a type keyword")
           (mu:vector type (core::read-list #\( stream)))
-       (core::read-atom stream))))
+       (core::read-atom ch stream))))
 
 (mu:intern core::ns :intern "read-sharp-symbol"
    (:lambda (ch stream)
      ((:lambda (symbol)
           (core:errorp-unless core:symbolp symbol "core::read-sharp-symbol: not a symbol")
           (mu:symbol (mu:sy-name symbol)))
-       (core::read-atom stream))))
+       (core::read-atom ch stream))))
 
 (mu:intern core::ns :intern "read-sharp-number"
-   (:lambda (base stream)
-     (mu:fix           
+  (:lambda (base stream)
+    (mu:fix           
       (:lambda (loop)
         (:if (core::logor (mu:eof stream) (core:numberp loop))
              loop
              ((:lambda (ch)
                 ((:lambda (syntax-type)
-                   (:if (mu:eq syntax-type 'constituent)
+                   (:if (mu:eq syntax-type :const)
                         (core::prog2
-                           (core:write-char ch core::reader-stream)
-                           (core:null loop))
+                            (core:write-char ch core::reader-stream)
+                            (core:null loop))
                         (core::prog2
-                           (:if (core:null ch)
-                                ()
-                                (core:unread-char ch stream))
-                           (:if (mu:eq base #\x)
-                                (mu::iparse (core:get-output-stream-string core::reader-stream) 16)
-                                (:if (mu:eq base #\b)
-                                     (mu::iparse (core:get-output-stream-string core::reader-stream) 2)
-                                     (mu::iparse (core:get-output-stream-string core::reader-stream) 10))))))
+                            (:if (core:null ch)
+                                 ()
+                                 (core:unread-char ch stream))
+                            (:if (mu:eq base #\x)
+                                 (core::parse-integer (mu:get-str core::reader-stream) 16)
+                                 (:if (mu:eq base #\b)
+                                      (core::parse-integer (mu:get-str core::reader-stream) 2)
+                                      (core::parse-integer (mu:get-str core::reader-stream) 10))))))
                  (core::read-char-syntax ch)))
               (core:read-char stream () ()))))
       ())))
    
 (mu:intern core::ns :intern "read-sharp"
-   (:lambda (ch stream)
-      ((:lambda (ch sharp-table)
-          (mu:apply
-            (mu:sy-val (mu:cdr (core:assoc ch sharp-table)))
-            (core::list2 ch stream)))
-       (core:read-char stream () ())
-       '((#\| . core::read-sharp-comment)
-         (#\\ . core::read-sharp-char)
-         (#\( . core::read-sharp-vector)
-         (#\b . core::read-sharp-number)
-         (#\x . core::read-sharp-number)
-         (#\d . core::read-sharp-number)
-         (#\: . core::read-sharp-symbol)))))
+  (:lambda (ch stream)
+    ((:lambda (ch sharp-table)
+       (mu:apply
+        (mu:sy-val (mu:cdr (core:assoc ch sharp-table)))
+        (core::list2 ch stream)))
+     (core:read-char stream () ())
+     '((#\| . core::read-sharp-comment)
+       (#\\ . core::read-sharp-char)
+       (#\( . core::read-sharp-vector)
+       (#\b . core::read-sharp-number)
+       (#\x . core::read-sharp-number)
+       (#\d . core::read-sharp-number)
+       (#\: . core::read-sharp-symbol)))))
 
 ;;;
 ;;; list reader
 ;;;
 (mu:intern core::ns :intern "read-list-eol" (mu:symbol "eol"))
-#|
-(mu:intern core::ns :intern "read-list"
-    (:lambda (ch stream)
-        (:if (mu:eq ch #\))
-             core::read-list-eol
-             (mu:fix
-              (:lambda (self eol list)
-                (:if eol
-                     list
-                     ((:lambda (form)
-                        (:if (mu:eq form core::read-list-eol)
-                             (mu:fr-setv (core::fn-frame-id self) 1 core::read-list-eol)
-                             (:if (core:symbolp form)
-                                  (:if (core::logand (core:uninternedp form) (mu:eq (mu:sy-name form) "."))
-                                       ((:lambda (dotted)
-                                          (core:error-if (core:null list) dotted "read-list: malformed dotted list")
-                                          ((:lambda (eol)
-                                             (:if (mu:eq eol core::read-list-eol)
-                                                  (core::prog2
-                                                     (mu:fr-setv (core::fn-frame-id self) 1 core::read-list-eol)
-                                                     (mu:fr-setv (core::fn-frame-id self) 2 (core::append list dotted)))
-                                                  (core:error eol "core::read-list: malformed dotted list")))
-                                           (core::read stream)))
-                                        (core::read stream))
-                                       (mu:fr-setv (core::fn-frame-id self) 2 (core::append list (core::list form))))
-                                  (mu:fr-setv (core::fn-frame-id self) 2 (core::append list (core::list form))))))
-                      (core::read stream))))
-              '(() ())))))
-|#
 
 (mu:intern core::ns :intern "read-list"
    (:lambda (ch stream)
@@ -188,12 +159,11 @@
 ;;; read macros
 ;;;
 (mu:intern core::ns :intern "read-macro"
-   (:lambda (stream)
-      ((:lambda (ch macro-table)
-          (mu:apply
+  (:lambda (ch stream)
+    ((:lambda (macro-table)
+       (mu:apply
             (mu:sy-val (mu:cdr (core:assoc ch macro-table)))
             (core::list2 ch stream)))
-       (core:read-char stream () ())
        '((#\" . core::read-string)
          (#\# . core::read-sharp)
          (#\' . core::read-quote)
