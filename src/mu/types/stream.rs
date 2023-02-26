@@ -774,19 +774,10 @@ impl MuFunction for Stream {
             Type::Stream => match Self::read_byte(mu, stream) {
                 Ok(Some(byte)) => Fixnum::as_tag(byte as i64),
                 Ok(None) if erreofp.null_() => eof_value,
-                Ok(None) => {
-                    return Err(Exception::raise(mu, Condition::Eof, "mu:read-byte", stream))
-                }
+                Ok(None) => return Err(Exception::raise(mu, Condition::Eof, "mu:rd-byte", stream)),
                 Err(e) => return Err(e),
             },
-            _ => {
-                return Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:read-byte",
-                    stream,
-                ))
-            }
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:rd-byte", stream)),
         };
 
         Ok(())
@@ -818,7 +809,7 @@ impl MuFunction for Stream {
         match Tag::type_of(mu, stream) {
             Type::Stream => match Self::unread_char(mu, stream, Char::as_char(mu, ch)) {
                 Ok(Some(_)) => {
-                    panic!("internal: unexpected return from unread_char")
+                    panic!("internal: unexpected return from mu_unread_char")
                 }
                 Ok(None) => {
                     fp.value = ch;
