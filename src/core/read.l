@@ -43,8 +43,10 @@
 ;;;
 ;;; number reader
 ;;;
-(mu:intern core::ns :intern "parse-integer"
+(mu:intern core::ns :extern "parse-integer"
   (:lambda (digits base)
+    (core:errorp-unless core:stringp digits "core:parse-integer: not a string")
+    (core:errorp-unless core:fixnump base "core:parse-integer: not a fixnum")
     (:if (core:zerop (core:length digits))
          ()
          ((:lambda (sign)
@@ -63,10 +65,12 @@
                          (:if (mu:fx-lt (core:1- (core:length digits)) index)
                               loop
                               ((:lambda (n)
-                                 (:if (core::logor (core:null n) (mu:fx-lt base n))
+                                 (:if (core:null n)
                                       ()
-                                      (mu:cons (core:1+ index) (mu:fx-add n (mu:fx-mul acc base)))))
-                               (core:string-positionl (:lambda (ch) (mu:eq ch (core:schar digits index))) "0123456789abcdef"))))
+                                      (:if (core::logor (core:null n) (mu:fx-lt (core:1- base) n))
+                                           ()
+                                           (mu:cons (core:1+ index) (mu:fx-add n (mu:fx-mul acc base))))))
+                               (core:string-position (core:schar digits index) "0123456789abcdef"))))
                        (mu:car loop)
                        (mu:cdr loop))))
                (:if (core:fixnump sign)
@@ -80,17 +84,21 @@
                        ())))
            (core:schar digits 0))))))
 
-(mu:intern core::ns :intern "parse-float"
+(mu:intern core::ns :extern "parse-float"
   (:lambda (str)
-    1.0))
+    ()))
 
 (mu:intern core::ns :intern "read-number"
   (:lambda (atom)
-     ((:lambda (fx)
+    ((:lambda (fx)
         (:if fx
              fx
-             (core::parse-float atom)))
-      (core::parse-integer atom 10))))
+             ((:lambda (fl)
+                (:if fl
+                     fl
+                     ()))
+             (core:parse-float atom))))
+      (core:parse-integer atom 10))))
 
 ;;;
 ;;; atom reader
@@ -188,7 +196,6 @@
 ;;;
 (mu:intern core::ns :intern "read"
   (:lambda (stream)
-    (core:errorp-unless core:streamp stream "core:read: not a stream")
     ((:lambda (ch)
        (:if (mu:eof stream)
             ()

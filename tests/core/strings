@@ -14,6 +14,10 @@ assert_eq "(core:string= \"abc\" \"abc\")" ":t"
 assert_eq "(core:string= \"abd\" \"abc\")" ":nil"
 assert_eq "(core:stringp \"abc\")" ":t"
 assert_eq "(core:stringp 1)" ":nil"
+assert_eq '(core:string-find #\a "abc")' "#\a"
+assert_eq '(core:string-find #\d "abc")' ":nil"
+assert_eq '(core:string-position #\a "abc")' "0"
+assert_eq '(core:string-position #\d "abc")' ":nil"
 assert_eq '(core:substr "abc" 0 0)' '"a"'
 assert_eq '(core:substr "abc" 0 1)' '"ab"'
 assert_eq '(core:substr "abc" 1 3)' '"bc"'
