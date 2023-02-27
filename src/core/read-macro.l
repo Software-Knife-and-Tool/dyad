@@ -64,10 +64,10 @@
                                  ()
                                  (core:unread-char ch stream))
                             (:if (mu:eq base #\x)
-                                 (core::parse-integer (mu:get-str core::reader-stream) 16)
+                                 (core:parse-integer (mu:get-str core::reader-stream) 16)
                                  (:if (mu:eq base #\b)
-                                      (core::parse-integer (mu:get-str core::reader-stream) 2)
-                                      (core::parse-integer (mu:get-str core::reader-stream) 10))))))
+                                      (core:parse-integer (mu:get-str core::reader-stream) 2)
+                                      (core:parse-integer (mu:get-str core::reader-stream) 10))))))
                  (core::read-char-syntax ch)))
               (core:read-char stream () ()))))
       ())))
@@ -136,7 +136,7 @@
 ;;; quote reader
 ;;;
 (mu:intern core::ns :intern "read-quote"
-   (:lambda (ch stream)
+  (:lambda (ch stream)
      (core::list2 :quote (core::read stream))))
 
 ;;;

@@ -27,20 +27,40 @@
 ;;; symbol readers
 ;;;
 (mu:intern core::ns :intern "read-symbol-keywordp"
-   (:lambda (name)
+  (:lambda (name)
       (mu:eq #\: (core:schar name 0))))
 
-(mu:intern core::ns :intern "read-symbol-externp"
-   (:lambda (name)
-     ()))
+(mu:intern core::ns :intern "read-symbol-scope"
+  (:lambda (name)
+     ((:lambda (colon)
+        (:if (core:null colon)
+             :extern
+             (:if (mu:eq #\: (core:schar name (core:1+ colon)))
+                  :intern
+                  :extern)))
+        (core:string-position #\: name))))
 
 (mu:intern core::ns :intern "read-symbol-ns"
-   (:lambda (name)
-     ()))
+  (:lambda (name)
+    ((:lambda (colon)
+       (:if (core:null colon)
+            ()
+            (mu:map-ns (core:substr name 0 (core:1- colon)))))
+     (core:string-position #\: name))))
 
 (mu:intern core::ns :intern "read-symbol-name"
    (:lambda (name)
-     ()))
+     ((:lambda (colon)
+        (:if (core:null colon)
+             name
+             (core:substr name
+                          (:if (mu:eq #\: (core:schar name (core:1+ colon)))
+                               (mu:fx-add 2 colon)
+                               (mu:fx-add 1 colon))
+                          (:if (mu:eq #\: (core:schar name (core:1+ colon)))
+                               (mu:fx-add colon (mu:fx-sub (core:length name) colon))
+                               (mu:fx-add colon (mu:fx-sub (core:length name) (core:1+ colon)))))))
+     (core:string-position #\: name))))
 
 (mu:intern core::ns :intern "read-resolve-symbol"
    (:lambda (symbol)
@@ -51,25 +71,21 @@
                   ((:lambda (sym)
                      (:if sym
                           sym
-                          (mu:intern () :extern base)))
-                   ((:lambda (walk) (walk walk (core::read-get-ns)))
-                    (:lambda (walk ns)
-                      (:if (core:namespacep ns)
-                           ((:lambda (sym)
-                              (:if (core:null sym)
-                                   (walk walk (mu:ns-imp ns))
-                                   sym))
-                            (mu:ns-map ns :extern symbol))
-                           ns))))
-                  (mu:intern ns scope base)))
-           ((:lambda (ns)
-              (:if (core:null ns)
-                   ()
-                   (mu:map-ns ns)))
-            (core::read-symbol-ns symbol))
-           (:if (core::read-symbol-externp symbol)
-                :extern
-                :intern)
+                          (mu:intern (mu:map-ns "") :extern base ())))
+                     (mu:fix
+                      (:lambda (ns)
+                        (:if (core:namespacep ns)
+                             ((:lambda (sym)
+                                (:if (core:null sym)
+                                     (mu:ns-imp ns)
+                                     sym))
+                              (mu:ns-map ns :extern symbol))
+                             ns))
+                      (core::read-get-ns)))
+                   (mu:intern (core::read-get-ns) scope base ()))
+                  (mu:intern (core::read-get-ns) scope base ()))
+           (core::read-symbol-ns symbol)
+           (core::read-symbol-scope symbol)
            (core::read-symbol-name symbol)))))
 
 ;;;

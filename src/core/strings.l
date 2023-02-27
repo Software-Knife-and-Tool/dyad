@@ -39,13 +39,14 @@
                0)
               ()))))
 
+#|
 ;;;
-;;; string-positionk
+;;; string-position-if
 ;;;
-(mu:intern core::ns :extern "string-positionl"
+(mu:intern core::ns :extern "string-position-if"
    (:lambda (fn str)
-     (core:errorp-unless core:functionp fn "core:string-positionl: not a function")           
-     (core:errorp-unless core:stringp str "core:string-positionl: not a string")
+     (core:errorp-unless core:functionp fn "core:string-position: not a function")           
+     (core:errorp-unless core:stringp str "core:string-position: not a string")
      (:if (core:zerop (core:length str))
           ()
           ((:lambda (len)
@@ -54,13 +55,58 @@
                (:lambda (loop)
                  (:if (core:listp loop)
                       loop
-                      (:if (mu:fx-lt len loop)
+                      (:if (mu:fx-lt (core:1- len) loop)
                            ()
                            (:if (core:apply fn (core::list (mu:sv-ref str loop)))
                                 (core::list loop)
                                 (core:1+ loop)))))
                0)))
            (core:length str)))))
+|#
+
+;;;
+;;; string-position
+;;;
+(mu:intern core::ns :extern "string-position"
+  (:lambda (ch str)
+    (core:errorp-unless core:charp ch "core:string-position: not a char")
+    (core:errorp-unless core:stringp str "core:string-position: not a string")
+     (:if (core:zerop (core:length str))
+          ()
+          ((:lambda (len)
+             (mu:fix
+              (:lambda (loop)
+                (:if (core:numberp loop)
+                     (:if (mu:fx-lt (core:1- len) loop)
+                          ()
+                          (:if (mu:eq ch (mu:sv-ref str loop))
+                               loop
+                               (core:1+ loop)))
+                     loop))
+             0))
+           (core:length str)))))
+
+;;;
+;;; string-find
+;;;
+(mu:intern core::ns :extern "string-find"
+  (:lambda (ch str)
+    (core:errorp-unless core:charp ch "core:string-find: not a char")
+    (core:errorp-unless core:stringp str "core:string-find: not a string")
+    (:if (core:zerop (core:length str))
+         ()
+         ((:lambda (len)
+            (mu:fix
+             (:lambda (loop)
+               (:if (core:numberp loop)
+                    (:if (mu:fx-lt (core:1- len) loop)
+                         ()
+                         (:if (mu:eq ch (mu:sv-ref str loop))
+                              ch
+                              (core:1+ loop)))
+                    loop))
+             0))
+          (core:length str)))))
 
 ;;;
 ;;; string construction

@@ -65,9 +65,7 @@
                (:if error-eofp
                     (core:error stream "core:read-char: end of file")
                     eof-value)
-               (core::prog2
-                   (core:warn ch "core:read-char")
-                   ch)))
+               ch))
         (mu:rd-char stream () ())))
      (core::read-stream-designator designator))))
 
@@ -83,13 +81,11 @@
 
 (mu:intern core::ns :extern "unread-char"
   (:lambda (char designator)
-    (core:warn char "core:unread-char")
     (core:errorp-unless core:charp char "core:unread-char: not a char")
     (mu:un-char char (core::write-stream-designator designator))))
 
 (mu:intern core::ns :extern "unread-byte"
   (:lambda (byte designator)
-    (core:warn byte "core:unread-byte")
     (core:errorp-unless core:fixnump char "core:unead-byte: not a byte")
     (mu:un-byte byte (core::write-stream-designator designator))))
 
