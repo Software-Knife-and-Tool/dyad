@@ -37,11 +37,12 @@ lazy_static! {
         ("nth", Scope::Extern, 2, Cons::mu_nth),
         ("nthcdr", Scope::Extern, 2, Cons::mu_nthcdr),
         // mu
+        ("apply", Scope::Extern, 2, Mu::mu_apply),
         ("compile", Scope::Extern, 1, Mu::mu_compile),
         ("eval", Scope::Extern, 1, Mu::mu_eval),
         ("exit", Scope::Intern, 1, Mu::mu_exit),
         ("fix", Scope::Extern, 2, Mu::mu_fix),
-        ("apply", Scope::Extern, 2, Mu::mu_apply),
+        ("hp-info", Scope::Extern, 0, Mu::mu_hp_info),
         ("tag-of", Scope::Extern, 1, Mu::mu_tag_of),
         ("view", Scope::Extern, 1, Mu::mu_view),
         // exceptions
@@ -70,9 +71,6 @@ lazy_static! {
         ("fl-lt", Scope::Extern, 2, Float::mu_fllt),
         ("fl-mul", Scope::Extern, 2, Float::mu_flmul),
         ("fl-div", Scope::Extern, 2, Float::mu_fldiv),
-        // heap
-        ("hp-info", Scope::Extern, 0, Mu::mu_hp_info),
-        ("hp-type", Scope::Extern, 2, Mu::mu_hp_type),
         // namespaces
         ("intern", Scope::Extern, 4, Namespace::mu_intern),
         ("make-ns", Scope::Extern, 2, Namespace::mu_make_ns),

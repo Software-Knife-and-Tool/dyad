@@ -228,7 +228,6 @@ impl Tag {
                     DirectType::Float => Type::Float,
                 },
                 Tag::Indirect(main) => match main.tag() {
-                    TagType::Float => Type::Float,
                     TagType::Symbol => Type::Symbol,
                     TagType::Function => Type::Function,
                     TagType::Cons => Type::Cons,
