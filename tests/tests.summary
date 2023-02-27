@@ -2,7 +2,7 @@ Test Summary:
 -----------------------
 mu:        chars          total: 2        failed: 0        aborted: 0       
 mu:        compile        total: 8        failed: 0        aborted: 0       
-mu:        core           total: 33       failed: 0        aborted: 0       
+mu:        core           total: 32       failed: 0        aborted: 0       
 mu:        lists          total: 22       failed: 0        aborted: 0       
 mu:        namespace      total: 14       failed: 0        aborted: 0       
 mu:        numbers        total: 34       failed: 0        aborted: 0       
@@ -13,7 +13,7 @@ mu:        structs        total: 7        failed: 0        aborted: 0
 mu:        symbols        total: 10       failed: 0        aborted: 0       
 mu:        vectors        total: 23       failed: 0        aborted: 0       
 -----------------------
-mu:        passed: 220    total: 220      failed: 0        aborted: 0         
+mu:        passed: 219    total: 219      failed: 0        aborted: 0         
 
 core:      closures       total: 14       failed: 13       aborted: 0       
 core:      compile        total: 30       failed: 4        aborted: 0       

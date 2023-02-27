@@ -7,15 +7,15 @@ use {
         core::{
             classes::{Tag, Type},
             exception,
-            exception::{Condition, Exception},
             frame::Frame,
             mu::Mu,
         },
         image,
         types::{
-            cons::{Cons, Core as _},
             fixnum::Fixnum,
+            ivector::{TypedVec, VecType},
             symbol::{Core as _, Symbol},
+            vector::Core as _,
         },
     },
     std::cell::Ref,
@@ -29,8 +29,18 @@ lazy_static! {
         (Symbol::keyword("ns"), Type::Namespace),
         (Symbol::keyword("stream"), Type::Stream),
         (Symbol::keyword("symbol"), Type::Symbol),
+        (Symbol::keyword("struct"), Type::Struct),
         (Symbol::keyword("t"), Type::T),
         (Symbol::keyword("vector"), Type::Vector),
+    ];
+    static ref INFOTYPE: Vec<Tag> = vec![
+        Symbol::keyword("cons"),
+        Symbol::keyword("func"),
+        Symbol::keyword("ns"),
+        Symbol::keyword("stream"),
+        Symbol::keyword("struct"),
+        Symbol::keyword("symbol"),
+        Symbol::keyword("vector"),
     ];
 }
 
@@ -67,69 +77,30 @@ impl Core for Mu {
 
 pub trait MuFunction {
     fn mu_hp_info(_: &Mu, _: &mut Frame) -> exception::Result<()>;
-    fn mu_hp_type(_: &Mu, _: &mut Frame) -> exception::Result<()>;
 }
 
 impl MuFunction for Mu {
     fn mu_hp_info(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let hp = Self::hp_info(mu);
 
-        fp.value = Cons::list(
-            mu,
-            &[
-                Cons::new(Symbol::keyword("pagesz"), Fixnum::as_tag(hp.0 as i64)).evict(mu),
-                Cons::new(Symbol::keyword("pages"), Fixnum::as_tag(hp.1 as i64)).evict(mu),
-            ],
-        );
+        let mut vec = vec![
+            Tag::t(),
+            Fixnum::as_tag((hp.0 * hp.1) as i64),
+            Fixnum::as_tag(hp.1 as i64),
+            Fixnum::as_tag(hp.1 as i64),
+        ];
 
-        Ok(())
-    }
+        for htype in INFOTYPE.iter() {
+            let type_info = Self::hp_type(mu, Self::to_type(*htype).unwrap());
 
-    fn mu_hp_type(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let type_key = fp.argv[0];
-        let of_key = fp.argv[1];
-
-        match Tag::type_of(mu, type_key) {
-            Type::Keyword => match Self::to_type(type_key) {
-                Some(htype) => match Tag::type_of(mu, of_key) {
-                    Type::Keyword => {
-                        let type_info = Self::hp_type(mu, htype);
-
-                        fp.value = if of_key.eq_(Symbol::keyword("alloc")) {
-                            Fixnum::as_tag(type_info.1 as i64)
-                        } else if of_key.eq_(Symbol::keyword("in-use")) {
-                            Fixnum::as_tag(type_info.2 as i64)
-                        } else if of_key.eq_(Symbol::keyword("free")) {
-                            Fixnum::as_tag(type_info.3 as i64)
-                        } else if of_key.eq_(Symbol::keyword("size")) {
-                            Fixnum::as_tag(type_info.4 as i64)
-                        } else {
-                            return Err(Exception::raise(
-                                mu,
-                                Condition::Type,
-                                "mu:hp-type",
-                                of_key,
-                            ));
-                        };
-
-                        Ok(())
-                    }
-                    _ => Err(Exception::raise(mu, Condition::Type, "mu:hp-type", of_key)),
-                },
-                None => Err(Exception::raise(
-                    mu,
-                    Condition::Range,
-                    "mu:hp-type",
-                    type_key,
-                )),
-            },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:hp-type",
-                type_key,
-            )),
+            vec.push(*htype);
+            vec.push(Fixnum::as_tag(type_info.4 as i64));
+            vec.push(Fixnum::as_tag(type_info.1 as i64));
+            vec.push(Fixnum::as_tag(type_info.2 as i64));
         }
+
+        fp.value = TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu);
+        Ok(())
     }
 }
 
