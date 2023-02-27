@@ -91,28 +91,27 @@
 ;;; list reader
 ;;;
 (mu:intern core::ns :intern "read-list-eol" (mu:symbol "eol"))
-
 (mu:intern core::ns :intern "read-list"
-   (:lambda (ch stream)
-      ((:lambda (loop)
-          (:if (mu:eq ch #\))
-               core::read-list-eol
-               (loop loop ())))
-       (:lambda (loop list)
-          ((:lambda (el)
-              (:if (mu:eq el core::read-list-eol)
-                   list
-                   (:if (core:symbolp el)
-                        (:if (mu:eq (mu:sy-name el) ".")
-                             ((:lambda (dotted)
-                                (core:error-if (core:null list) () "read-list: malformed dotted list")
-                                (:if (mu:eq (core::read stream) core::read-list-eol)
-                                  dotted
-                                  (core:error () "read-list: malformed dotted list")))
-                              (core::append list (core::read stream)))
-                             (loop loop (core::append list (core::list  el))))
-                        (loop loop (core::append list (core::list el))))))
-           (core::read stream))))))
+  (:lambda (ch stream)
+    (:if (mu:eq ch #\))
+         core::read-list-eol
+         (mu:fix
+          (:lambda (loop)
+            ((:lambda (el)
+               (:if (core::logor (core:null el) (mu:eq el core::read-list-eol))
+                    loop
+                    (:if (core:symbolp el)
+                         (:if (mu:eq (mu:sy-name el) ".")
+                              ((:lambda (dotted)
+                                 (core:error-if (core:null loop) () "read-list: malformed dotted list")
+                                 (:if (mu:eq (core::read stream) core::read-list-eol)
+                                      dotted
+                                      (core:error () "read-list: malformed dotted list")))
+                               (core::append loop (core::read stream)))
+                              (core::append loop (core::list el)))
+                         (core::append loop (core::list el)))))
+             (core::read stream)))
+          ()))))
 
 ;;;
 ;;; string reader

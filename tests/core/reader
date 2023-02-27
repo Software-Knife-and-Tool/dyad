@@ -3,7 +3,25 @@
 #
 assert_eq "(mu:type-of core:in-namespace)" ":func"
 assert_eq "(mu:type-of core:read)" ":func"
-assert_eq "(core:read (core:make-string-stream :input \"'a\") () ())" "(:quote core:a)"
+# symbols
+assert_eq "(core:read (core:make-string-stream :input \"a\") () ())" "a"
+assert_eq "(core:read (core:make-string-stream :input \"core:a\") () ())" "core:a"
+assert_eq "(core:read (core:make-string-stream :input \"abc\") () ())" "abc"
+assert_eq "(core:read (core:make-string-stream :input \"core:abc\") () ())" "core:abc"
+assert_eq "(core:read (core:make-string-stream :input \"abcdefgh\") () ())" "abcdedfgh"
+assert_eq "(core:read (core:make-string-stream :input \"core:abcdefgh\") () ())" "core:abcdefgh"
+# quoted forms
+assert_eq "(core:read (core:make-string-stream :input \"'a\") () ())" "(:quote a)"
+assert_eq "(core:read (core:make-string-stream :input \"'core:a\") () ())" "(:quote core:a)"
+assert_eq "(core:read (core:make-string-stream :input \"'abc\") () ())" "(:quote abc)"
+assert_eq "(core:read (core:make-string-stream :input \"'core:abc\") () ())" "(:quote core:abc)"
+assert_eq "(core:read (core:make-string-stream :input \"'abcdefgh\") () ())" "(:quote abcdedfgh)"
+assert_eq "(core:read (core:make-string-stream :input \"'core:abcdefgh\") () ())" "(:quote core:abcdefgh)"
+# chars
+assert_eq "(core:read (core:make-string-stream :input \"#\\a\") () ())" "#\\a"
+assert_eq "(core:read (core:make-string-stream :input \"#\\ \") () ())" "#\\space"
+assert_eq "(core:read (core:make-string-stream :input \"#\\)\") () ())" "#\\)"
+# numbers
 assert_eq "(core:read (core:make-string-stream :input \"0\") () ())" "0"
 assert_eq "(core:read (core:make-string-stream :input \"+0\") () ())" "0"
 assert_eq "(core:read (core:make-string-stream :input \"-0\") () ())" "0"
@@ -15,6 +33,10 @@ assert_eq "(core:read (core:make-string-stream :input \"#b10101100\") () ())" "1
 assert_eq "(core:read (core:make-string-stream :input \"#d1024\") () ())" "1024"
 assert_eq "(core:read (core:make-string-stream :input \"#xabc\") () ())" "2748"
 assert_eq "(core:read (core:make-string-stream :input \"#xabcdef\") () ())" "11259375"
+# lists
+assert_eq "(core:read (core:make-string-stream :input \"()\") () ())" ":nil"
+assert_eq "(core:read (core:make-string-stream :input \"(())\") () ())" "(:nil)"
+assert_eq "(core:read (core:make-string-stream :input \"(() ())\") () ())" "(:nil :nil)"
 assert_eq "(core:read (core:make-string-stream :input \"(1 2)\") () ())" "(1 2)"
 assert_eq "(core:read (core:make-string-stream :input \"(1 . 2)\") () ())" "(1 . 2)"
 assert_eq "(core:read (core:make-string-stream :input \"(1 2 . 3)\") () ())" "(1 2 . 3)"
