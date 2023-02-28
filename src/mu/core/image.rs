@@ -47,7 +47,7 @@ lazy_static! {
 pub trait Core {
     fn to_type(_: Tag) -> Option<Type>;
     fn hp_info(_: &Mu) -> (usize, usize);
-    fn hp_type(_: &Mu, _: Type) -> (u8, usize, usize, usize, usize);
+    fn hp_type(_: &Mu, _: Type) -> (u8, usize, usize, usize);
 }
 
 impl Core for Mu {
@@ -65,11 +65,11 @@ impl Core for Mu {
         (heap_ref.page_size, heap_ref.npages)
     }
 
-    fn hp_type(mu: &Mu, htype: Type) -> (u8, usize, usize, usize, usize) {
+    fn hp_type(mu: &Mu, htype: Type) -> (u8, usize, usize, usize) {
         let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
 
         #[allow(clippy::type_complexity)]
-        let alloc_ref: Ref<Vec<(u8, usize, usize, usize, usize)>> = heap_ref.alloc_map.borrow();
+        let alloc_ref: Ref<Vec<(u8, usize, usize, usize)>> = heap_ref.alloc_map.borrow();
 
         alloc_ref[htype as usize]
     }
@@ -81,22 +81,22 @@ pub trait MuFunction {
 
 impl MuFunction for Mu {
     fn mu_hp_info(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let hp = Self::hp_info(mu);
+        let (pagesz, npages) = Self::hp_info(mu);
 
         let mut vec = vec![
             Tag::t(),
-            Fixnum::as_tag((hp.0 * hp.1) as i64),
-            Fixnum::as_tag(hp.1 as i64),
-            Fixnum::as_tag(hp.1 as i64),
+            Fixnum::as_tag((pagesz * npages) as i64),
+            Fixnum::as_tag(npages as i64),
+            Fixnum::as_tag(npages as i64),
         ];
 
         for htype in INFOTYPE.iter() {
-            let type_info = Self::hp_type(mu, Self::to_type(*htype).unwrap());
+            let (_, size, alloc, in_use) = Self::hp_type(mu, Self::to_type(*htype).unwrap());
 
             vec.push(*htype);
-            vec.push(Fixnum::as_tag(type_info.4 as i64));
-            vec.push(Fixnum::as_tag(type_info.1 as i64));
-            vec.push(Fixnum::as_tag(type_info.2 as i64));
+            vec.push(Fixnum::as_tag(size as i64));
+            vec.push(Fixnum::as_tag(alloc as i64));
+            vec.push(Fixnum::as_tag(in_use as i64));
         }
 
         fp.value = TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu);

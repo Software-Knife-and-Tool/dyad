@@ -12,9 +12,8 @@ use {
     },
 };
 
-// (Type, alloc, in use, free, total size)
-#[allow(clippy::type_complexity)]
-type AllocMap = (u8, usize, usize, usize, usize);
+// (type, total-size, alloc, in-use)
+type AllocMap = (u8, usize, usize, usize);
 
 pub struct Heap {
     pub mmap: Box<memmap::MmapMut>,
@@ -72,7 +71,7 @@ impl Heap {
             let mut alloc_ref: RefMut<Vec<AllocMap>> = heap.alloc_map.borrow_mut();
 
             for id in 0..256 {
-                alloc_ref.push((id as u8, 0, 0, 0, 0))
+                alloc_ref.push((id as u8, 0, 0, 0))
             }
         }
 
@@ -80,19 +79,18 @@ impl Heap {
     }
 
     // allocation statistics
-    pub fn alloc_id(&self, id: u8) -> (usize, usize, usize, usize) {
+    pub fn alloc_id(&self, id: u8) -> (usize, usize, usize) {
         let alloc_ref: Ref<Vec<AllocMap>> = self.alloc_map.borrow();
 
-        let (_id, alloc, in_use, free, total_size) = alloc_ref[id as usize];
-
-        (alloc, in_use, free, total_size)
+        let (_, total_size, alloc, in_use) = alloc_ref[id as usize];
+        (total_size, alloc, in_use)
     }
 
     fn alloc_map(&self, id: u8, size: usize) {
         let mut alloc_ref: RefMut<Vec<AllocMap>> = self.alloc_map.borrow_mut();
 
-        let (_, alloc, in_use, free, total_size) = alloc_ref[id as usize];
-        alloc_ref[id as usize] = (id, alloc + 1, in_use + 1, free, total_size + size);
+        let (_, total_size, alloc, in_use) = alloc_ref[id as usize];
+        alloc_ref[id as usize] = (id, total_size + size, alloc + 1, in_use + 1);
     }
 
     // rewrite object data
