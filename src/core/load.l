@@ -47,7 +47,7 @@
       (:lambda (repl)
         (mu:with-ex
            (:lambda (ex)
-             (:if (core:eofp :t)
+             (:if (core:eof :t)
                   (mu::exit 0)
                   (core::prog2
                      (core:print-except ex "core::debug-repl")
@@ -55,7 +55,7 @@
           (:lambda ()
             (core:format :t "core> " ())
             ((:lambda (form)
-               (:if (core:eofp :t)
+               (:if (core:eof :t)
                     (core::prog2
                        (core:format :t "sic transit gloria mundi~%" ())
                        (mu::exit 0))
