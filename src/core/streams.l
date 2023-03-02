@@ -32,7 +32,7 @@
                (mu:open :string :output init)
                (core:error dir "core:make-string-stream: not a direction keyword")))))
 
-(mu:intern core::ns :extern "eofp"
+(mu:intern core::ns :extern "eof"
    (:lambda (designator)
       (mu:eof (core::read-stream-designator designator))))
 
@@ -80,9 +80,9 @@
       (core::read-stream-designator designator))))
 
 (mu:intern core::ns :extern "unread-char"
-  (:lambda (char designator)
-    (core:errorp-unless core:charp char "core:unread-char: not a char")
-    (mu:un-char char (core::write-stream-designator designator))))
+  (:lambda (ch designator)
+    (core:errorp-unless core:charp ch "core:unread-char: not a char")
+    (mu:un-char ch (core::write-stream-designator designator))))
 
 (mu:intern core::ns :extern "unread-byte"
   (:lambda (byte designator)

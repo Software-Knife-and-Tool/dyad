@@ -113,7 +113,7 @@
       (:lambda (loop)
         (:if (core:stringp loop)
              loop
-             (:if (core:eofp :t)
+             (:if (core:eof :t)
                   ()
                   ((:lambda (form)
                      (:if (mu:eq form :h)
