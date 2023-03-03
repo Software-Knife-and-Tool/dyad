@@ -13,8 +13,8 @@
               (core:errorp-unless core:streamp designator "core::write-stream-designator: not a stream")))))
 
 (mu:intern core::ns :intern "read-stream-designator"
-   (:lambda (designator)
-      (:if (core:null designator)
+  (:lambda (designator)
+    (:if (core:null designator)
          mu:std-in
          (:if (mu:eq :t designator)
               mu:std-in
@@ -23,21 +23,21 @@
                    (core:errorp-unless core:streamp designator "core::read-stream-designator: not a stream"))))))
 
 (mu:intern core::ns :extern "make-string-stream"
-   (:lambda (dir init)
-     (core:errorp-unless core:keywordp dir "core:make-string-stream: not a direction keyword")
-     (core:errorp-unless core:stringp init "core:make-string-stream: not a string initializer")
-     (:if (mu:eq dir :input)
-          (mu:open :string :input init)
-          (:if (mu:eq dir :output)
-               (mu:open :string :output init)
-               (core:error dir "core:make-string-stream: not a direction keyword")))))
+  (:lambda (dir init)
+    (core:errorp-unless core:keywordp dir "core:make-string-stream: not a direction keyword")
+    (core:errorp-unless core:stringp init "core:make-string-stream: not a string initializer")
+    (:if (mu:eq dir :input)
+         (mu:open :string :input init)
+         (:if (mu:eq dir :output)
+              (mu:open :string :output init)
+              (core:error dir "core:make-string-stream: not a direction keyword")))))
 
 (mu:intern core::ns :extern "eof"
-   (:lambda (designator)
-      (mu:eof (core::read-stream-designator designator))))
+  (:lambda (designator)
+    (mu:eof (core::read-stream-designator designator))))
 
-(mu:intern core::ns :extern "open-file"
-   (:lambda (dir path)
+(mu:intern core::ns :extern "open"
+  (:lambda (dir path)
      (core:errorp-unless core:stringp path "core:open: not a path string")
      (core:errorp-unless core:keywordp dir "core:open: not a direction keyword")
      (:if (mu:eq dir :input)
@@ -46,11 +46,16 @@
                (mu:open :file :output path)
                (core:error dir "core:open: not a direction keyword")))))
 
-(mu:intern core::ns :extern "close" mu:close)
+(mu:intern core::ns :extern "close"
+  (:lambda (stream)
+    (core:errorp-unless core:streamp stream "core:close: not a string")
+    (mu:close stream)))
 
+;;;
+;;; chars, bytes, and unread
+;;;
 (mu:intern core::ns :extern "write-char"
    (:lambda (char designator)
-     ;;; (mu:write char mu:std-out :t)         
      (mu:wr-byte (mu:coerce char :fixnum) (core::write-stream-designator designator))))
 
 (mu:intern core::ns :extern "write-byte"
@@ -72,7 +77,7 @@
 (mu:intern core::ns :extern "read-byte"
    (:lambda (designator error-eofp eof-value)
      ((:lambda (stream)
-        (:if (mu:eof stream)
+        (:if (core:eof stream)
              (:if error-eofp
                   (core:error stream "core:read-byte: end of file")
                   eof-value)
@@ -84,18 +89,13 @@
     (core:errorp-unless core:charp ch "core:unread-char: not a char")
     (mu:un-char ch (core::write-stream-designator designator))))
 
-(mu:intern core::ns :extern "unread-byte"
-  (:lambda (byte designator)
-    (core:errorp-unless core:fixnump char "core:unead-byte: not a byte")
-    (mu:un-byte byte (core::write-stream-designator designator))))
-
 ;;;
 ;;; read/write
 ;;;
 (mu:intern core::ns :extern "read"
    (:lambda (designator eof-error eof-value)
      ((:lambda (stream)
-        (:if (mu:eof stream)
+        (:if (core:eof stream)
              (:if eof-error
                   (core::prog2
                      (core:error stream "core:read: unexpected end of file")

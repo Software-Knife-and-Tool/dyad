@@ -24,11 +24,11 @@
                          (:if (mu:eq ch #\#)
                               stream
                               (core:null loop)))
-                       (:if (mu:eof stream)
+                       (:if (core:eof stream)
                             (core:error stream "core::read-sharp-comment: unexpected end of file")
                             (core:read-char stream () ())))
                       (core:null loop)))
-               (:if (mu:eof stream)
+               (:if (core:eof stream)
                     (core:error stream "core::read-sharp-comment: unexpected end of file")
                     (core:read-char stream () ())))))
        ())))
@@ -51,7 +51,7 @@
   (:lambda (base stream)
     (mu:fix           
       (:lambda (loop)
-        (:if (core::logor (mu:eof stream) (core:numberp loop))
+        (:if (core::logor (core:eof stream) (core:numberp loop))
              loop
              ((:lambda (ch)
                 ((:lambda (syntax-type)
@@ -96,17 +96,17 @@
     (:if (mu:eq ch #\))
          core::read-list-eol
          ((:lambda (list)
-            (:if (mu:eof stream)
+            (:if (core:eof stream)
                  (core::prog2
                      (core:error stream "read-list: unexpected eof")
                      ())
                  list))
           (mu:fix
            (:lambda (loop)
-             (:if (mu:eof stream)
+             (:if (core:eof stream)
                   stream
                   ((:lambda (el)
-                     (:if (core::logor (mu:eof stream) (mu:eq el core::read-list-eol))
+                     (:if (core::logor (core:eof stream) (mu:eq el core::read-list-eol))
                           loop
                           (:if (core:symbolp el)
                                (:if (mu:eq (mu:sy-name el) ".")

@@ -110,7 +110,7 @@
      (:lambda (loop)
        (:if (core:consp loop)
             loop
-            (:if (mu:eof stream)
+            (:if (core:eof stream)
                  loop
                  ((:lambda (ch)
                     (:if (core:null ch)
@@ -187,7 +187,7 @@
 (mu:intern core::ns :intern "read"
   (:lambda (stream)
     ((:lambda (ch)
-       (:if (mu:eof stream)
+       (:if (core:eof stream)
             ()
             ((:lambda (macro)
                (:if macro
