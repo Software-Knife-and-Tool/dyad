@@ -95,13 +95,7 @@
   (:lambda (ch stream)
     (:if (mu:eq ch #\))
          core::read-list-eol
-         ((:lambda (list)
-            (:if (core:eof stream)
-                 (core::prog2
-                     (core:error stream "read-list: unexpected eof")
-                     ())
-                 list))
-          (mu:fix
+         (mu:fix
            (:lambda (loop)
              (:if (core:eof stream)
                   stream
@@ -119,7 +113,7 @@
                                     (core::append loop (core::list el)))
                                (core::append loop (core::list el)))))
                    (core::read stream))))
-          ())))))
+          ()))))
 
 ;;;
 ;;; string reader
