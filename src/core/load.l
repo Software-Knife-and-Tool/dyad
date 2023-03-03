@@ -16,7 +16,7 @@
             ())
        (mu:fix
         (:lambda (loop)
-          (:if (mu:eof ifs)
+          (:if (core:eof ifs)
                :t
                (mu:with-ex
                    (:lambda (cond obj)
