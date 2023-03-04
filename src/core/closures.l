@@ -11,6 +11,7 @@
 ;;;
 (mu:intern core::ns :intern "closure-prop"
   (:lambda (key closure)
+    (core:errorp-unless core:closurep closure "core::closure-prop: is not a closure")           
     (mu:sv-ref
      (mu:st-vec closure)
      (mu:cdr
@@ -42,8 +43,8 @@
 
 (mu:intern core::ns :intern "lambda-arg-list"
    (:lambda (fn args)
-     (:if (core::fn-restp fn)
-          (:if (core:zerop (core::fn-nreqs fn))
+     (:if (core::closurep fn)
+          (:if (core::logand (core:closure-prop :rest fn) (core:zerop (core::closure-prop :arity fn)))
                (core::list3 'mu:cons (core::flat-arg-list args) ())
                ((:lambda (reqs rest)
                   (mu:cons 'core::append
@@ -54,21 +55,21 @@
                                 (core::flat-arg-list rest)
                                 (core::list ())))
                                         ()))))
-                   (core:dropr args (mu:fx-sub (mu:length args) (core::fn-nreqs fn)))
-                   (core:dropl args (core::fn-nreqs fn))))
+                   (core:dropr args (mu:fx-sub (mu:length args) (core::closure-prop :arity fn)))
+                   (core:dropl args (core::closure-prop :arity fn))))
           (core::flat-arg-list args))))
 
 (mu:intern core::ns :intern "quoted-lambda-arg-list"
    (:lambda (fn args)
-     (:if (core::fn-restp fn)
-          (:if (core:zerop (core::fn-nreqs fn))
+     (:if (core::closure-prop :rest fn)
+          (:if (core::logand (core:closure-prop :rest fn) (core:zerop (core::closure-prop :arity fn)))
                (core::list args)
                ((:lambda (reqs rest)
                   (core::append
                    reqs
                    (core::list rest)))
-                (core:dropr args (mu:fx-sub (mu:length args) (core::fn-nreqs fn)))
-                (core:dropl args (core::fn-nreqs fn))))
+                (core:dropr args (mu:fx-sub (mu:length args) (core::closure-prop :arity fn)))
+                (core:dropl args (core::closure-prop :arity fn))))
           args)))
 
 ;;;
@@ -142,7 +143,7 @@
   (:lambda (symbol args env)
     (:if (core:boundp symbol)
          ((:lambda (fn)
-            (:if (core::fn-lambda-desc fn)
+            (:if (core::lambda-prop :desc fn)
                  (core::list3 core:apply fn (core::compile-flat-arg-list args env))
                  (mu:cons fn (core::compile-quoted-lambda-arg-list fn args env))))
           (core:symbol-value (core::compile symbol env)))
