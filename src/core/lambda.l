@@ -77,6 +77,8 @@
 (mu:intern core::ns :intern "compile-lambda"
    (:lambda (form env)
      ((:lambda (lambda-desc body)
+        (core:warn lambda-desc "compile-lambda:")
+        (core:warn body "compile-lambda:")
         (mu:compile
            (mu:cons :lambda
               (mu:cons (core::lambda-prop :symbols lambda-desc)
@@ -88,7 +90,8 @@
 ;;; compile a closure
 ;;;
 (mu:intern core::ns :intern "closure"
-   (:lambda (fn)
+  (:lambda (fn)
+     (core:warn fn "closure:")           
      ((:lambda (lambda-desc)
         (core:errorp-when core:null lambda-desc "core::closure: closing bare function")
         ((:lambda (desc body)
@@ -102,7 +105,7 @@
           (core::lambda-prop :reqsyms lambda-desc)
           (core::lambda-prop :restsym lambda-desc)
           (core::lambda-prop :env lambda-desc)
-          (core:mapcar (:lambda (desc-) (mu:fr-get (core::lambda-prop :frame desc-)))
+          (core:mapcar (:lambda (desc) (mu:fr-get (core::lambda-prop :frame desc)))
                        (core::lambda-prop :env lambda-desc)))
          (mu:cdr (core::fn-form fn))))
         (core::fn-lambda-desc fn))))
@@ -111,7 +114,9 @@
 ;;; [*closure-descriptor*] `(function . values)` 
 ;;;
 (mu:intern core::ns :intern "compile-closure"
-  (:lambda (form env)
+  (:lambda (lambda-desc form env)
+    (core:warn lambda-desc "compile-closure:")
+    (core:warn form "compile-closure:")
     (core:maplist
      (:lambda (form-cons)
        ((:lambda (compiled-form)
@@ -136,9 +141,10 @@
 ;;;
 (mu:intern core::ns :intern "compile-lambda-body"
   (:lambda (lambda-desc body env)
+    (core:warn lambda-desc "compile-lambda-body:")
     (:if body
          ((:lambda (env)
-              (core::compile-closure (mu:cons lambda-desc body) env))
+              (core::compile-closure lambda-desc body env))
             (core::compile-add-env lambda-desc env))
            ())))
 
