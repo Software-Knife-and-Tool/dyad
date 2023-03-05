@@ -17,11 +17,11 @@ use {
             cons::{Cons, ConsIter, Core as _},
             fixnum::Fixnum,
             float::Float,
-            ivector::{IVec, IVector, Image, IndirectVector},
-            ivector::{TypedVec, VecType, VectorIter},
             r#struct::Struct,
             stream::{Core as _, Stream},
             symbol::{Core as _, Symbol},
+            vecimage::{IVec, IVector, IndirectVector, VectorImage},
+            vecimage::{TypedVec, VecType, VectorIter},
         },
     },
     std::{cell::Ref, str},
@@ -29,7 +29,7 @@ use {
 
 pub enum Vector {
     Direct(Tag),
-    Indirect((Image, IVec)),
+    Indirect((VectorImage, IVec)),
 }
 
 lazy_static! {
@@ -51,12 +51,12 @@ impl Vector {
             .map(|tab| tab.1)
     }
 
-    pub fn to_image(mu: &Mu, tag: Tag) -> Image {
+    pub fn to_image(mu: &Mu, tag: Tag) -> VectorImage {
         match Tag::type_of(mu, tag) {
             Type::Vector => match tag {
                 Tag::Indirect(image) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
-                    Image {
+                    VectorImage {
                         vtype: Tag::from_slice(
                             heap_ref.of_length(image.offset() as usize, 8).unwrap(),
                         ),
@@ -70,16 +70,8 @@ impl Vector {
             _ => panic!("internal: vector type required"),
         }
     }
-}
 
-/// properties
-pub trait Properties {
-    fn length_of(_: &Mu, _: Tag) -> usize;
-    fn type_of(_: &Mu, _: Tag) -> Type;
-}
-
-impl Properties for Vector {
-    fn type_of(mu: &Mu, vector: Tag) -> Type {
+    pub fn type_of(mu: &Mu, vector: Tag) -> Type {
         match vector {
             Tag::Direct(_) => Type::Char,
             Tag::Indirect(_) => {
@@ -98,7 +90,7 @@ impl Properties for Vector {
         }
     }
 
-    fn length_of(mu: &Mu, vector: Tag) -> usize {
+    pub fn length_of(mu: &Mu, vector: Tag) -> usize {
         match vector {
             Tag::Direct(direct) => direct.length() as usize,
             Tag::Indirect(_) => {
@@ -174,7 +166,7 @@ impl<'a> Core<'a> for Vector {
                 },
                 Tag::Indirect(image) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
-                    let vec: Image = Self::to_image(mu, tag);
+                    let vec: VectorImage = Self::to_image(mu, tag);
 
                     str::from_utf8(
                         heap_ref
@@ -473,8 +465,8 @@ pub trait MuFunction {
 
 impl MuFunction for Vector {
     fn mu_make_vector(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let type_sym = fp.argv[0];
-        let list = fp.argv[1];
+        let type_sym = Tag::from_u64(fp.argv[0]);
+        let list = Tag::from_u64(fp.argv[1]);
 
         fp.value = match Self::to_type(type_sym) {
             Some(vtype) => match vtype {
@@ -598,8 +590,8 @@ impl MuFunction for Vector {
     }
 
     fn mu_svref(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let vector = fp.argv[0];
-        let index = fp.argv[1];
+        let vector = Tag::from_u64(fp.argv[0]);
+        let index = Tag::from_u64(fp.argv[1]);
 
         match Tag::type_of(mu, index) {
             Type::Fixnum => {
@@ -625,7 +617,7 @@ impl MuFunction for Vector {
     }
 
     fn mu_type(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let vector = fp.argv[0];
+        let vector = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, vector) {
             Type::Vector => {
@@ -641,7 +633,7 @@ impl MuFunction for Vector {
     }
 
     fn mu_length(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let vector = fp.argv[0];
+        let vector = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, vector) {
             Type::Vector => {

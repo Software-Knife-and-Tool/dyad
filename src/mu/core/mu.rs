@@ -152,7 +152,7 @@ impl Core for Mu {
 
         for cons in ConsIter::new(self, args) {
             match self.eval(Cons::car(self, cons)) {
-                Ok(arg) => argv.push(arg),
+                Ok(arg) => argv.push(Tag::as_u64(&arg)),
                 Err(e) => return Err(e),
             }
         }

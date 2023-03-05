@@ -5,7 +5,7 @@ use {
     crate::{
         core::{
             classes::DirectType,
-            classes::{Tag, TagType, TagU64, Type},
+            classes::{Tag, TagIndirect, TagType, Type},
             exception,
             exception::{Condition, Exception},
             frame::Frame,
@@ -13,7 +13,7 @@ use {
         },
         image,
         types::{
-            namespace::{Namespace, Properties as _, Scope},
+            namespace::{Namespace, Scope},
             r#struct::Struct,
             stream::{Core as _, Stream},
             vector::{Core as _, Vector},
@@ -27,10 +27,10 @@ use {
 
 pub enum Symbol {
     Keyword(Tag),
-    Symbol(Image),
+    Symbol(SymbolImage),
 }
 
-pub struct Image {
+pub struct SymbolImage {
     pub namespace: Tag,
     pub scope: Tag,
     pub name: Tag,
@@ -63,7 +63,7 @@ impl Symbol {
                     DirectType::Keyword,
                 ))
             }
-            _ => Symbol::Symbol(Image {
+            _ => Symbol::Symbol(SymbolImage {
                 namespace,
                 scope: match scope {
                     Scope::Extern => Symbol::keyword("extern"),
@@ -75,11 +75,11 @@ impl Symbol {
         }
     }
 
-    pub fn to_image(mu: &Mu, tag: Tag) -> Image {
+    pub fn to_image(mu: &Mu, tag: Tag) -> SymbolImage {
         let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
         match Tag::type_of(mu, tag) {
             Type::Symbol => match tag {
-                Tag::Indirect(main) => Image {
+                Tag::Indirect(main) => SymbolImage {
                     namespace: Tag::from_slice(
                         heap_ref.of_length(main.offset() as usize, 8).unwrap(),
                     ),
@@ -189,7 +189,7 @@ impl Core for Symbol {
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
-                    TagU64::new()
+                    TagIndirect::new()
                         .with_offset(heap_ref.alloc(slices, Type::Symbol as u8) as u64)
                         .with_tag(TagType::Symbol),
                 )
@@ -279,7 +279,7 @@ pub trait MuFunction {
 
 impl MuFunction for Symbol {
     fn mu_name(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = fp.argv[0];
+        let symbol = Tag::from_u64(fp.argv[0]);
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Keyword | Type::Symbol => Symbol::name_of(mu, symbol),
@@ -290,7 +290,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_ns(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = fp.argv[0];
+        let symbol = Tag::from_u64(fp.argv[0]);
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Symbol => Symbol::namespace_of(mu, symbol),
@@ -302,7 +302,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_value(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = fp.argv[0];
+        let symbol = Tag::from_u64(fp.argv[0]);
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Symbol => {
@@ -320,7 +320,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_boundp(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = fp.argv[0];
+        let symbol = Tag::from_u64(fp.argv[0]);
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Keyword => symbol,
@@ -338,7 +338,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_keywordp(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = fp.argv[0];
+        let symbol = Tag::from_u64(fp.argv[0]);
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Keyword => symbol,
@@ -349,7 +349,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_keyword(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = fp.argv[0];
+        let symbol = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, symbol) {
             Type::Keyword => {
@@ -366,7 +366,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_symbol(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = fp.argv[0];
+        let symbol = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, symbol) {
             Type::Vector => {

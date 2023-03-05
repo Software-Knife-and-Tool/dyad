@@ -5,7 +5,7 @@
 use {
     crate::{
         core::{
-            classes::{Tag, TagType, TagU64, Type},
+            classes::{Tag, TagIndirect, TagType, Type},
             exception,
             exception::{Condition, Exception},
             frame::Frame,
@@ -14,9 +14,9 @@ use {
         image,
         types::{
             cons::{Cons, ConsIter, Core as _},
-            ivector::{TypedVec, VecType, VectorIter},
             stream::{Core as _, Stream},
             symbol::{Core as _, Symbol},
+            vecimage::{TypedVec, VecType, VectorIter},
             vector::Core as _,
         },
     },
@@ -191,7 +191,7 @@ impl<'a> Core<'a> for Struct {
 
         let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
         Tag::Indirect(
-            TagU64::new()
+            TagIndirect::new()
                 .with_offset(heap_ref.alloc(image, Type::Struct as u8) as u64)
                 .with_tag(TagType::Heap),
         )
@@ -207,7 +207,7 @@ pub trait MuFunction {
 
 impl MuFunction for Struct {
     fn mu_struct_type(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let tag = fp.argv[0];
+        let tag = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, tag) {
             Type::Struct => {
@@ -221,7 +221,7 @@ impl MuFunction for Struct {
     }
 
     fn mu_struct_vector(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let tag = fp.argv[0];
+        let tag = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, tag) {
             Type::Struct => {
@@ -235,8 +235,8 @@ impl MuFunction for Struct {
     }
 
     fn mu_make_struct(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stype = fp.argv[0];
-        let list = fp.argv[1];
+        let stype = Tag::from_u64(fp.argv[0]);
+        let list = Tag::from_u64(fp.argv[1]);
 
         fp.value = match Tag::type_of(mu, stype) {
             Type::Keyword => {

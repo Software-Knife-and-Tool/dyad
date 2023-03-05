@@ -70,82 +70,61 @@ pub trait MuFunction {
 
 impl MuFunction for Float {
     fn mu_fladd(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Float => match Tag::type_of(mu, fp.argv[1]) {
+        let fl0 = Tag::from_u64(fp.argv[0]);
+        let fl1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fl0) {
+            Type::Float => match Tag::type_of(mu, fl1) {
                 Type::Float => {
-                    fp.value =
-                        Self::as_tag(Self::as_f32(mu, fp.argv[0]) + Self::as_f32(mu, fp.argv[1]));
+                    fp.value = Self::as_tag(Self::as_f32(mu, fl0) + Self::as_f32(mu, fl1));
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fl-add",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:fl-add", fl1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fl-add",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fl-add", fl0)),
         }
     }
 
     fn mu_flsub(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Float => match Tag::type_of(mu, fp.argv[1]) {
+        let fl0 = Tag::from_u64(fp.argv[0]);
+        let fl1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fl0) {
+            Type::Float => match Tag::type_of(mu, fl1) {
                 Type::Float => {
-                    fp.value =
-                        Self::as_tag(Self::as_f32(mu, fp.argv[0]) - Self::as_f32(mu, fp.argv[1]));
+                    fp.value = Self::as_tag(Self::as_f32(mu, fl0) - Self::as_f32(mu, fl1));
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fl-sub",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:fl-sub", fl1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fl-sub",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fl-sub", fl0)),
         }
     }
 
     fn mu_flmul(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Float => match Tag::type_of(mu, fp.argv[1]) {
+        let fl0 = Tag::from_u64(fp.argv[0]);
+        let fl1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fl0) {
+            Type::Float => match Tag::type_of(mu, fl1) {
                 Type::Float => {
-                    fp.value =
-                        Self::as_tag(Self::as_f32(mu, fp.argv[0]) * Self::as_f32(mu, fp.argv[1]));
+                    fp.value = Self::as_tag(Self::as_f32(mu, fl0) * Self::as_f32(mu, fl1));
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fl-mul",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:fl-mul", fl1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fl-mul",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fl-mul", fl0)),
         }
     }
 
     fn mu_fllt(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Float => match Tag::type_of(mu, fp.argv[1]) {
+        let fl0 = Tag::from_u64(fp.argv[0]);
+        let fl1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fl0) {
+            Type::Float => match Tag::type_of(mu, fl1) {
                 Type::Float => {
-                    fp.value = if Self::as_f32(mu, fp.argv[0]) < Self::as_f32(mu, fp.argv[1]) {
+                    fp.value = if Self::as_f32(mu, fl0) < Self::as_f32(mu, fl1) {
                         Tag::t()
                     } else {
                         Tag::nil()
@@ -153,43 +132,25 @@ impl MuFunction for Float {
 
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fl-lt",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:fl-lt", fl1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fl-lt",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fl-lt", fl0)),
         }
     }
 
     fn mu_fldiv(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Float => match Tag::type_of(mu, fp.argv[1]) {
+        let fl0 = Tag::from_u64(fp.argv[0]);
+        let fl1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fl0) {
+            Type::Float => match Tag::type_of(mu, fl1) {
                 Type::Float => {
-                    fp.value =
-                        Self::as_tag(Self::as_f32(mu, fp.argv[0]) / Self::as_f32(mu, fp.argv[1]));
+                    fp.value = Self::as_tag(Self::as_f32(mu, fl0) / Self::as_f32(mu, fl1));
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fl-div",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:fl-div", fl1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fl-div",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fl-div", fl0)),
         }
     }
 }

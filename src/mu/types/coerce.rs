@@ -50,8 +50,8 @@ pub trait MuFunction {
 
 impl MuFunction for Mu {
     fn mu_coerce(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let src = fp.argv[0];
-        let to_key = fp.argv[1];
+        let src = Tag::from_u64(fp.argv[0]);
+        let to_key = Tag::from_u64(fp.argv[1]);
 
         fp.value = match Tag::key_type(to_key) {
             Some(to_type) => match Self::coerce(mu, src, to_type) {

@@ -5,7 +5,7 @@
 use {
     crate::{
         core::{
-            classes::{DirectType, Tag, TagType, TagU64, Type},
+            classes::{DirectType, Tag, TagIndirect, TagType, Type},
             mu::Mu,
         },
         image,
@@ -14,13 +14,13 @@ use {
             fixnum::Fixnum,
             float::Float,
             symbol::{Core as _, Symbol},
-            vector::{Core, Properties as _, Vector},
+            vector::{Core, Vector},
         },
     },
     std::cell::{Ref, RefMut},
 };
 
-pub struct Image {
+pub struct VectorImage {
     pub vtype: Tag,  // type keyword
     pub length: Tag, // fixnum
 }
@@ -36,22 +36,22 @@ pub enum IVec {
 // vector types
 #[allow(dead_code)]
 pub enum IndirectVector<'a> {
-    Char(&'a (Image, IVec)),
-    Byte(&'a (Image, IVec)),
-    T(&'a (Image, IVec)),
-    Fixnum(&'a (Image, IVec)),
-    Float(&'a (Image, IVec)),
+    Char(&'a (VectorImage, IVec)),
+    Byte(&'a (VectorImage, IVec)),
+    T(&'a (VectorImage, IVec)),
+    Fixnum(&'a (VectorImage, IVec)),
+    Float(&'a (VectorImage, IVec)),
 }
 
 pub trait IVector {
     const IMAGE_NBYTES: usize = 2 * 8; // bytes in image
-    fn image_of(_: &Image) -> Vec<[u8; 8]>;
+    fn image_of(_: &VectorImage) -> Vec<[u8; 8]>;
     fn evict(&self, _: &Mu) -> Tag;
     fn r#ref(_: &Mu, _: Tag, _: usize) -> Option<Tag>;
 }
 
 impl<'a> IVector for IndirectVector<'a> {
-    fn image_of(image: &Image) -> Vec<[u8; 8]> {
+    fn image_of(image: &VectorImage) -> Vec<[u8; 8]> {
         let slices = vec![image.vtype.as_slice(), image.length.as_slice()];
 
         slices
@@ -69,7 +69,7 @@ impl<'a> IVector for IndirectVector<'a> {
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
-                    TagU64::new()
+                    TagIndirect::new()
                         .with_offset(heap_ref.valloc(&slices, data, Type::Vector as u8) as u64)
                         .with_tag(TagType::Heap),
                 )
@@ -84,7 +84,7 @@ impl<'a> IVector for IndirectVector<'a> {
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
-                    TagU64::new()
+                    TagIndirect::new()
                         .with_offset(heap_ref.valloc(&slices, data, Type::Vector as u8) as u64)
                         .with_tag(TagType::Heap),
                 )
@@ -103,7 +103,7 @@ impl<'a> IVector for IndirectVector<'a> {
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
-                    TagU64::new()
+                    TagIndirect::new()
                         .with_offset(heap_ref.alloc(&slices, Type::Vector as u8) as u64)
                         .with_tag(TagType::Heap),
                 )
@@ -122,7 +122,7 @@ impl<'a> IVector for IndirectVector<'a> {
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
-                    TagU64::new()
+                    TagIndirect::new()
                         .with_offset(heap_ref.alloc(&slices, Type::Vector as u8) as u64)
                         .with_tag(TagType::Heap),
                 )
@@ -145,7 +145,7 @@ impl<'a> IVector for IndirectVector<'a> {
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
-                    TagU64::new()
+                    TagIndirect::new()
                         .with_offset(heap_ref.valloc(
                             &Self::image_of(image),
                             &data,
@@ -253,7 +253,7 @@ impl VecType for String {
         let len = self.len();
 
         if len > Tag::DIRECT_STR_MAX {
-            let image = Image {
+            let image = VectorImage {
                 vtype: Symbol::keyword("char"),
                 length: Fixnum::as_tag(self.len() as i64),
             };
@@ -277,7 +277,7 @@ impl VecType for String {
 
 impl VecType for Vec<Tag> {
     fn to_vector(&self) -> Vector {
-        let image = Image {
+        let image = VectorImage {
             vtype: Symbol::keyword("t"),
             length: Fixnum::as_tag(self.len() as i64),
         };
@@ -288,7 +288,7 @@ impl VecType for Vec<Tag> {
 
 impl VecType for Vec<i64> {
     fn to_vector(&self) -> Vector {
-        let image = Image {
+        let image = VectorImage {
             vtype: Symbol::keyword("fixnum"),
             length: Fixnum::as_tag(self.len() as i64),
         };
@@ -299,7 +299,7 @@ impl VecType for Vec<i64> {
 
 impl VecType for Vec<u8> {
     fn to_vector(&self) -> Vector {
-        let image = Image {
+        let image = VectorImage {
             vtype: Symbol::keyword("byte"),
             length: Fixnum::as_tag(self.len() as i64),
         };
@@ -310,7 +310,7 @@ impl VecType for Vec<u8> {
 
 impl VecType for Vec<f32> {
     fn to_vector(&self) -> Vector {
-        let image = Image {
+        let image = VectorImage {
             vtype: Symbol::keyword("float"),
             length: Fixnum::as_tag(self.len() as i64),
         };

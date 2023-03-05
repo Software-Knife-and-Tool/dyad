@@ -10,7 +10,7 @@
 use {
     crate::{
         core::{
-            classes::{Tag, TagType, TagU64, Type},
+            classes::{Tag, TagIndirect, TagType, Type},
             exception,
             exception::{Condition, Exception},
             frame::Frame,
@@ -25,7 +25,7 @@ use {
             fixnum::Fixnum,
             r#struct::Struct,
             symbol::{Core as _, Symbol},
-            vector::{Core as _, Properties as _, Vector},
+            vector::{Core as _, Vector},
         },
     },
     std::cell::{Ref, RefMut},
@@ -37,11 +37,11 @@ pub enum Stream {
     Stdin(u8),
     Stdout(),
     Stderr(),
-    Indirect(Image),
+    Indirect(StreamImage),
 }
 
 // stream image
-pub struct Image {
+pub struct StreamImage {
     source: Tag,    // system file id (fixnum) | nil
     count: Tag,     // char count (fixnum)
     direction: Tag, // :input | :output (keyword)
@@ -63,7 +63,7 @@ impl Stream {
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
                 Tag::Indirect(
-                    TagU64::new()
+                    TagIndirect::new()
                         .with_offset(heap_ref.alloc(slices, Type::Stream as u8) as u64)
                         .with_tag(TagType::Heap),
                 )
@@ -72,13 +72,13 @@ impl Stream {
         }
     }
 
-    pub fn to_image(mu: &Mu, tag: Tag) -> Image {
+    pub fn to_image(mu: &Mu, tag: Tag) -> StreamImage {
         match Tag::type_of(mu, tag) {
             Type::Stream => match tag {
                 Tag::Indirect(main) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
 
-                    let image = Image {
+                    let image = StreamImage {
                         source: Tag::from_slice(
                             heap_ref.of_length(main.offset() as usize, 8).unwrap(),
                         ),
@@ -104,7 +104,7 @@ impl Stream {
         }
     }
 
-    pub fn update(mu: &Mu, image: &Image, stream: Tag) {
+    pub fn update(mu: &Mu, image: &StreamImage, stream: Tag) {
         let slices: &[[u8; 8]] = &[
             image.source.as_slice(),
             image.count.as_slice(),
@@ -270,7 +270,7 @@ impl Core for Stream {
         let stream = Stream::File(path.to_string(), is_input, 0);
         let id = SystemStream::open(&mu.system.streams, path, is_input).unwrap();
 
-        let image = Image {
+        let image = StreamImage {
             source: Fixnum::as_tag(id as i64),
             count: Fixnum::as_tag(0),
             direction: if is_input {
@@ -288,7 +288,7 @@ impl Core for Stream {
     fn open_string(mu: &Mu, str: &str, is_input: bool) -> exception::Result<Tag> {
         let string = Stream::String(str.to_string(), is_input, 0);
 
-        let image = Image {
+        let image = StreamImage {
             source: if is_input {
                 Vector::from_string(str).evict(mu)
             } else {
@@ -314,7 +314,7 @@ impl Core for Stream {
     }
 
     fn open_stdin(mu: &Mu) -> exception::Result<Tag> {
-        let image = Image {
+        let image = StreamImage {
             source: Fixnum::as_tag(STDIN as i64),
             count: Fixnum::as_tag(0),
             direction: Symbol::keyword("input"),
@@ -326,7 +326,7 @@ impl Core for Stream {
     }
 
     fn open_stdout(mu: &Mu) -> exception::Result<Tag> {
-        let image = Image {
+        let image = StreamImage {
             source: Fixnum::as_tag(STDOUT as i64),
             count: Fixnum::as_tag(0),
             direction: Symbol::keyword("output"),
@@ -338,7 +338,7 @@ impl Core for Stream {
     }
 
     fn open_errout(mu: &Mu) -> exception::Result<Tag> {
-        let image = Image {
+        let image = StreamImage {
             source: Fixnum::as_tag(STDERR as i64),
             count: Fixnum::as_tag(0),
             direction: Symbol::keyword("output"),
@@ -652,7 +652,7 @@ pub trait MuFunction {
 
 impl MuFunction for Stream {
     fn mu_close(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
+        let stream = Tag::from_u64(fp.argv[0]);
 
         fp.value = match Tag::type_of(mu, stream) {
             Type::Stream => {
@@ -670,7 +670,7 @@ impl MuFunction for Stream {
     }
 
     fn mu_openp(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
+        let stream = Tag::from_u64(fp.argv[0]);
 
         fp.value = match Tag::type_of(mu, stream) {
             Type::Stream => {
@@ -687,9 +687,9 @@ impl MuFunction for Stream {
     }
 
     fn mu_open(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let st_type = fp.argv[0];
-        let st_dir = fp.argv[1];
-        let st_arg = fp.argv[2];
+        let st_type = Tag::from_u64(fp.argv[0]);
+        let st_dir = Tag::from_u64(fp.argv[1]);
+        let st_arg = Tag::from_u64(fp.argv[2]);
 
         let arg = match Tag::type_of(mu, st_arg) {
             Type::Vector => Vector::as_string(mu, st_arg),
@@ -716,9 +716,9 @@ impl MuFunction for Stream {
     }
 
     fn mu_read(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
-        let eofp = fp.argv[1];
-        let eof_value = fp.argv[2];
+        let stream = Tag::from_u64(fp.argv[0]);
+        let eofp = Tag::from_u64(fp.argv[1]);
+        let eof_value = Tag::from_u64(fp.argv[2]);
 
         match Tag::type_of(mu, stream) {
             Type::Stream => match mu.read(stream, !eofp.null_(), eof_value) {
@@ -733,9 +733,9 @@ impl MuFunction for Stream {
     }
 
     fn mu_write(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let value = fp.argv[0];
-        let escape = fp.argv[1];
-        let stream = fp.argv[2];
+        let value = Tag::from_u64(fp.argv[0]);
+        let escape = Tag::from_u64(fp.argv[1]);
+        let stream = Tag::from_u64(fp.argv[2]);
 
         match Tag::type_of(mu, stream) {
             Type::Stream => match mu.write(value, !escape.null_(), stream) {
@@ -750,7 +750,7 @@ impl MuFunction for Stream {
     }
 
     fn mu_eof(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
+        let stream = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, stream) {
             Type::Stream => {
@@ -766,7 +766,7 @@ impl MuFunction for Stream {
     }
 
     fn mu_get_string(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
+        let stream = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, stream) {
             Type::Stream => match Self::get_string(mu, stream) {
@@ -781,9 +781,9 @@ impl MuFunction for Stream {
     }
 
     fn mu_read_char(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
-        let eoferrp = fp.argv[1];
-        let eof_value = fp.argv[2];
+        let stream = Tag::from_u64(fp.argv[0]);
+        let eoferrp = Tag::from_u64(fp.argv[1]);
+        let eof_value = Tag::from_u64(fp.argv[2]);
 
         fp.value = match Tag::type_of(mu, stream) {
             Type::Stream => match Self::read_char(mu, stream) {
@@ -799,9 +799,9 @@ impl MuFunction for Stream {
     }
 
     fn mu_read_byte(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stream = fp.argv[0];
-        let erreofp = fp.argv[1];
-        let eof_value = fp.argv[2];
+        let stream = Tag::from_u64(fp.argv[0]);
+        let erreofp = Tag::from_u64(fp.argv[1]);
+        let eof_value = Tag::from_u64(fp.argv[2]);
 
         fp.value = match Tag::type_of(mu, stream) {
             Type::Stream => match Self::read_byte(mu, stream) {
@@ -817,8 +817,8 @@ impl MuFunction for Stream {
     }
 
     fn mu_unread_char(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ch = fp.argv[0];
-        let stream = fp.argv[1];
+        let ch = Tag::from_u64(fp.argv[0]);
+        let stream = Tag::from_u64(fp.argv[1]);
 
         match Tag::type_of(mu, stream) {
             Type::Stream => match Self::unread_char(mu, stream, Char::as_char(mu, ch)) {
@@ -836,8 +836,8 @@ impl MuFunction for Stream {
     }
 
     fn mu_write_char(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ch = fp.argv[0];
-        let stream = fp.argv[1];
+        let ch = Tag::from_u64(fp.argv[0]);
+        let stream = Tag::from_u64(fp.argv[1]);
 
         match Tag::type_of(mu, ch) {
             Type::Char => match Tag::type_of(mu, stream) {
@@ -865,8 +865,8 @@ impl MuFunction for Stream {
     }
 
     fn mu_write_byte(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let byte = fp.argv[0];
-        let stream = fp.argv[1];
+        let byte = Tag::from_u64(fp.argv[0]);
+        let stream = Tag::from_u64(fp.argv[1]);
 
         match Tag::type_of(mu, byte) {
             Type::Fixnum if Fixnum::as_i64(mu, byte) < 256 => match Tag::type_of(mu, stream) {

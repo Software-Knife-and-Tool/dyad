@@ -13,8 +13,8 @@ use {
         image,
         types::{
             fixnum::Fixnum,
-            ivector::{TypedVec, VecType},
             symbol::{Core as _, Symbol},
+            vecimage::{TypedVec, VecType},
             vector::Core as _,
         },
     },

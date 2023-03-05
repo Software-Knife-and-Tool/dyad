@@ -5,7 +5,7 @@
 use {
     crate::{
         core::{
-            classes::{Tag, TagType, TagU64, Type},
+            classes::{Tag, TagIndirect, TagType, Type},
             exception,
             mu::{Core as _, Mu},
             namespace::Core as _,
@@ -47,7 +47,7 @@ impl Function {
         ];
 
         let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
-        let ind = TagU64::new()
+        let ind = TagIndirect::new()
             .with_offset(heap_ref.alloc(image, Type::Function as u8) as u64)
             .with_tag(TagType::Function);
 

@@ -142,8 +142,8 @@ pub trait MuFunction {
 
 impl MuFunction for Exception {
     fn mu_raise(mu: &Mu, fp: &mut Frame) -> Result<()> {
-        let condition = fp.argv[0];
-        let src = fp.argv[1];
+        let condition = Tag::from_u64(fp.argv[0]);
+        let src = Tag::from_u64(fp.argv[1]);
 
         fp.value = match Tag::type_of(mu, condition) {
             Type::Keyword => match Self::map_condition(mu, condition) {
@@ -160,8 +160,8 @@ impl MuFunction for Exception {
     }
 
     fn mu_with_ex(mu: &Mu, fp: &mut Frame) -> Result<()> {
-        let handler = fp.argv[0];
-        let thunk = fp.argv[1];
+        let handler = Tag::from_u64(fp.argv[0]);
+        let thunk = Tag::from_u64(fp.argv[1]);
 
         fp.value = match Tag::type_of(mu, thunk) {
             Type::Function => match Tag::type_of(mu, handler) {

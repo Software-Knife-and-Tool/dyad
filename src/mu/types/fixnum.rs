@@ -65,85 +65,61 @@ pub trait MuFunction {
 
 impl MuFunction for Fixnum {
     fn mu_fxadd(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+        let fx0 = Tag::from_u64(fp.argv[0]);
+        let fx1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fx0) {
+            Type::Fixnum => match Tag::type_of(mu, fx1) {
                 Type::Fixnum => {
-                    fp.value = Self::as_tag(
-                        Fixnum::as_i64(mu, fp.argv[0]) + Fixnum::as_i64(mu, fp.argv[1]),
-                    );
+                    fp.value = Self::as_tag(Fixnum::as_i64(mu, fx0) + Fixnum::as_i64(mu, fx1));
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fx-add",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:fx-add", fx1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fx-add",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fx-add", fx0)),
         }
     }
 
     fn mu_fxsub(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+        let fx0 = Tag::from_u64(fp.argv[0]);
+        let fx1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fx0) {
+            Type::Fixnum => match Tag::type_of(mu, fx1) {
                 Type::Fixnum => {
-                    fp.value = Self::as_tag(
-                        Fixnum::as_i64(mu, fp.argv[0]) - Fixnum::as_i64(mu, fp.argv[1]),
-                    );
+                    fp.value = Self::as_tag(Fixnum::as_i64(mu, fx0) - Fixnum::as_i64(mu, fx1));
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fx-sub",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:fx-sub", fx1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fx-sub",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fx-sub", fx0)),
         }
     }
 
     fn mu_fxmul(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+        let fx0 = Tag::from_u64(fp.argv[0]);
+        let fx1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fx0) {
+            Type::Fixnum => match Tag::type_of(mu, fx1) {
                 Type::Fixnum => {
-                    fp.value = Self::as_tag(
-                        Fixnum::as_i64(mu, fp.argv[0]) * Fixnum::as_i64(mu, fp.argv[1]),
-                    );
+                    fp.value = Self::as_tag(Fixnum::as_i64(mu, fx0) * Fixnum::as_i64(mu, fx1));
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fx-mul",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:fx-mul", fx1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fx-mul",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fx-mul", fx0)),
         }
     }
 
     fn mu_fxlt(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+        let fx0 = Tag::from_u64(fp.argv[0]);
+        let fx1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fx0) {
+            Type::Fixnum => match Tag::type_of(mu, fx1) {
                 Type::Fixnum => {
-                    fp.value = if Fixnum::as_i64(mu, fp.argv[0]) < Fixnum::as_i64(mu, fp.argv[1]) {
+                    fp.value = if Fixnum::as_i64(mu, fx0) < Fixnum::as_i64(mu, fx1) {
                         Tag::t()
                     } else {
                         Tag::nil()
@@ -151,104 +127,69 @@ impl MuFunction for Fixnum {
 
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fx-lt",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:fx-lt", fx1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fx-lt",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fx-lt", fx0)),
         }
     }
 
     fn mu_fxdiv(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+        let fx0 = Tag::from_u64(fp.argv[0]);
+        let fx1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fx0) {
+            Type::Fixnum => match Tag::type_of(mu, fx1) {
                 Type::Fixnum => {
-                    let dividend = Fixnum::as_i64(mu, fp.argv[0]);
-                    let divisor = Fixnum::as_i64(mu, fp.argv[1]);
+                    let dividend = Fixnum::as_i64(mu, fx0);
+                    let divisor = Fixnum::as_i64(mu, fx1);
 
                     if divisor == 0 {
                         return Err(Exception::raise(
                             mu,
                             Condition::ZeroDivide,
                             "mu:fx-div",
-                            fp.argv[0],
+                            fx0,
                         ));
                     }
 
                     fp.value = Self::as_tag(dividend / divisor);
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fx-div",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:fx-div", fx1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:fx-div",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:fx-div", fx0)),
         }
     }
 
     fn mu_fxand(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+        let fx0 = Tag::from_u64(fp.argv[0]);
+        let fx1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fx0) {
+            Type::Fixnum => match Tag::type_of(mu, fx1) {
                 Type::Fixnum => {
-                    fp.value = Self::as_tag(
-                        Fixnum::as_i64(mu, fp.argv[0]) & Fixnum::as_i64(mu, fp.argv[1]),
-                    );
+                    fp.value = Self::as_tag(Fixnum::as_i64(mu, fx0) & Fixnum::as_i64(mu, fx1));
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:logand",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:logand", fx1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:logand",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:logand", fx0)),
         }
     }
 
     fn mu_fxor(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        match Tag::type_of(mu, fp.argv[0]) {
-            Type::Fixnum => match Tag::type_of(mu, fp.argv[1]) {
+        let fx0 = Tag::from_u64(fp.argv[0]);
+        let fx1 = Tag::from_u64(fp.argv[1]);
+
+        match Tag::type_of(mu, fx0) {
+            Type::Fixnum => match Tag::type_of(mu, fx1) {
                 Type::Fixnum => {
-                    fp.value = Self::as_tag(
-                        Fixnum::as_i64(mu, fp.argv[0]) | Fixnum::as_i64(mu, fp.argv[1]),
-                    );
+                    fp.value = Self::as_tag(Fixnum::as_i64(mu, fx0) | Fixnum::as_i64(mu, fx1));
                     Ok(())
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:logor",
-                    fp.argv[1],
-                )),
+                _ => Err(Exception::raise(mu, Condition::Type, "mu:logor", fx1)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:logor",
-                fp.argv[0],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:logor", fx0)),
         }
     }
 }
