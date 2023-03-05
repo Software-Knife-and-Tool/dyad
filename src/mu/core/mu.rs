@@ -74,7 +74,7 @@ pub struct Mu {
 }
 
 pub trait Core {
-    const VERSION: &'static str = "0.0.12";
+    const VERSION: &'static str = "0.0.13";
 
     fn new(config: String) -> Self;
     fn apply(&self, _: Tag, _: Tag) -> exception::Result<Tag>;
@@ -152,7 +152,7 @@ impl Core for Mu {
 
         for cons in ConsIter::new(self, args) {
             match self.eval(Cons::car(self, cons)) {
-                Ok(arg) => argv.push(Tag::as_u64(&arg)),
+                Ok(arg) => argv.push(arg),
                 Err(e) => return Err(e),
             }
         }

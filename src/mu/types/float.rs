@@ -70,8 +70,8 @@ pub trait MuFunction {
 
 impl MuFunction for Float {
     fn mu_fladd(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fl0 = Tag::from_u64(fp.argv[0]);
-        let fl1 = Tag::from_u64(fp.argv[1]);
+        let fl0 = fp.argv[0];
+        let fl1 = fp.argv[1];
 
         match Tag::type_of(mu, fl0) {
             Type::Float => match Tag::type_of(mu, fl1) {
@@ -86,8 +86,8 @@ impl MuFunction for Float {
     }
 
     fn mu_flsub(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fl0 = Tag::from_u64(fp.argv[0]);
-        let fl1 = Tag::from_u64(fp.argv[1]);
+        let fl0 = fp.argv[0];
+        let fl1 = fp.argv[1];
 
         match Tag::type_of(mu, fl0) {
             Type::Float => match Tag::type_of(mu, fl1) {
@@ -102,8 +102,8 @@ impl MuFunction for Float {
     }
 
     fn mu_flmul(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fl0 = Tag::from_u64(fp.argv[0]);
-        let fl1 = Tag::from_u64(fp.argv[1]);
+        let fl0 = fp.argv[0];
+        let fl1 = fp.argv[1];
 
         match Tag::type_of(mu, fl0) {
             Type::Float => match Tag::type_of(mu, fl1) {
@@ -118,8 +118,8 @@ impl MuFunction for Float {
     }
 
     fn mu_fllt(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fl0 = Tag::from_u64(fp.argv[0]);
-        let fl1 = Tag::from_u64(fp.argv[1]);
+        let fl0 = fp.argv[0];
+        let fl1 = fp.argv[1];
 
         match Tag::type_of(mu, fl0) {
             Type::Float => match Tag::type_of(mu, fl1) {
@@ -139,8 +139,8 @@ impl MuFunction for Float {
     }
 
     fn mu_fldiv(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fl0 = Tag::from_u64(fp.argv[0]);
-        let fl1 = Tag::from_u64(fp.argv[1]);
+        let fl0 = fp.argv[0];
+        let fl1 = fp.argv[1];
 
         match Tag::type_of(mu, fl0) {
             Type::Float => match Tag::type_of(mu, fl1) {

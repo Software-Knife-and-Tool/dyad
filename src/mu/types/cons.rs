@@ -273,13 +273,13 @@ pub trait MuFunction {
 
 impl MuFunction for Cons {
     fn mu_append(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Self::append(mu, Tag::from_u64(fp.argv[0]), Tag::from_u64(fp.argv[1]));
+        fp.value = Self::append(mu, fp.argv[0], fp.argv[1]);
 
         Ok(())
     }
 
     fn mu_car(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let list = Tag::from_u64(fp.argv[0]);
+        let list = fp.argv[0];
 
         fp.value = match Tag::type_of(mu, list) {
             Type::Null => list,
@@ -291,7 +291,7 @@ impl MuFunction for Cons {
     }
 
     fn mu_cdr(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let list = Tag::from_u64(fp.argv[0]);
+        let list = fp.argv[0];
 
         fp.value = match Tag::type_of(mu, list) {
             Type::Null => list,
@@ -303,12 +303,12 @@ impl MuFunction for Cons {
     }
 
     fn mu_cons(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Self::new(Tag::from_u64(fp.argv[0]), Tag::from_u64(fp.argv[1])).evict(mu);
+        fp.value = Self::new(fp.argv[0], fp.argv[1]).evict(mu);
         Ok(())
     }
 
     fn mu_length(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let list = Tag::from_u64(fp.argv[0]);
+        let list = fp.argv[0];
 
         match Tag::type_of(mu, list) {
             Type::Null => fp.value = Fixnum::as_tag(0),
@@ -320,8 +320,8 @@ impl MuFunction for Cons {
     }
 
     fn mu_nth(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let nth = Tag::from_u64(fp.argv[0]);
-        let list = Tag::from_u64(fp.argv[1]);
+        let nth = fp.argv[0];
+        let list = fp.argv[1];
 
         if Tag::type_of(mu, nth) != Type::Fixnum || Fixnum::as_i64(mu, nth) < 0 {
             return Err(Exception::raise(mu, Condition::Type, "mu:nth", nth));
@@ -341,8 +341,8 @@ impl MuFunction for Cons {
     }
 
     fn mu_nthcdr(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let nth = Tag::from_u64(fp.argv[0]);
-        let list = Tag::from_u64(fp.argv[1]);
+        let nth = fp.argv[0];
+        let list = fp.argv[1];
 
         if Tag::type_of(mu, nth) != Type::Fixnum || Fixnum::as_i64(mu, nth) < 0 {
             return Err(Exception::raise(mu, Condition::Type, "mu:nthcdr", nth));

@@ -207,7 +207,7 @@ pub trait MuFunction {
 
 impl MuFunction for Struct {
     fn mu_struct_type(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let tag = Tag::from_u64(fp.argv[0]);
+        let tag = fp.argv[0];
 
         match Tag::type_of(mu, tag) {
             Type::Struct => {
@@ -221,7 +221,7 @@ impl MuFunction for Struct {
     }
 
     fn mu_struct_vector(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let tag = Tag::from_u64(fp.argv[0]);
+        let tag = fp.argv[0];
 
         match Tag::type_of(mu, tag) {
             Type::Struct => {
@@ -235,8 +235,8 @@ impl MuFunction for Struct {
     }
 
     fn mu_make_struct(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let stype = Tag::from_u64(fp.argv[0]);
-        let list = Tag::from_u64(fp.argv[1]);
+        let stype = fp.argv[0];
+        let list = fp.argv[1];
 
         fp.value = match Tag::type_of(mu, stype) {
             Type::Keyword => {

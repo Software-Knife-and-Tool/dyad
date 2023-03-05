@@ -465,8 +465,8 @@ pub trait MuFunction {
 
 impl MuFunction for Vector {
     fn mu_make_vector(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let type_sym = Tag::from_u64(fp.argv[0]);
-        let list = Tag::from_u64(fp.argv[1]);
+        let type_sym = fp.argv[0];
+        let list = fp.argv[1];
 
         fp.value = match Self::to_type(type_sym) {
             Some(vtype) => match vtype {
@@ -590,8 +590,8 @@ impl MuFunction for Vector {
     }
 
     fn mu_svref(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let vector = Tag::from_u64(fp.argv[0]);
-        let index = Tag::from_u64(fp.argv[1]);
+        let vector = fp.argv[0];
+        let index = fp.argv[1];
 
         match Tag::type_of(mu, index) {
             Type::Fixnum => {
@@ -617,7 +617,7 @@ impl MuFunction for Vector {
     }
 
     fn mu_type(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let vector = Tag::from_u64(fp.argv[0]);
+        let vector = fp.argv[0];
 
         match Tag::type_of(mu, vector) {
             Type::Vector => {
@@ -633,7 +633,7 @@ impl MuFunction for Vector {
     }
 
     fn mu_length(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let vector = Tag::from_u64(fp.argv[0]);
+        let vector = fp.argv[0];
 
         match Tag::type_of(mu, vector) {
             Type::Vector => {

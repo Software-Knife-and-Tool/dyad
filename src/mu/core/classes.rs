@@ -268,7 +268,7 @@ pub trait MuFunction {
 
 impl MuFunction for Tag {
     fn mu_eq(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = if fp.argv[0] == fp.argv[1] {
+        fp.value = if fp.argv[0].eq_(fp.argv[1]) {
             Tag::t()
         } else {
             Tag::nil()
@@ -278,7 +278,7 @@ impl MuFunction for Tag {
     }
 
     fn mu_typeof(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = match Self::type_key(Self::type_of(mu, Tag::from_u64(fp.argv[0]))) {
+        fp.value = match Self::type_key(Self::type_of(mu, fp.argv[0])) {
             Some(type_key) => type_key,
             None => panic!("internal: type_of inconsistency"),
         };

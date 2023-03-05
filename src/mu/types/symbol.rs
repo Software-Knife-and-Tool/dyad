@@ -279,7 +279,7 @@ pub trait MuFunction {
 
 impl MuFunction for Symbol {
     fn mu_name(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = Tag::from_u64(fp.argv[0]);
+        let symbol = fp.argv[0];
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Keyword | Type::Symbol => Symbol::name_of(mu, symbol),
@@ -290,7 +290,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_ns(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = Tag::from_u64(fp.argv[0]);
+        let symbol = fp.argv[0];
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Symbol => Symbol::namespace_of(mu, symbol),
@@ -302,7 +302,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_value(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = Tag::from_u64(fp.argv[0]);
+        let symbol = fp.argv[0];
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Symbol => {
@@ -320,7 +320,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_boundp(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = Tag::from_u64(fp.argv[0]);
+        let symbol = fp.argv[0];
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Keyword => symbol,
@@ -338,7 +338,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_keywordp(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = Tag::from_u64(fp.argv[0]);
+        let symbol = fp.argv[0];
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Keyword => symbol,
@@ -349,7 +349,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_keyword(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = Tag::from_u64(fp.argv[0]);
+        let symbol = fp.argv[0];
 
         match Tag::type_of(mu, symbol) {
             Type::Keyword => {
@@ -366,7 +366,7 @@ impl MuFunction for Symbol {
     }
 
     fn mu_symbol(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let symbol = Tag::from_u64(fp.argv[0]);
+        let symbol = fp.argv[0];
 
         match Tag::type_of(mu, symbol) {
             Type::Vector => {

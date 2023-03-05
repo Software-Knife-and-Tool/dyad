@@ -38,7 +38,7 @@ pub trait MuFunction {
 
 impl MuFunction for Mu {
     fn mu_compile(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = match mu.compile(Tag::from_u64(fp.argv[0])) {
+        fp.value = match mu.compile(fp.argv[0]) {
             Ok(tag) => tag,
             Err(e) => return Err(e),
         };
@@ -47,7 +47,7 @@ impl MuFunction for Mu {
     }
 
     fn mu_eval(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = match mu.eval(Tag::from_u64(fp.argv[0])) {
+        fp.value = match mu.eval(fp.argv[0]) {
             Ok(tag) => tag,
             Err(e) => return Err(e),
         };
@@ -56,8 +56,8 @@ impl MuFunction for Mu {
     }
 
     fn mu_apply(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let func = Tag::from_u64(fp.argv[0]);
-        let args = Tag::from_u64(fp.argv[1]);
+        let func = fp.argv[0];
+        let args = fp.argv[1];
 
         fp.value = match Tag::type_of(mu, func) {
             Type::Function => match Tag::type_of(mu, args) {
@@ -66,7 +66,7 @@ impl MuFunction for Mu {
                     let mut argv = Vec::new();
 
                     for cons in ConsIter::new(mu, args) {
-                        argv.push(Tag::as_u64(&Cons::car(mu, cons)))
+                        argv.push(Cons::car(mu, cons))
                     }
 
                     match (Frame { func, argv, value }).apply(mu, func) {
@@ -83,9 +83,9 @@ impl MuFunction for Mu {
     }
 
     fn mu_write(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let form = Tag::from_u64(fp.argv[0]);
-        let escape = Tag::from_u64(fp.argv[1]);
-        let stream = Tag::from_u64(fp.argv[2]);
+        let form = fp.argv[0];
+        let escape = fp.argv[1];
+        let stream = fp.argv[2];
 
         fp.value = form;
 
@@ -99,9 +99,9 @@ impl MuFunction for Mu {
     }
 
     fn mu_if(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let test = Tag::from_u64(fp.argv[0]);
-        let true_fn = Tag::from_u64(fp.argv[1]);
-        let false_fn = Tag::from_u64(fp.argv[2]);
+        let test = fp.argv[0];
+        let true_fn = fp.argv[1];
+        let false_fn = fp.argv[2];
 
         fp.value = match Tag::type_of(mu, true_fn) {
             Type::Function => match Tag::type_of(mu, false_fn) {
@@ -120,7 +120,7 @@ impl MuFunction for Mu {
     }
 
     fn mu_exit(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let rc = Tag::from_u64(fp.argv[0]);
+        let rc = fp.argv[0];
 
         match Tag::type_of(mu, rc) {
             Type::Fixnum => std::process::exit(Fixnum::as_i64(mu, rc) as i32),
@@ -129,7 +129,7 @@ impl MuFunction for Mu {
     }
 
     fn mu_view(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let tag = Tag::from_u64(fp.argv[0]);
+        let tag = fp.argv[0];
 
         fp.value = match Tag::type_of(mu, tag) {
             Type::Char => Char::view(mu, tag),
@@ -149,21 +149,21 @@ impl MuFunction for Mu {
     }
 
     fn mu_tag_of(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Fixnum::as_tag(fp.argv[0] as i64);
+        fp.value = Fixnum::as_tag(fp.argv[0].as_u64() as i64);
 
         Ok(())
     }
 
     fn mu_fix(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let func = Tag::from_u64(fp.argv[0]);
+        let func = fp.argv[0];
 
-        fp.value = Tag::from_u64(fp.argv[1]);
+        fp.value = fp.argv[1];
 
         match Tag::type_of(mu, func) {
             Type::Function => {
                 loop {
                     let value = Tag::nil();
-                    let argv = vec![Tag::as_u64(&fp.value)];
+                    let argv = vec![fp.value];
                     let result = Frame { func, argv, value }.apply(mu, func);
 
                     fp.value = match result {
