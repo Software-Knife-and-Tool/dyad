@@ -6,7 +6,7 @@ use {
     crate::{
         core::{
             classes::{DirectType, Type},
-            classes::{Tag, TagType, TagU64},
+            classes::{Tag, TagIndirect, TagType},
             exception,
             exception::{Condition, Exception},
             frame::Frame,
@@ -104,7 +104,7 @@ impl Core for Cons {
         let image: &[[u8; 8]] = &[self.car.as_slice(), self.cdr.as_slice()];
 
         let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
-        let ind = TagU64::new()
+        let ind = TagIndirect::new()
             .with_offset(heap_ref.alloc(image, Type::Cons as u8) as u64)
             .with_tag(TagType::Cons);
 
@@ -273,13 +273,13 @@ pub trait MuFunction {
 
 impl MuFunction for Cons {
     fn mu_append(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Self::append(mu, fp.argv[0], fp.argv[1]);
+        fp.value = Self::append(mu, Tag::from_u64(fp.argv[0]), Tag::from_u64(fp.argv[1]));
 
         Ok(())
     }
 
     fn mu_car(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let list = fp.argv[0];
+        let list = Tag::from_u64(fp.argv[0]);
 
         fp.value = match Tag::type_of(mu, list) {
             Type::Null => list,
@@ -291,7 +291,7 @@ impl MuFunction for Cons {
     }
 
     fn mu_cdr(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let list = fp.argv[0];
+        let list = Tag::from_u64(fp.argv[0]);
 
         fp.value = match Tag::type_of(mu, list) {
             Type::Null => list,
@@ -303,12 +303,12 @@ impl MuFunction for Cons {
     }
 
     fn mu_cons(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Self::new(fp.argv[0], fp.argv[1]).evict(mu);
+        fp.value = Self::new(Tag::from_u64(fp.argv[0]), Tag::from_u64(fp.argv[1])).evict(mu);
         Ok(())
     }
 
     fn mu_length(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let list = fp.argv[0];
+        let list = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, list) {
             Type::Null => fp.value = Fixnum::as_tag(0),
@@ -320,50 +320,44 @@ impl MuFunction for Cons {
     }
 
     fn mu_nth(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        if Tag::type_of(mu, fp.argv[0]) != Type::Fixnum || Fixnum::as_i64(mu, fp.argv[0]) < 0 {
-            return Err(Exception::raise(mu, Condition::Type, "mu:nth", fp.argv[0]));
+        let nth = Tag::from_u64(fp.argv[0]);
+        let list = Tag::from_u64(fp.argv[1]);
+
+        if Tag::type_of(mu, nth) != Type::Fixnum || Fixnum::as_i64(mu, nth) < 0 {
+            return Err(Exception::raise(mu, Condition::Type, "mu:nth", nth));
         }
 
-        match Tag::type_of(mu, fp.argv[1]) {
+        match Tag::type_of(mu, list) {
             Type::Null => {
                 fp.value = Tag::nil();
                 Ok(())
             }
             Type::Cons => {
-                fp.value =
-                    Self::nth(mu, Fixnum::as_i64(mu, fp.argv[0]) as usize, fp.argv[1]).unwrap();
+                fp.value = Self::nth(mu, Fixnum::as_i64(mu, nth) as usize, list).unwrap();
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:nth", fp.argv[1])),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:nth", list)),
         }
     }
 
     fn mu_nthcdr(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        if Tag::type_of(mu, fp.argv[0]) != Type::Fixnum || Fixnum::as_i64(mu, fp.argv[0]) < 0 {
-            return Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:nthcdr",
-                fp.argv[0],
-            ));
+        let nth = Tag::from_u64(fp.argv[0]);
+        let list = Tag::from_u64(fp.argv[1]);
+
+        if Tag::type_of(mu, nth) != Type::Fixnum || Fixnum::as_i64(mu, nth) < 0 {
+            return Err(Exception::raise(mu, Condition::Type, "mu:nthcdr", nth));
         }
 
-        match Tag::type_of(mu, fp.argv[1]) {
+        match Tag::type_of(mu, list) {
             Type::Null => {
                 fp.value = Tag::nil();
                 Ok(())
             }
             Type::Cons => {
-                fp.value =
-                    Self::nthcdr(mu, Fixnum::as_i64(mu, fp.argv[0]) as usize, fp.argv[1]).unwrap();
+                fp.value = Self::nthcdr(mu, Fixnum::as_i64(mu, nth) as usize, list).unwrap();
                 Ok(())
             }
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:nthcdr",
-                fp.argv[1],
-            )),
+            _ => Err(Exception::raise(mu, Condition::Type, "mu:nthcdr", list)),
         }
     }
 }

@@ -19,8 +19,8 @@ use {
 #[derive(Copy, Clone)]
 pub enum Tag {
     Fixnum(i64),
-    Direct(Direct),
-    Indirect(TagU64),
+    Direct(TagDirect),
+    Indirect(TagIndirect),
 }
 
 // classes
@@ -60,10 +60,23 @@ pub enum TagType {
 #[derive(Copy, Clone)]
 #[bitfield]
 #[repr(u64)]
-pub struct TagU64 {
+pub struct TagIndirect {
     #[bits = 3]
     pub tag: TagType,
     pub offset: B61,
+}
+
+// little endian direct tag format
+#[derive(Copy, Clone)]
+#[bitfield]
+#[repr(u64)]
+pub struct TagDirect {
+    #[bits = 3]
+    pub tag: TagType,
+    #[bits = 2]
+    pub dtype: DirectType,
+    pub length: B3,
+    pub data: B56,
 }
 
 #[derive(BitfieldSpecifier, Copy, Clone, Eq, PartialEq)]
@@ -72,19 +85,6 @@ pub enum DirectType {
     Byte = 1,
     Keyword = 2,
     Float = 3,
-}
-
-// little endian direct tag format
-#[derive(Copy, Clone)]
-#[bitfield]
-#[repr(u64)]
-pub struct Direct {
-    #[bits = 3]
-    pub tag: TagType,
-    #[bits = 2]
-    pub dtype: DirectType,
-    pub length: B3,
-    pub data: B56,
 }
 
 lazy_static! {
@@ -118,7 +118,7 @@ impl fmt::Display for Tag {
         match self {
             Tag::Fixnum(as_i64) => write!(f, "is a fixnum {}", as_i64 >> 2),
             Tag::Direct(direct) => write!(f, "is a direct: type {:?}", direct.dtype() as u8),
-            Tag::Indirect(main) => write!(f, "is a main: type {:?}", main.tag()),
+            Tag::Indirect(indirect) => write!(f, "is an indirect: type {:?}", indirect.tag()),
         }
     }
 }
@@ -181,7 +181,7 @@ impl Tag {
     }
 
     pub fn to_direct(data: u64, len: u8, tag: DirectType) -> Tag {
-        let dir = Direct::new()
+        let dir = TagDirect::new()
             .with_data(data)
             .with_length(len)
             .with_dtype(tag)
@@ -207,8 +207,8 @@ impl Tag {
         let as_u64: u64 = u64::from_le_bytes(data);
         match as_u64 & 0x7 {
             0 | 4 => Tag::Fixnum(as_u64 as i64),
-            1 | 2 | 3 | 5 | 7 => Tag::Indirect(TagU64::from(as_u64)),
-            6 => Tag::Direct(Direct::from(as_u64)),
+            1 | 2 | 3 | 5 | 7 => Tag::Indirect(TagIndirect::from(as_u64)),
+            6 => Tag::Direct(TagDirect::from(as_u64)),
             _ => panic!("internal: immediate tag required"),
         }
     }
@@ -227,11 +227,11 @@ impl Tag {
                     DirectType::Keyword => Type::Keyword,
                     DirectType::Float => Type::Float,
                 },
-                Tag::Indirect(main) => match main.tag() {
+                Tag::Indirect(indirect) => match indirect.tag() {
                     TagType::Symbol => Type::Symbol,
                     TagType::Function => Type::Function,
                     TagType::Cons => Type::Cons,
-                    TagType::Heap => match heap_ref.info(main.offset() as usize) {
+                    TagType::Heap => match heap_ref.info(indirect.offset() as usize) {
                         Some(info) => match Type::try_from(info.tag_type()) {
                             Ok(etype) => etype,
                             Err(_) => panic!("internal: tag format inconsistency"),
@@ -268,17 +268,17 @@ pub trait MuFunction {
 
 impl MuFunction for Tag {
     fn mu_eq(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        if fp.argv[0].eq_(fp.argv[1]) {
-            fp.value = Tag::t();
+        fp.value = if fp.argv[0] == fp.argv[1] {
+            Tag::t()
         } else {
-            fp.value = Tag::nil();
-        }
+            Tag::nil()
+        };
 
         Ok(())
     }
 
     fn mu_typeof(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = match Self::type_key(Self::type_of(mu, fp.argv[0])) {
+        fp.value = match Self::type_key(Self::type_of(mu, Tag::from_u64(fp.argv[0]))) {
             Some(type_key) => type_key,
             None => panic!("internal: type_of inconsistency"),
         };

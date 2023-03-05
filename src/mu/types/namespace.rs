@@ -5,7 +5,7 @@
 use {
     crate::{
         core::{
-            classes::{Tag, TagType, TagU64, Type},
+            classes::{Tag, TagIndirect, TagType, Type},
             exception,
             exception::{Condition, Exception},
             frame::Frame,
@@ -63,7 +63,7 @@ impl Namespace {
 
         let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
         Tag::Indirect(
-            TagU64::new()
+            TagIndirect::new()
                 .with_offset(heap_ref.alloc(image, Type::Namespace as u8) as u64)
                 .with_tag(TagType::Heap),
         )
@@ -147,17 +147,8 @@ impl Namespace {
 
         Some(ns)
     }
-}
 
-pub trait Properties {
-    fn name_of(_: &Mu, _: Tag) -> Tag;
-    fn externs_of(_: &Mu, _: Tag) -> Tag;
-    fn interns_of(_: &Mu, _: Tag) -> Tag;
-    fn import_of(_: &Mu, _: Tag) -> Tag;
-}
-
-impl Properties for Namespace {
-    fn name_of(mu: &Mu, ns: Tag) -> Tag {
+    pub fn name_of(mu: &Mu, ns: Tag) -> Tag {
         match Tag::type_of(mu, ns) {
             Type::Namespace => match ns {
                 Tag::Indirect(_) => Self::to_image(mu, ns).name,
@@ -167,7 +158,7 @@ impl Properties for Namespace {
         }
     }
 
-    fn externs_of(mu: &Mu, ns: Tag) -> Tag {
+    pub fn externs_of(mu: &Mu, ns: Tag) -> Tag {
         match Tag::type_of(mu, ns) {
             Type::Namespace => match ns {
                 Tag::Indirect(_) => Self::to_image(mu, ns).externs,
@@ -177,7 +168,7 @@ impl Properties for Namespace {
         }
     }
 
-    fn interns_of(mu: &Mu, ns: Tag) -> Tag {
+    pub fn interns_of(mu: &Mu, ns: Tag) -> Tag {
         match Tag::type_of(mu, ns) {
             Type::Namespace => match ns {
                 Tag::Indirect(_) => Self::to_image(mu, ns).interns,
@@ -187,7 +178,7 @@ impl Properties for Namespace {
         }
     }
 
-    fn import_of(mu: &Mu, ns: Tag) -> Tag {
+    pub fn import_of(mu: &Mu, ns: Tag) -> Tag {
         match Tag::type_of(mu, ns) {
             Type::Namespace => match ns {
                 Tag::Indirect(_) => Self::to_image(mu, ns).import,
@@ -329,10 +320,10 @@ pub trait MuFunction {
 
 impl MuFunction for Namespace {
     fn mu_intern(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = fp.argv[0];
-        let scope = fp.argv[1];
-        let name = fp.argv[2];
-        let value = fp.argv[3];
+        let ns = Tag::from_u64(fp.argv[0]);
+        let scope = Tag::from_u64(fp.argv[1]);
+        let name = Tag::from_u64(fp.argv[2]);
+        let value = Tag::from_u64(fp.argv[3]);
 
         let scope_type = match Tag::type_of(mu, scope) {
             Type::Keyword => {
@@ -361,8 +352,8 @@ impl MuFunction for Namespace {
     }
 
     fn mu_make_ns(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let name = fp.argv[0];
-        let import = fp.argv[1];
+        let name = Tag::from_u64(fp.argv[0]);
+        let import = Tag::from_u64(fp.argv[1]);
 
         match Tag::type_of(mu, name) {
             Type::Vector => match Tag::type_of(mu, import) {
@@ -378,7 +369,7 @@ impl MuFunction for Namespace {
     }
 
     fn mu_map_ns(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns_name = fp.argv[0];
+        let ns_name = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, ns_name) {
             Type::Vector => match Self::map_ns(mu, Vector::as_string(mu, ns_name)) {
@@ -398,9 +389,9 @@ impl MuFunction for Namespace {
     }
 
     fn mu_ns_map(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = fp.argv[0];
-        let scope = fp.argv[1];
-        let name = fp.argv[2];
+        let ns = Tag::from_u64(fp.argv[0]);
+        let scope = Tag::from_u64(fp.argv[1]);
+        let name = Tag::from_u64(fp.argv[2]);
 
         let is_extern = match Tag::type_of(mu, scope) {
             Type::Keyword => {
@@ -457,11 +448,11 @@ impl MuFunction for Namespace {
     }
 
     fn mu_ns_import(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = fp.argv[0];
+        let ns = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, ns) {
             Type::Namespace => {
-                fp.value = Namespace::import_of(mu, fp.argv[0]);
+                fp.value = Namespace::import_of(mu, ns);
                 Ok(())
             }
             _ => Err(Exception::raise(mu, Condition::Type, "mu:ns-ump", ns)),
@@ -469,11 +460,11 @@ impl MuFunction for Namespace {
     }
 
     fn mu_ns_name(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = fp.argv[0];
+        let ns = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, ns) {
             Type::Namespace => {
-                fp.value = Namespace::name_of(mu, fp.argv[0]);
+                fp.value = Namespace::name_of(mu, ns);
                 Ok(())
             }
             _ => Err(Exception::raise(mu, Condition::Type, "mu:ns-name", ns)),
@@ -481,11 +472,11 @@ impl MuFunction for Namespace {
     }
 
     fn mu_ns_externs(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = fp.argv[0];
+        let ns = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, ns) {
             Type::Namespace => {
-                fp.value = Namespace::externs_of(mu, fp.argv[0]);
+                fp.value = Namespace::externs_of(mu, ns);
                 Ok(())
             }
             _ => Err(Exception::raise(mu, Condition::Type, "mu:ns-ext", ns)),
@@ -493,11 +484,11 @@ impl MuFunction for Namespace {
     }
 
     fn mu_ns_interns(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = fp.argv[0];
+        let ns = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, ns) {
             Type::Namespace => {
-                fp.value = Namespace::interns_of(mu, fp.argv[0]);
+                fp.value = Namespace::interns_of(mu, ns);
                 Ok(())
             }
             _ => Err(Exception::raise(mu, Condition::Type, "mu:ns-int", ns)),

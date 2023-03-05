@@ -20,9 +20,9 @@ use {
             cons::{Cons, ConsIter},
             fixnum::Fixnum,
             function::Function,
-            ivector::VectorIter,
             r#struct::{Core as _, Struct},
             symbol::{Core as _, Symbol},
+            vecimage::VectorIter,
             vector::{Core as _, Vector},
         },
     },
@@ -34,7 +34,7 @@ use {
 
 pub struct Frame {
     pub func: Tag,
-    pub argv: Vec<Tag>,
+    pub argv: Vec<u64>,
     pub value: Tag,
 }
 
@@ -43,7 +43,7 @@ impl Frame {
         let mut vec: Vec<Tag> = vec![self.func];
 
         for arg in &self.argv {
-            vec.push(*arg)
+            vec.push(Tag::from_u64(*arg))
         }
 
         Struct::new(mu, "frame".to_string(), vec).evict(mu)
@@ -66,7 +66,7 @@ impl Frame {
                         let mut args = Vec::new();
 
                         for arg in VectorIter::new(mu, frame).skip(1) {
-                            args.push(arg)
+                            args.push(Tag::as_u64(&arg))
                         }
 
                         Frame {
@@ -133,7 +133,7 @@ impl Frame {
 
         Frame {
             func: Tag::nil(),
-            argv: Vec::<Tag>::new(),
+            argv: Vec::<u64>::new(),
             value: Tag::nil(),
         }
     }
@@ -150,7 +150,7 @@ impl Frame {
         let stack_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow();
         let vec_ref: Ref<Vec<Frame>> = stack_ref[&id].borrow();
 
-        Some(vec_ref[vec_ref.len() - 1].argv[offset])
+        Some(Tag::from_u64(vec_ref[vec_ref.len() - 1].argv[offset]))
     }
 
     // apply
@@ -238,7 +238,7 @@ impl MuFunction for Frame {
     }
 
     fn mu_fr_get(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let func = fp.argv[0];
+        let func = Tag::from_u64(fp.argv[0]);
 
         fp.value = match Tag::type_of(mu, func) {
             Type::Function => {
@@ -255,7 +255,7 @@ impl MuFunction for Frame {
     }
 
     fn mu_fr_pop(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = fp.argv[0];
+        fp.value = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, fp.value) {
             Type::Function => Self::frame_stack_pop(mu, fp.value),
@@ -266,7 +266,7 @@ impl MuFunction for Frame {
     }
 
     fn mu_fr_push(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = fp.argv[0];
+        fp.value = Tag::from_u64(fp.argv[0]);
 
         match Tag::type_of(mu, fp.value) {
             Type::Vector => Self::from_tag(mu, fp.value).frame_stack_push(mu),
@@ -284,8 +284,8 @@ impl MuFunction for Frame {
     }
 
     fn mu_fr_ref(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let frame = fp.argv[0];
-        let offset = fp.argv[1];
+        let frame = Tag::from_u64(fp.argv[0]);
+        let offset = Tag::from_u64(fp.argv[1]);
 
         match Tag::type_of(mu, frame) {
             Type::Fixnum => match Tag::type_of(mu, offset) {
