@@ -65,8 +65,8 @@ pub trait MuFunction {
 
 impl MuFunction for Fixnum {
     fn mu_fxadd(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fx0 = Tag::from_u64(fp.argv[0]);
-        let fx1 = Tag::from_u64(fp.argv[1]);
+        let fx0 = fp.argv[0];
+        let fx1 = fp.argv[1];
 
         match Tag::type_of(mu, fx0) {
             Type::Fixnum => match Tag::type_of(mu, fx1) {
@@ -81,8 +81,8 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxsub(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fx0 = Tag::from_u64(fp.argv[0]);
-        let fx1 = Tag::from_u64(fp.argv[1]);
+        let fx0 = fp.argv[0];
+        let fx1 = fp.argv[1];
 
         match Tag::type_of(mu, fx0) {
             Type::Fixnum => match Tag::type_of(mu, fx1) {
@@ -97,8 +97,8 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxmul(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fx0 = Tag::from_u64(fp.argv[0]);
-        let fx1 = Tag::from_u64(fp.argv[1]);
+        let fx0 = fp.argv[0];
+        let fx1 = fp.argv[1];
 
         match Tag::type_of(mu, fx0) {
             Type::Fixnum => match Tag::type_of(mu, fx1) {
@@ -113,8 +113,8 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxlt(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fx0 = Tag::from_u64(fp.argv[0]);
-        let fx1 = Tag::from_u64(fp.argv[1]);
+        let fx0 = fp.argv[0];
+        let fx1 = fp.argv[1];
 
         match Tag::type_of(mu, fx0) {
             Type::Fixnum => match Tag::type_of(mu, fx1) {
@@ -134,8 +134,8 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxdiv(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fx0 = Tag::from_u64(fp.argv[0]);
-        let fx1 = Tag::from_u64(fp.argv[1]);
+        let fx0 = fp.argv[0];
+        let fx1 = fp.argv[1];
 
         match Tag::type_of(mu, fx0) {
             Type::Fixnum => match Tag::type_of(mu, fx1) {
@@ -162,8 +162,8 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxand(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fx0 = Tag::from_u64(fp.argv[0]);
-        let fx1 = Tag::from_u64(fp.argv[1]);
+        let fx0 = fp.argv[0];
+        let fx1 = fp.argv[1];
 
         match Tag::type_of(mu, fx0) {
             Type::Fixnum => match Tag::type_of(mu, fx1) {
@@ -178,8 +178,8 @@ impl MuFunction for Fixnum {
     }
 
     fn mu_fxor(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let fx0 = Tag::from_u64(fp.argv[0]);
-        let fx1 = Tag::from_u64(fp.argv[1]);
+        let fx0 = fp.argv[0];
+        let fx1 = fp.argv[1];
 
         match Tag::type_of(mu, fx0) {
             Type::Fixnum => match Tag::type_of(mu, fx1) {

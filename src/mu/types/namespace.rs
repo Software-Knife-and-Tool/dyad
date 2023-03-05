@@ -320,10 +320,10 @@ pub trait MuFunction {
 
 impl MuFunction for Namespace {
     fn mu_intern(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = Tag::from_u64(fp.argv[0]);
-        let scope = Tag::from_u64(fp.argv[1]);
-        let name = Tag::from_u64(fp.argv[2]);
-        let value = Tag::from_u64(fp.argv[3]);
+        let ns = fp.argv[0];
+        let scope = fp.argv[1];
+        let name = fp.argv[2];
+        let value = fp.argv[3];
 
         let scope_type = match Tag::type_of(mu, scope) {
             Type::Keyword => {
@@ -352,8 +352,8 @@ impl MuFunction for Namespace {
     }
 
     fn mu_make_ns(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let name = Tag::from_u64(fp.argv[0]);
-        let import = Tag::from_u64(fp.argv[1]);
+        let name = fp.argv[0];
+        let import = fp.argv[1];
 
         match Tag::type_of(mu, name) {
             Type::Vector => match Tag::type_of(mu, import) {
@@ -369,7 +369,7 @@ impl MuFunction for Namespace {
     }
 
     fn mu_map_ns(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns_name = Tag::from_u64(fp.argv[0]);
+        let ns_name = fp.argv[0];
 
         match Tag::type_of(mu, ns_name) {
             Type::Vector => match Self::map_ns(mu, Vector::as_string(mu, ns_name)) {
@@ -389,9 +389,9 @@ impl MuFunction for Namespace {
     }
 
     fn mu_ns_map(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = Tag::from_u64(fp.argv[0]);
-        let scope = Tag::from_u64(fp.argv[1]);
-        let name = Tag::from_u64(fp.argv[2]);
+        let ns = fp.argv[0];
+        let scope = fp.argv[1];
+        let name = fp.argv[2];
 
         let is_extern = match Tag::type_of(mu, scope) {
             Type::Keyword => {
@@ -448,7 +448,7 @@ impl MuFunction for Namespace {
     }
 
     fn mu_ns_import(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = Tag::from_u64(fp.argv[0]);
+        let ns = fp.argv[0];
 
         match Tag::type_of(mu, ns) {
             Type::Namespace => {
@@ -460,7 +460,7 @@ impl MuFunction for Namespace {
     }
 
     fn mu_ns_name(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = Tag::from_u64(fp.argv[0]);
+        let ns = fp.argv[0];
 
         match Tag::type_of(mu, ns) {
             Type::Namespace => {
@@ -472,7 +472,7 @@ impl MuFunction for Namespace {
     }
 
     fn mu_ns_externs(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = Tag::from_u64(fp.argv[0]);
+        let ns = fp.argv[0];
 
         match Tag::type_of(mu, ns) {
             Type::Namespace => {
@@ -484,7 +484,7 @@ impl MuFunction for Namespace {
     }
 
     fn mu_ns_interns(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let ns = Tag::from_u64(fp.argv[0]);
+        let ns = fp.argv[0];
 
         match Tag::type_of(mu, ns) {
             Type::Namespace => {

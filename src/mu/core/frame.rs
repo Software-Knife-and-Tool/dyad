@@ -17,7 +17,7 @@ use {
             namespace::Core as _,
         },
         types::{
-            cons::{Cons, ConsIter},
+            cons::{Cons, ConsIter, Core as _},
             fixnum::Fixnum,
             function::Function,
             r#struct::{Core as _, Struct},
@@ -34,7 +34,7 @@ use {
 
 pub struct Frame {
     pub func: Tag,
-    pub argv: Vec<u64>,
+    pub argv: Vec<Tag>,
     pub value: Tag,
 }
 
@@ -43,7 +43,7 @@ impl Frame {
         let mut vec: Vec<Tag> = vec![self.func];
 
         for arg in &self.argv {
-            vec.push(Tag::from_u64(*arg))
+            vec.push(*arg)
         }
 
         Struct::new(mu, "frame".to_string(), vec).evict(mu)
@@ -66,7 +66,7 @@ impl Frame {
                         let mut args = Vec::new();
 
                         for arg in VectorIter::new(mu, frame).skip(1) {
-                            args.push(Tag::as_u64(&arg))
+                            args.push(arg)
                         }
 
                         Frame {
@@ -82,24 +82,21 @@ impl Frame {
         }
     }
 
-    // context stack
-    #[allow(dead_code)]
-    fn context_push(self, mu: &Mu) {
+    // dynamic environment
+    fn env_push(mu: &Mu, func: Tag, offset: usize) {
         let mut dynamic_ref: RefMut<Vec<(u64, usize)>> = mu.dynamic.borrow_mut();
-        let offset = Self::frame_stack_len(mu, Function::frame_of(mu, self.func)) - 1;
 
-        dynamic_ref.push((self.func.as_u64(), offset));
+        dynamic_ref.push((func.as_u64(), offset));
     }
 
-    #[allow(dead_code)]
-    fn context_pop(mu: &Mu) {
+    fn env_pop(mu: &Mu) {
         let mut dynamic_ref: RefMut<Vec<(u64, usize)>> = mu.dynamic.borrow_mut();
 
         dynamic_ref.pop();
     }
 
     #[allow(dead_code)]
-    fn context_ref(mu: &Mu, index: usize) -> (Tag, usize) {
+    fn dynamic_ref(mu: &Mu, index: usize) -> (Tag, usize) {
         let dynamic_ref: Ref<Vec<(u64, usize)>> = mu.dynamic.borrow();
         let (func, offset) = dynamic_ref[index];
 
@@ -133,16 +130,20 @@ impl Frame {
 
         Frame {
             func: Tag::nil(),
-            argv: Vec::<u64>::new(),
+            argv: Vec::<Tag>::new(),
             value: Tag::nil(),
         }
     }
 
-    fn frame_stack_len(mu: &Mu, id: Tag) -> usize {
+    fn frame_stack_len(mu: &Mu, id: Tag) -> Option<usize> {
         let stack_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow();
-        let vec_ref: Ref<Vec<Frame>> = stack_ref[&id.as_u64()].borrow();
 
-        vec_ref.len()
+        if stack_ref.contains_key(&id.as_u64()) {
+            let vec_ref: Ref<Vec<Frame>> = stack_ref[&id.as_u64()].borrow();
+            Some(vec_ref.len())
+        } else {
+            None
+        }
     }
 
     // frame reference
@@ -150,7 +151,7 @@ impl Frame {
         let stack_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow();
         let vec_ref: Ref<Vec<Frame>> = stack_ref[&id].borrow();
 
-        Some(Tag::from_u64(vec_ref[vec_ref.len() - 1].argv[offset]))
+        Some(vec_ref[vec_ref.len() - 1].argv[offset])
     }
 
     // apply
@@ -195,9 +196,11 @@ impl Frame {
                     }
 
                     let mut value = Tag::nil();
+                    let offset =
+                        Self::frame_stack_len(mu, Function::frame_of(mu, self.func)).unwrap_or(0);
 
+                    Self::env_push(mu, self.func, offset);
                     self.frame_stack_push(mu);
-                    // self.context_push(mu);
 
                     for cons in ConsIter::new(mu, Function::form_of(mu, func)) {
                         value = match mu.eval(Cons::car(mu, cons)) {
@@ -206,8 +209,8 @@ impl Frame {
                         };
                     }
 
-                    // Self::context_pop(mu);
                     Self::frame_stack_pop(mu, Function::frame_of(mu, func));
+                    Self::env_pop(mu);
 
                     Ok(value)
                 }
@@ -224,7 +227,7 @@ impl Frame {
 }
 
 pub trait MuFunction {
-    fn mu_context(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
+    fn mu_frames(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_get(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_pop(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
     fn mu_fr_push(_: &Mu, fp: &mut Frame) -> exception::Result<()>;
@@ -232,13 +235,20 @@ pub trait MuFunction {
 }
 
 impl MuFunction for Frame {
-    fn mu_context(_: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Tag::nil();
+    fn mu_frames(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        let env_ref: Ref<Vec<(u64, usize)>> = mu.dynamic.borrow();
+        let mut frames = Vec::new();
+
+        for (func, offset) in env_ref.iter() {
+            frames.push(Cons::new(Tag::from_u64(*func), Fixnum::as_tag(*offset as i64)).evict(mu))
+        }
+
+        fp.value = Cons::list(mu, &frames);
         Ok(())
     }
 
     fn mu_fr_get(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let func = Tag::from_u64(fp.argv[0]);
+        let func = fp.argv[0];
 
         fp.value = match Tag::type_of(mu, func) {
             Type::Function => {
@@ -255,7 +265,7 @@ impl MuFunction for Frame {
     }
 
     fn mu_fr_pop(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Tag::from_u64(fp.argv[0]);
+        fp.value = fp.argv[0];
 
         match Tag::type_of(mu, fp.value) {
             Type::Function => Self::frame_stack_pop(mu, fp.value),
@@ -266,7 +276,7 @@ impl MuFunction for Frame {
     }
 
     fn mu_fr_push(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        fp.value = Tag::from_u64(fp.argv[0]);
+        fp.value = fp.argv[0];
 
         match Tag::type_of(mu, fp.value) {
             Type::Vector => Self::from_tag(mu, fp.value).frame_stack_push(mu),
@@ -284,8 +294,8 @@ impl MuFunction for Frame {
     }
 
     fn mu_fr_ref(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
-        let frame = Tag::from_u64(fp.argv[0]);
-        let offset = Tag::from_u64(fp.argv[1]);
+        let frame = fp.argv[0];
+        let offset = fp.argv[1];
 
         match Tag::type_of(mu, frame) {
             Type::Fixnum => match Tag::type_of(mu, offset) {
