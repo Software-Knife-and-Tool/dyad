@@ -22,7 +22,7 @@ use {
             function::Function,
             r#struct::{Core as _, Struct},
             symbol::{Core as _, Symbol},
-            vecimage::VectorIter,
+            vecimage::{TypedVec, VecType, VectorIter},
             vector::{Core as _, Vector},
         },
     },
@@ -123,15 +123,12 @@ impl Frame {
         vec_ref.pop();
     }
 
-    #[allow(dead_code)]
-    fn frame_stack_ref(mu: &Mu, id: Tag, _offset: usize) -> Frame {
-        let _stack_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow();
-        let _vec_ref: Ref<Vec<Frame>> = _stack_ref[&id.as_u64()].borrow();
+    fn frame_stack_ref(mu: &Mu, id: Tag, offset: usize, argv: &mut Vec<u64>) {
+        let stack_ref: Ref<HashMap<u64, RefCell<Vec<Frame>>>> = mu.lexical.borrow();
+        let vec_ref: Ref<Vec<Frame>> = stack_ref[&id.as_u64()].borrow();
 
-        Frame {
-            func: Tag::nil(),
-            argv: Vec::<Tag>::new(),
-            value: Tag::nil(),
+        for value in &vec_ref[offset].argv {
+            argv.push(value.as_u64())
         }
     }
 
@@ -240,7 +237,18 @@ impl MuFunction for Frame {
         let mut frames = Vec::new();
 
         for (func, offset) in env_ref.iter() {
-            frames.push(Cons::new(Tag::from_u64(*func), Fixnum::as_tag(*offset as i64)).evict(mu))
+            let mut argv = Vec::new();
+
+            Self::frame_stack_ref(
+                mu,
+                Function::frame_of(mu, Tag::from_u64(*func)),
+                *offset,
+                &mut argv,
+            );
+            let vec = argv.into_iter().map(Tag::from_u64).collect();
+            let values = TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu);
+
+            frames.push(Cons::new(Tag::from_u64(*func), values).evict(mu))
         }
 
         fp.value = Cons::list(mu, &frames);
