@@ -25,25 +25,25 @@
                               stream
                               (core:null loop)))
                        (:if (core:eof stream)
-                            (core:error stream "core::read-sharp-comment: unexpected end of file")
+                            (core:raise stream "core::read-sharp-comment: unexpected end of file")
                             (core:read-char stream () ())))
                       (core:null loop)))
                (:if (core:eof stream)
-                    (core:error stream "core::read-sharp-comment: unexpected end of file")
+                    (core:raise stream "core::read-sharp-comment: unexpected end of file")
                     (core:read-char stream () ())))))
        ())))
 
 (mu:intern core::ns :intern "read-sharp-vector"
     (:lambda (ch stream)
       ((:lambda (type)
-          (core:errorp-unless mu:keyp type "core:read-sharp-vector: not a type keyword")
+          (core:raise-unless mu:keyp type "core:read-sharp-vector: not a type keyword")
           (mu:vector type (core::read-list #\( stream)))
        (core::read-atom ch stream))))
 
 (mu:intern core::ns :intern "read-sharp-symbol"
    (:lambda (ch stream)
      ((:lambda (symbol)
-          (core:errorp-unless core:symbolp symbol "core::read-sharp-symbol: not a symbol")
+          (core:raise-unless core:symbolp symbol "core::read-sharp-symbol: not a symbol")
           (mu:symbol (mu:sy-name symbol)))
        (core::read-atom ch stream))))
 
@@ -105,10 +105,10 @@
                           (:if (core:symbolp el)
                                (:if (mu:eq (mu:sy-name el) ".")
                                     ((:lambda (dotted)
-                                       (core:error-if (core:null loop) () "read-list: malformed dotted list")
+                                       (core:raise-if (core:null loop) () "read-list: malformed dotted list")
                                        (:if (mu:eq (core::read stream) core::read-list-eol)
                                             dotted
-                                            (core:error () "read-list: malformed dotted list")))
+                                            (core:raise () "read-list: malformed dotted list")))
                                      (core::append loop (core::read stream)))
                                     (core::append loop (core::list el)))
                                (core::append loop (core::list el)))))
@@ -180,7 +180,7 @@
 (mu:intern core::ns :intern "core-char-macro-ns" (mu:make-ns "core:char-macro-ns" ()))
 (mu:intern core::ns :extern "get-macro-character"
    (:lambda (char)
-     (core:errorp-unless core:charp char "get-macro-character: not a character")
+     (core:raise-unless core:charp char "get-macro-character: not a character")
      ((:lambda (macro-symbol)
         (:if macro-symbol
             (core:symbol-value macro-symbol)
@@ -189,7 +189,7 @@
 
 (mu:intern core::ns :extern "set-macro-character"
    (:lambda (char fn non-terminating)
-     (core:errorp-unless core:charp char "set-macro-character: not a character")
-     (core:errorp-unless core:functionp fn "set-macro-character: not a function")
+     (core:raise-unless core:charp char "set-macro-character: not a character")
+     (core:raise-unless core:functionp fn "set-macro-character: not a function")
      (mu:intern core::core-char-macro-ns :extern (mu:vector :char (core::list char)) (mu:cons fn non-terminating))
      :t))

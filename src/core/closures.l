@@ -11,7 +11,7 @@
 ;;;
 (mu:intern core::ns :intern "closure-prop"
   (:lambda (key closure)
-    (core:errorp-unless core:closurep closure "core::closure-prop: is not a closure")           
+    (core:raise-unless core:closurep closure "core::closure-prop: is not a closure")           
     (mu:sv-ref
      (mu:st-vec closure)
      (mu:cdr
@@ -92,7 +92,7 @@
 ;;;
 (mu:intern core::ns :extern "apply"
    (:lambda (fn args)
-     (core:errorp-unless
+     (core:raise-unless
       (:lambda (fn) (core::logor (core:functionp fn) (core:closurep fn)))
       fn
       "core:apply: not a function or closure")
@@ -166,4 +166,4 @@
                                 (core::symbol-call fn args env)))
                          (core:macro-function fn env))
                         (core::compile-symbol-call fn args env))
-                   (core:error fn "compile-application: not a function designator"))))))
+                   (core:raise fn "compile-application: not a function designator"))))))

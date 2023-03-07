@@ -14,17 +14,9 @@
          ((:lambda (sym)
             (:if sym
                  (:if (core:boundp sym)
-                      (core:error sym "intern: symbol already bound")
-                      (mu:intern
-                       (core::read-get-ns)
-                       :extern
-                       (mu:sy-name symbol)
-                       value))
-                 (mu:intern
-                  (core::read-get-ns)
-                  :extern
-                  (mu:sy-name symbol)
-                  value)))
+                      (core:raise sym "intern: symbol already bound")
+                      (mu:intern (core::read-get-ns) :extern (mu:sy-name symbol)value))
+                 (mu:intern (core::read-get-ns) :extern (mu:sy-name symbol) value)))
           (mu:ns-map (core::read-get-ns) :extern (mu:sy-name symbol)))
          ((:lambda (ns name)
              (mu:intern

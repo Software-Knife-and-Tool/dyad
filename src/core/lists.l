@@ -28,8 +28,8 @@
 ;;;
 (mu:intern core::ns :extern "fix"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:fix: not a function")
-     (core:errorp-unless core:listp list "core:fix: not a list")
+     (core:raise-unless core:functionp fn "core:fix: not a function")
+     (core:raise-unless core:listp list "core:fix: not a list")
      (:if (core::fn-applyp fn)
           (mu:fix (:lambda (arg) (core:apply fn (core::list arg))) list)
           (mu:fix fn list))))
@@ -39,8 +39,8 @@
 ;;;
 (mu:intern core::ns :extern "foldl"
   (:lambda (fn init list)
-      (core:errorp-unless core:functionp fn "core:foldl: not a function")
-      (core:errorp-unless core:listp list "core:foldl: not a list")
+      (core:raise-unless core:functionp fn "core:foldl: not a function")
+      (core:raise-unless core:listp list "core:foldl: not a list")
       (mu:cdr
        (mu:fix
         (:lambda (arg)
@@ -56,8 +56,8 @@
 
 (mu:intern core::ns :extern "foldr"
   (:lambda (fn init list)
-    (core:errorp-unless core:functionp fn "core:foldr: not a function")
-    (core:errorp-unless core:listp list "core:foldr: not a list")
+    (core:raise-unless core:functionp fn "core:foldr: not a function")
+    (core:raise-unless core:listp list "core:foldr: not a list")
     (core:foldl fn init (core:reverse list))))
 
 ;;;
@@ -65,8 +65,8 @@
 ;;;
 (mu:intern core::ns :extern "mapc"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:mapc: not a function")
-     (core:errorp-unless core:listp list "core:mapc: not a list")
+     (core:raise-unless core:functionp fn "core:mapc: not a function")
+     (core:raise-unless core:listp list "core:mapc: not a list")
      (mu:fix
       (:lambda (lst)
         (:if lst
@@ -79,8 +79,8 @@
 
 (mu:intern core::ns :extern "mapcar"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:mapcar: not a function")
-     (core:errorp-unless core:listp list "core:mapcar: not a list")
+     (core:raise-unless core:functionp fn "core:mapcar: not a function")
+     (core:raise-unless core:listp list "core:mapcar: not a list")
      (core:foldl
       (:lambda (elt acc)
         (core::append acc (core::list (core:apply fn (core::list elt)))))
@@ -89,8 +89,8 @@
    
 (mu:intern core::ns :extern "mapl"
    (:lambda (fn list)
-      (core:errorp-unless core:functionp fn "core:mapl: not a function")
-      (core:errorp-unless core:listp list "core:mapl: not a list")
+      (core:raise-unless core:functionp fn "core:mapl: not a function")
+      (core:raise-unless core:listp list "core:mapl: not a list")
       (mu:fix
        (:lambda (list)
          (:if list
@@ -103,8 +103,8 @@
 
 (mu:intern core::ns :extern "maplist"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:maplist: not a function")
-     (core:errorp-unless core:listp list "core:maplist: not a list")
+     (core:raise-unless core:functionp fn "core:maplist: not a function")
+     (core:raise-unless core:listp list "core:maplist: not a list")
      (mu:car
       (mu:fix
        (:lambda (loop)
@@ -123,8 +123,8 @@
 ;;;
 (mu:intern core::ns :extern "findl"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:findl: not a function")
-     (core:errorp-unless core:listp list "core:findl: not a list")
+     (core:raise-unless core:functionp fn "core:findl: not a function")
+     (core:raise-unless core:listp list "core:findl: not a list")
      (core:foldr
       (:lambda (el acc)
         (:if (core:apply fn (core::list el))
@@ -135,8 +135,8 @@
 
 (mu:intern core::ns :extern "findr"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:findr not a function")
-     (core:errorp-unless core:sequencep list "core:findr not a list")
+     (core:raise-unless core:functionp fn "core:findr not a function")
+     (core:raise-unless core:sequencep list "core:findr not a list")
      (core:foldl
       (:lambda (el acc)
         (:if (core:apply fn (core::list el))
@@ -150,8 +150,8 @@
 ;;;
 (mu:intern core::ns :extern "positionl"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:positionl: not a function")           
-     (core:errorp-unless core:listp list "core:positionl: not a list")
+     (core:raise-unless core:functionp fn "core:positionl: not a function")           
+     (core:raise-unless core:listp list "core:positionl: not a list")
      (:if (core:null list)
           ()
           ((:lambda (len)
@@ -170,8 +170,8 @@
 
 (mu:intern core::ns :extern "positionr"
    (:lambda (fn list)
-     (core:errorp-unless core:functionp fn "core:positionr: not a function")           
-     (core:errorp-unless core:listp list "core:positionr: not a list")
+     (core:raise-unless core:functionp fn "core:positionr: not a function")           
+     (core:raise-unless core:listp list "core:positionr: not a list")
      (:if (core:null list)
           ()
           (mu:car
@@ -191,7 +191,7 @@
 ;;;
 (mu:intern core::ns :extern "append"
    (:lambda (list)
-     (core:errorp-unless core:listp list "core:append: not a list")
+     (core:raise-unless core:listp list "core:append: not a list")
      (core:foldr
       (:lambda (el acc)
         (:if (core:listp el)
@@ -202,19 +202,19 @@
 
 (mu:intern core::ns :extern "reverse"
   (:lambda (list)
-    (core:errorp-unless core:listp list "core:reverse: not a list")
+    (core:raise-unless core:listp list "core:reverse: not a list")
     (core:foldl mu:cons () list)))
 
 (mu:intern core::ns :extern "dropl"
    (:lambda (list n)
-      (core:errorp-unless core:listp list "core:dropl: not a list")
-      (core:errorp-unless core:fixnump n "core:dropl: not a fixnum")
+      (core:raise-unless core:listp list "core:dropl: not a list")
+      (core:raise-unless core:fixnump n "core:dropl: not a fixnum")
       (mu:nthcdr n list)))
 
 (mu:intern core::ns :extern "dropr"
    (:lambda (list n)
-      (core:errorp-unless core:listp list "core:dropr: not a list")
-      (core:errorp-unless core:fixnump n "core:dropr: not a fixnum")
+      (core:raise-unless core:listp list "core:dropr: not a list")
+      (core:raise-unless core:fixnump n "core:dropr: not a fixnum")
       (core:foldl
         mu:cons
         ()
@@ -235,7 +235,7 @@
          (:lambda (lst)
            (:if lst
                ((:lambda (entry)
-                  (core:errorp-unless core:consp entry "core:assoc: not a cons")
+                  (core:raise-unless core:consp entry "core:assoc: not a cons")
                   (:if (mu:eq item (mu:car entry))
                       lst
                       (mu:cdr lst)))
@@ -245,7 +245,7 @@
 
 (mu:intern core::ns :extern "last"
    (:lambda (list)
-     (core:errorp-unless core:listp list "core:last: not a list")
+     (core:raise-unless core:listp list "core:last: not a list")
      (:if list
           (mu:nthcdr (core:1- (mu:length list)) list)
           ())))

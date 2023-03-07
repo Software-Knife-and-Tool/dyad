@@ -4,33 +4,35 @@
 ;;;
 ;;; exceptions
 ;;;
-(mu:intern core::ns :extern "print-except"
-   (:lambda (ex by)
-     (core:write ";;; exception raised by " ()  mu:err-out)
-     (core:write by () mu:err-out)
-     (core:write " with " () mu:err-out)
-     (core:write (mu:view ex) () mu:err-out)
-     (core:terpri mu:err-out)
-     (core:write ";;;     in " () mu:err-out)
-     (core:write (mu::view ex) () mu:err-out)
-     (core:terpri mu:err-out)))
-
-(mu:intern core::ns :intern "print-frame"
-   (:lambda (frame)
-      ((:lambda (fn args)
-         (core:format :t
-                "(~A ~A)~%"
-                (core::list2
-                 (:if (core:symbolp (core::fn-form fn))
-                      (core::fn-form fn)
-                      (core:string-append :intern "lambda-" (core:symbol-name (core::fn-frame-id fn))))
-                 (core:sv-list args))))
-       (mu:car frame)
-       (mu:cdr frame))))
 
 ;;;
 ;;; utilities
 ;;;
+(mu:intern core::ns :extern "make-exception"
+  (:lambda (obj condition source)
+    (mu:struct :except
+      (mu:cons obj
+        (mu:cons condition
+          (mu:cons source
+            (core::list (mu::frames))))))))
+
+(mu:intern core::ns :extern "print-exception"
+  (:lambda (stream exception)
+    ((:lambda (obj source condition)
+       (core:format stream 
+                    ";;; exception raised on ~A, condition ~A by ~A~%"
+                    (core::list3 obj source condition)))
+     (mu:sv-ref (mu:st-vec exception) 0)
+     (mu:sv-ref (mu:st-vec exception) 1)
+     (mu:sv-ref (mu:st-vec exception) 2))))
+     
+(mu:intern core::ns :intern "print-frames"
+  (:lambda (frames)
+    (core:mapc
+      (:lambda (frame)
+        (core:format :t "(~A ~A)~%" frame))
+        frames)))
+
 (mu:intern core::ns :intern "eprinc"
   (:lambda (obj)
     (mu:write obj () mu:err-out)))           
@@ -47,7 +49,7 @@
   (:lambda (obj)
     (mu:write obj :t mu:std-out)))           
 
-(mu:intern core::ns :extern "error"
+(mu:intern core::ns :extern "raise"
    (:lambda (obj msg)
      (core::eprinc "error: ")
      (core::eprinc msg)
@@ -56,11 +58,11 @@
      (core:terpri mu:err-out)
      (mu:raise :error obj)))
 
-(mu:intern core::ns :extern "error-if"
+(mu:intern core::ns :extern "raise-if"
    (:lambda (test obj msg)
      (:if test
           ((:lambda ()
-             (core::eprinc "error-if: ")
+             (core::eprinc "raise-if: ")
              (core::eprinc msg)
              (core::eprinc " ")
              (core::eprint obj)
@@ -68,11 +70,11 @@
              (mu:raise :error obj)))
           obj)))
 
-(mu:intern core::ns :extern "errorp-when"
+(mu:intern core::ns :extern "raise-when"
    (:lambda (fn obj msg)
      (:if (mu:apply fn (core::list obj))
           ((:lambda ()
-             (core::eprinc "errorp-when: ")
+             (core::eprinc "raise-when: ")
              (core::eprinc msg)
              (core::eprinc " ")
              (core::eprint obj)
@@ -80,12 +82,12 @@
              (mu:raise :error obj)))
           obj)))
 
-(mu:intern core::ns :extern "errorp-unless"
+(mu:intern core::ns :extern "raise-unless"
    (:lambda (fnp obj msg)
      (:if (mu:apply fnp (core::list obj))
           obj
           ((:lambda ()
-             (core::eprinc "errorp-unless: ")
+             (core::eprinc "raise-unless: ")
              (core::eprinc msg)
              (core::eprinc " ")
              (core::eprint obj)
@@ -106,7 +108,7 @@
 ;;;
 (mu:intern core::ns :extern "break"
    (:lambda (except)
-     (core:errorp-unless core:stringp except "core:break: not an exception")
+     (core:raise-unless core:stringp except "core:break: not an exception")
      (core:write ";;; entering break loop, :h for commands" () ())
      (core:terpri ())
      (mu:fix

@@ -16,15 +16,15 @@
 
 (mu:intern core::ns :intern "fmt-decimal"
   (:lambda (dest args)
-    (core:errorp-unless core:fixnump (mu:car args) "format: argument to ~D not a fixnum")
+    (core:raise-unless core:fixnump (mu:car args) "format: argument to ~D not a fixnum")
     (core:write (mu:car args) () dest)
     (mu:cdr args)))
 
 (mu:intern core::ns :intern "fmt-hex"
   (:lambda (dest args)
     ((:lambda (fx)
-       (core:errorp-unless core:fixnump fx "format: argument to ~X not a fixnum")
-       (core:errorp-when (:lambda (n) (mu:fx-lt n 0)) fx "format: argument to ~X is negative")
+       (core:raise-unless core:fixnump fx "format: argument to ~X not a fixnum")
+       (core:raise-when (:lambda (n) (mu:fx-lt n 0)) fx "format: argument to ~X is negative")
        (:if (core:zerop fx)
             (core:write "0" () dest)
             ((:lambda (loop)
@@ -63,7 +63,7 @@
     ((:lambda (fn)
        (:if fn
             (core:apply (mu:sy-val fn) (core::list2 dest args))
-            (core:error dir "core:format: unrecognized format directive")))
+            (core:raise dir "core:format: unrecognized format directive")))
      (mu:cdr
       (core:assoc
        dir
@@ -84,7 +84,7 @@
                ((:lambda (ch)
                   (:if (mu:eq ch #\~)
                        (core::prog2
-                           (core:error-if (mu:eq (core:1+ nth) (core:length fmt)) nth "core:format: unexpected end of string")
+                           (core:raise-if (mu:eq (core:1+ nth) (core:length fmt)) nth "core:format: unexpected end of string")
                            (mu:cons (mu:fx-add 2 nth) (core::fmt-op (core:schar fmt (core:1+ nth)) dest argl)))
                        (core::prog2
                            (core:write-char ch dest)
@@ -99,8 +99,8 @@
 
 (mu:intern core::ns :extern "format"
    (:lambda (stream fmt args)
-     (core:errorp-unless core:stringp fmt "core:format: not a string")
-     (core:errorp-unless core:listp args "core:format: not a list")
+     (core:raise-unless core:stringp fmt "core:format: not a string")
+     (core:raise-unless core:listp args "core:format: not a list")
 
      (:if (core:zerop (core:length fmt))
           (:if stream
@@ -113,4 +113,4 @@
                      mu:std-out
                      (:if (core:streamp stream)
                           stream
-                          (core:error stream "core:format: not a stream designator"))))))))
+                          (core:raise stream "core:format: not a stream designator"))))))))

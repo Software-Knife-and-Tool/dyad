@@ -6,7 +6,7 @@
 ;;;
 (mu:intern core::ns :extern "in-namespace"
    (:lambda (ns)
-     (core:errorp-unless core:namespacep ns "core:in-namespace: not a namespace")
+     (core:raise-unless core:namespacep ns "core:in-namespace: not a namespace")
      (mu:make-ns ns)
      (core::read-set-ns ns)
      ns))
@@ -104,7 +104,7 @@
 
 (mu:intern core::ns :intern "get-symbol-macro"
    (:lambda (symbol)
-     (core:errorp-unless core:symbolp symbol "get-symbol-macro-form: not a symbol")
+     (core:raise-unless core:symbolp symbol "get-symbol-macro-form: not a symbol")
      ((:lambda (macro-symbol)
         (:if macro-symbol
             macro-symbol
@@ -113,7 +113,7 @@
 
 (mu:intern core::ns :extern "define-symbol-macro"
    (:lambda (symbol form)
-     (core:errorp-unless core:symbolp symbol "define-symbol-macro: not a symbol")
+     (core:raise-unless core:symbolp symbol "define-symbol-macro: not a symbol")
      (mu:intern core::core-symbol-macro-ns :extern (mu:sy-name symbol) form)
      symbol))
 

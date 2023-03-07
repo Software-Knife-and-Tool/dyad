@@ -38,7 +38,7 @@
 
 (mu:intern core::ns :intern "core-find-macro-env"
    (:lambda (symbol env)
-     (core:errorp-unless core:symbolp symbol "core-find-macro-env: is not a symbol")           
+     (core:raise-unless core:symbolp symbol "core-find-macro-env: is not a symbol")           
      ((:lambda (macro-ns symbol-ns symbol-name symbol-scope)
         (:if macro-ns
              (mu:ns-map (mu:sy-val macro-ns) symbol-scope symbol-name)
@@ -102,7 +102,7 @@
 (mu:intern core::ns :intern "core-macro"
    (:lambda (form env)
       (:if (core:findl (:lambda (el) (core:null (core:symbolp el))) form)
-         (core:error-if form "core::core-macro: lambda syntax")
+         (core:raise-if form "core::core-macro: lambda syntax")
          ((:lambda (desc)
              (:if (core:fixnump desc)
                   (core::make-lambda form form () env ())
@@ -119,7 +119,7 @@
                            (mu:nth (core:1- (mu:length form)) form)
                            env
                            ())
-                          (core:error form "core::core-macro: rest botch"))
+                          (core:raise form "core::core-macro: rest botch"))
                      (core:1+ acc))))
             0
             form)))))

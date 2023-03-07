@@ -20,8 +20,8 @@
 ;;;
 (mu:intern core::ns :intern "compile-add-env"
   (:lambda (lambda-desc env)
-     (core:errorp-unless core:structp lambda-desc "compile-add-env: not a lambda descriptor")
-     (core:errorp-unless core:listp env "compile-add-env: not a list") 
+     (core:raise-unless core:structp lambda-desc "compile-add-env: not a lambda descriptor")
+     (core:raise-unless core:listp env "compile-add-env: not a list") 
      (mu:cons lambda-desc env)))
 
 ;;;
@@ -48,14 +48,14 @@
 
 (mu:intern core::ns :intern "lambda"
     (:lambda (form env)
-      (core:error-if (mu:fx-lt (mu:length form) 2) form "core lambda: malformed lambda expression")
+      (core:raise-if (mu:fx-lt (mu:length form) 2) form "core lambda: malformed lambda expression")
       (core::compile-lambda (core::list2 (mu:nth 1 form) (mu:nthcdr 2 form)) env)))
 
 (mu:intern core::ns :intern "defconst"
    (:lambda (form env)
      ((:lambda (symbol value)
-        (core:errorp-unless core:symbolp symbol "core::defconst: not a symbol")
-        (core:errorp-when core:keywordp symbol "core::defconst: not a symbol")
+        (core:raise-unless core:symbolp symbol "core::defconst: not a symbol")
+        (core:raise-when core:keywordp symbol "core::defconst: not a symbol")
         (mu:compile
          (core::list2 :quote
                       (core::intern
@@ -68,9 +68,9 @@
 (mu:intern core::ns :intern "defmacro"
     (:lambda (form env)
       ((:lambda (symbol lambda)
-         (core:errorp-unless core:symbolp symbol "core::defmacro: not a symbol")
-         (core:errorp-when core:keywordp symbol "core::defmacro: not a symbol")
-         (core:errorp-unless core:listp lambda "core::defmacro: not a lambda list")
+         (core:raise-unless core:symbolp symbol "core::defmacro: not a symbol")
+         (core:raise-when core:keywordp symbol "core::defmacro: not a symbol")
+         (core:raise-unless core:listp lambda "core::defmacro: not a lambda list")
          ((:lambda (macro-fn)
             ((:lambda (symbol)
                (core::core-macro-env symbol macro-fn)
@@ -83,9 +83,9 @@
 (mu:intern core::ns :intern "defun"
    (:lambda (form env)
       ((:lambda (symbol lambda)
-         (core:errorp-unless core:symbolp symbol "core::defun: not a symbol")
-         (core:errorp-when core:keywordp symbol "core::defun: not a symbol")
-         (core:errorp-unless core:listp lambda "core::defun: not a lambda list")
+         (core:raise-unless core:symbolp symbol "core::defun: not a symbol")
+         (core:raise-when core:keywordp symbol "core::defun: not a symbol")
+         (core:raise-unless core:listp lambda "core::defun: not a lambda list")
          (mu:compile (core::list2 :quote (core::intern symbol (core::lambda (mu:cons :lambda lambda) env) env))))
        (mu:nth 1 form)
        (mu:nthcdr 2 form))))
@@ -107,9 +107,9 @@
 
 (mu:intern core::ns :intern "if"
    (:lambda (form env)
-      (core:errorp-unless core:listp env "core if: not an environment")
-      (core:errorp-unless (:lambda (form) (mu:fx-lt 2 (mu:length form))) form "core if: takes two or three arguments")
-      (core:errorp-unless (:lambda (form) (mu:fx-lt (mu:length form) 5)) form "core if: takes two or three arguments")
+      (core:raise-unless core:listp env "core if: not an environment")
+      (core:raise-unless (:lambda (form) (mu:fx-lt 2 (mu:length form))) form "core if: takes two or three arguments")
+      (core:raise-unless (:lambda (form) (mu:fx-lt (mu:length form) 5)) form "core if: takes two or three arguments")
       (mu:cons 'core::if-body
         (core::list3
          (core::list (core::thunk (mu:nth 1 form) env))
@@ -136,7 +136,7 @@
 
 (mu:intern core::ns :intern "compile"
     (:lambda (form env)
-      (core:errorp-unless core:listp env "compile: env not a list")
+      (core:raise-unless core:listp env "compile: env not a list")
       (:if (core:consp form)
           ((:lambda (fn args)
              (:if (mu:keyp fn)

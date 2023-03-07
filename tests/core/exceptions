@@ -1,11 +1,14 @@
 #
 # core exception tests
 #
-assert_eq "(mu:type-of core::print-frame)" ":func"
-assert_eq "(mu:type-of core:print-except)" ":func"
+assert_eq "(mu:type-of core:print-exception)" ":func"
+assert_eq "(mu:type-of core:make-exception)" ":func"
 assert_eq "(mu:type-of core:break)" ":func"
-assert_eq "(mu:type-of core:error-if)" ":func"
-assert_eq "(mu:type-of core:errorp-unless)" ":func"
-assert_eq "(mu:type-of core:errorp-when)" ":func"
+assert_eq "(mu:type-of core:raise)" ":func"
+assert_eq "(mu:type-of core:raise-if)" ":func"
+assert_eq "(mu:type-of core:raise-unless)" ":func"
+assert_eq "(mu:type-of core:raise-when)" ":func"
 assert_eq "(mu:type-of core:warn)" ":func"
-#
+assert_eq "(core:structp (core:make-exception () :type 'foo))" ":t"
+assert_eq "(core:exceptionp (core:make-exception () :type 'foo))" ":t"
+# assert_eq "(core:print-exception mu:std-out (core:make-exception () :type 'foo))" ";;; exception raised on :nil, condition :type by foo:nil"
