@@ -6,9 +6,9 @@
 ;;;
 (mu:intern core::ns :extern "load"
   (:lambda (source verbose print)
-    (core:errorp-unless core:stringp source "core:load not a file designator")
+    (core:raise-unless core:stringp source "core:load not a file designator")
     ((:lambda (ifs)
-       (core:errorp-unless core:streamp ifs "core:load cannot open input file")
+       (core:raise-unless core:streamp ifs "core:load cannot open input file")
        (:if verbose
             (core::prog2
                 (core:write (core:string-append ";;; loading " source) () ()) 
@@ -19,7 +19,7 @@
           (:if (core:eof ifs)
                :t
                (mu:with-ex
-                   (:lambda (cond obj)
+                   (:lambda (obj cond)
                      (core:write "load exception" () mu:err-out)
                      (core:terpri mu:err-out)
                      (core:print-except cond "core:load")
@@ -46,11 +46,11 @@
      ((:lambda (repl) (repl repl))
       (:lambda (repl)
         (mu:with-ex
-           (:lambda (ex)
+           (:lambda (obj cond)
              (:if (core:eof :t)
                   (mu::exit 0)
                   (core::prog2
-                     (core:print-except ex "core::debug-repl")
+                     (core:print-exception (core:make-exception obj cond 'core::debug-repl))
                      (core:break ex))))
           (:lambda ()
             (core:format :t "core> " ())

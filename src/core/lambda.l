@@ -49,7 +49,7 @@
 (mu:intern core::ns :intern "core-lambda"
    (:lambda (form env)
       (:if (core:findl (:lambda (el) (core:null (core:symbolp el))) form)
-         (core:error form "core::core-lambda: list syntax")
+         (core:raise form "core::core-lambda: list syntax")
          ((:lambda (desc)
             (:if (core:fixnump desc)
                  (core::make-lambda form form () env ())
@@ -66,7 +66,7 @@
                            (mu:nth (core:1- (mu:length form)) form)
                            env
                            ())
-                          (core:error form "core::core-lambda rest botch"))
+                          (core:raise form "core::core-lambda rest botch"))
                      (core:1+ acc))))
             0
             form)))))
@@ -93,7 +93,7 @@
   (:lambda (fn)
      (core:warn fn "closure:")           
      ((:lambda (lambda-desc)
-        (core:errorp-when core:null lambda-desc "core::closure: closing bare function")
+        (core:raise-when core:null lambda-desc "core::closure: closing bare function")
         ((:lambda (desc body)
            (mu:compile
             (mu:cons :lambda

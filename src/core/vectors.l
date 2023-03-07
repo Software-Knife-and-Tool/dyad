@@ -6,14 +6,14 @@
 ;;;
 (mu:intern core::ns :extern "vector-type"
   (:lambda (vector)
-    (core:errorp-unless core:vectorp vector "core:vector-type: not a vector")
+    (core:raise-unless core:vectorp vector "core:vector-type: not a vector")
 
     (mu:sv-type vector)))
 
 (mu:intern core::ns :extern "svref"
   (:lambda (vector nth)
-    (core:errorp-unless core:vectorp vector "core:svref: not a vector")
-    (core:errorp-unless core:fixnump nth "core:svref: not a fixnum")
+    (core:raise-unless core:vectorp vector "core:svref: not a vector")
+    (core:raise-unless core:fixnump nth "core:svref: not a fixnum")
 
     (mu:sv-ref vector nth)))
 

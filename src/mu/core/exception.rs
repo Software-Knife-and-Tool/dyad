@@ -7,6 +7,7 @@
 //!    Result<Exception>
 //!    print
 //!    raise
+//!    craise
 use {
     crate::{
         core::{
@@ -16,7 +17,6 @@ use {
         },
         types::{
             cons::{Cons, Core as _},
-            r#struct::Struct,
             symbol::{Core as _, Symbol},
         },
     },
@@ -91,6 +91,16 @@ impl Exception {
         }
     }
 
+    pub fn craise(mu: &Mu, src: &str, tag: Tag) {
+        let ex = Exception {
+            condition: Condition::Error,
+            source: src.to_string(),
+            tag,
+        };
+
+        ex.print(mu);
+    }
+
     pub fn raise(mu: &Mu, condition: Condition, src: &str, tag: Tag) -> Self {
         let ex = Exception {
             condition,
@@ -142,14 +152,14 @@ pub trait MuFunction {
 
 impl MuFunction for Exception {
     fn mu_raise(mu: &Mu, fp: &mut Frame) -> Result<()> {
-        let condition = fp.argv[0];
-        let src = fp.argv[1];
+        let src = fp.argv[0];
+        let condition = fp.argv[1];
 
         fp.value = match Tag::type_of(mu, condition) {
             Type::Keyword => match Self::map_condition(mu, condition) {
                 Ok(cond) => {
                     Self::raise(mu, cond, "mu:raise", src);
-                    Struct::to_tag(mu, Symbol::keyword("except"), vec![condition, src])
+                    src
                 }
                 Err(_) => return Err(Exception::raise(mu, Condition::Type, "mu:raise", condition)),
             },
@@ -168,13 +178,8 @@ impl MuFunction for Exception {
                 Type::Function => match mu.apply(thunk, Tag::nil()) {
                     Ok(v) => v,
                     Err(e) => {
-                        let except = Struct::to_tag(
-                            mu,
-                            Symbol::keyword("except"),
-                            vec![Self::map_condkey(e.condition).unwrap(), e.tag],
-                        );
-
-                        match mu.apply(handler, Cons::new(except, Tag::nil()).evict(mu)) {
+                        let args = vec![Self::map_condkey(e.condition).unwrap(), e.tag];
+                        match mu.apply(handler, Cons::list(mu, &args)) {
                             Ok(v) => v,
                             Err(e) => return Err(e),
                         }

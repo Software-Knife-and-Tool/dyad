@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: MIT
 
 //! mu environment
-//!    Extern
 //!    Mu
 use {
     crate::{
@@ -74,7 +73,7 @@ pub struct Mu {
 }
 
 pub trait Core {
-    const VERSION: &'static str = "0.0.13";
+    const VERSION: &'static str = "0.0.14";
 
     fn new(config: String) -> Self;
     fn apply(&self, _: Tag, _: Tag) -> exception::Result<Tag>;
@@ -83,6 +82,7 @@ pub trait Core {
     fn eq(&self, _: Tag, _: Tag) -> bool;
     fn nil(&self) -> Tag;
     fn compile(&self, _: Tag) -> exception::Result<Tag>;
+    fn raise(&self, _: Tag, _: &str);
     fn read(&self, _: Tag, _: bool, _: Tag) -> exception::Result<Tag>;
     fn read_string(&self, _: String) -> exception::Result<Tag>;
     fn write(&self, _: Tag, _: bool, _: Tag) -> exception::Result<()>;
@@ -217,6 +217,10 @@ impl Core for Mu {
 
     fn eof(&self, stream: Tag) -> bool {
         Stream::is_eof(self, stream)
+    }
+
+    fn raise(&self, src: Tag, cond: &str) {
+        Exception::craise(self, cond, src)
     }
 
     fn read(&self, stream: Tag, eofp: bool, eof_value: Tag) -> exception::Result<Tag> {

@@ -45,8 +45,8 @@
 ;;;
 (mu:intern core::ns :extern "parse-integer"
   (:lambda (digits base)
-    (core:errorp-unless core:stringp digits "core:parse-integer: not a string")
-    (core:errorp-unless core:fixnump base "core:parse-integer: not a fixnum")
+    (core:raise-unless core:stringp digits "core:parse-integer: not a string")
+    (core:raise-unless core:fixnump base "core:parse-integer: not a fixnum")
     (:if (core:zerop (core:length digits))
          ()
          ((:lambda (sign)

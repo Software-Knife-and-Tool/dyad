@@ -10,7 +10,7 @@
          mu:std-out
          (:if (core:streamp designator)
               designator
-              (core:errorp-unless core:streamp designator "core::write-stream-designator: not a stream")))))
+              (core:raise-unless core:streamp designator "core::write-stream-designator: not a stream")))))
 
 (mu:intern core::ns :intern "read-stream-designator"
   (:lambda (designator)
@@ -20,17 +20,17 @@
               mu:std-in
               (:if (core:streamp designator)
                    designator
-                   (core:errorp-unless core:streamp designator "core::read-stream-designator: not a stream"))))))
+                   (core:raise-unless core:streamp designator "core::read-stream-designator: not a stream"))))))
 
 (mu:intern core::ns :extern "make-string-stream"
   (:lambda (dir init)
-    (core:errorp-unless core:keywordp dir "core:make-string-stream: not a direction keyword")
-    (core:errorp-unless core:stringp init "core:make-string-stream: not a string initializer")
+    (core:raise-unless core:keywordp dir "core:make-string-stream: not a direction keyword")
+    (core:raise-unless core:stringp init "core:make-string-stream: not a string initializer")
     (:if (mu:eq dir :input)
          (mu:open :string :input init)
          (:if (mu:eq dir :output)
               (mu:open :string :output init)
-              (core:error dir "core:make-string-stream: not a direction keyword")))))
+              (core:raise dir "core:make-string-stream: not a direction keyword")))))
 
 (mu:intern core::ns :extern "eof"
   (:lambda (designator)
@@ -38,17 +38,17 @@
 
 (mu:intern core::ns :extern "open"
   (:lambda (dir path)
-     (core:errorp-unless core:stringp path "core:open: not a path string")
-     (core:errorp-unless core:keywordp dir "core:open: not a direction keyword")
+     (core:raise-unless core:stringp path "core:open: not a path string")
+     (core:raise-unless core:keywordp dir "core:open: not a direction keyword")
      (:if (mu:eq dir :input)
           (mu:open :file :input path)
           (:if (mu:eq dir :output)
                (mu:open :file :output path)
-               (core:error dir "core:open: not a direction keyword")))))
+               (core:raise dir "core:open: not a direction keyword")))))
 
 (mu:intern core::ns :extern "close"
   (:lambda (stream)
-    (core:errorp-unless core:streamp stream "core:close: not a string")
+    (core:raise-unless core:streamp stream "core:close: not a string")
     (mu:close stream)))
 
 ;;;
@@ -68,7 +68,7 @@
        ((:lambda (ch)
           (:if (core:null ch)
                (:if error-eofp
-                    (core:error stream "core:read-char: end of file")
+                    (core:raise stream "core:read-char: end of file")
                     eof-value)
                ch))
         (mu:rd-char stream () ())))
@@ -79,14 +79,14 @@
      ((:lambda (stream)
         (:if (core:eof stream)
              (:if error-eofp
-                  (core:error stream "core:read-byte: end of file")
+                  (core:raise stream "core:read-byte: end of file")
                   eof-value)
              (mu:rd-byte stream () ())))
       (core::read-stream-designator designator))))
 
 (mu:intern core::ns :extern "unread-char"
   (:lambda (ch designator)
-    (core:errorp-unless core:charp ch "core:unread-char: not a char")
+    (core:raise-unless core:charp ch "core:unread-char: not a char")
     (mu:un-char ch (core::write-stream-designator designator))))
 
 ;;;
@@ -98,12 +98,12 @@
         (:if (core:eof stream)
              (:if eof-error
                   (core::prog2
-                     (core:error stream "core:read: unexpected end of file")
+                     (core:raise stream "core:read: unexpected end of file")
                      eof-value)
                   ())
              ((:lambda (form)
                 (:if (mu:eq form core::read-list-eol)
-                     (core:error stream "core:read: unmatched close parenthesis")
+                     (core:raise stream "core:read: unmatched close parenthesis")
                      form))
               (core::read stream))))
       (core::read-stream-designator designator))))

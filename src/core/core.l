@@ -14,6 +14,11 @@
 (mu:intern core::ns :extern "not" (:lambda (t) (core:null t)))
 (mu:intern core::ns :extern "charp" (:lambda (t) (mu:eq :char (mu:type-of t))))
 (mu:intern core::ns :extern "consp" (:lambda (t) (mu:eq :cons (mu:type-of t))))
+(mu:intern core::ns :extern "exceptionp"
+           (:lambda (t)
+             (:if (core:structp t)
+                  (mu:eq :except (mu:st-type t))
+                  ())))
 (mu:intern core::ns :extern "fixnump" (:lambda (t) (mu:eq :fixnum (mu:type-of t))))
 (mu:intern core::ns :extern "floatp" (:lambda (t) (mu:eq :float (mu:type-of t))))
 (mu:intern core::ns :extern "functionp" (:lambda (t) (mu:eq :func (mu:type-of t))))
