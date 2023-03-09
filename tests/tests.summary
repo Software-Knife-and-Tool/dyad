@@ -8,12 +8,12 @@ mu:        namespace      total: 14       failed: 0        aborted: 0
 mu:        numbers        total: 34       failed: 0        aborted: 0       
 mu:        reader         total: 46       failed: 0        aborted: 0       
 mu:        special-forms  total: 11       failed: 0        aborted: 0       
-mu:        streams        total: 10       failed: 0        aborted: 0       
+mu:        streams        total: 11       failed: 0        aborted: 0       
 mu:        structs        total: 7        failed: 0        aborted: 0       
 mu:        symbols        total: 10       failed: 0        aborted: 0       
 mu:        vectors        total: 23       failed: 0        aborted: 0       
 -----------------------
-mu:        passed: 219    total: 219      failed: 0        aborted: 0         
+mu:        passed: 220    total: 220      failed: 0        aborted: 0         
 
 core:      closures       total: 8        failed: 7        aborted: 0       
 core:      compile        total: 30       failed: 4        aborted: 0       

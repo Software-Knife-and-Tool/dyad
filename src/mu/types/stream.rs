@@ -638,6 +638,7 @@ impl Core for Stream {
 pub trait MuFunction {
     fn mu_close(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_eof(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+    fn mu_flush(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_get_string(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_open(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_openp(_: &Mu, _: &mut Frame) -> exception::Result<()>;
@@ -713,6 +714,38 @@ impl MuFunction for Stream {
             }
             _ => Err(Exception::raise(mu, Condition::Type, "mu:open", st_type)),
         }
+    }
+
+    fn mu_flush(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+        let stream = fp.argv[0];
+
+        let system_stream = &mu.system.streams;
+        let image = Self::to_image(mu, stream);
+
+        fp.value = Tag::nil();
+
+        if !Self::is_open(mu, stream) {
+            return Ok(());
+        }
+
+        if image.direction.eq_(Symbol::keyword("input")) {
+            return Err(Exception::raise(
+                mu,
+                Condition::Stream,
+                "system::flush",
+                stream,
+            ));
+        }
+
+        match Tag::type_of(mu, image.source) {
+            Type::Fixnum => {
+                let stream_id = Fixnum::as_i64(mu, image.source) as usize;
+                SystemStream::flush(system_stream, stream_id)
+            }
+            _ => return Err(Exception::raise(mu, Condition::Type, "mu:flush", stream)),
+        }
+
+        Ok(())
     }
 
     fn mu_read(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {

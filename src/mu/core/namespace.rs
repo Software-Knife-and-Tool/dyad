@@ -103,6 +103,7 @@ lazy_static! {
         // streams
         ("close", Scope::Extern, 1, Stream::mu_close),
         ("eof", Scope::Extern, 1, Stream::mu_eof),
+        ("flush", Scope::Extern, 1, Stream::mu_flush),
         ("get-str", Scope::Extern, 1, Stream::mu_get_string),
         ("open", Scope::Extern, 3, Stream::mu_open),
         ("openp", Scope::Extern, 1, Stream::mu_openp),

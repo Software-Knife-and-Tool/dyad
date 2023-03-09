@@ -40,12 +40,31 @@ impl Stream {
 
 pub trait Core {
     fn close(_: &Stream, _: usize);
+    fn flush(_: &Stream, _: usize);
     fn open(_: &Stream, _: &str, is_input: bool) -> exception::Result<usize>;
     fn read_byte(_: &Stream, _: usize) -> exception::Result<Option<u8>>;
     fn write_byte(_: &Stream, _: usize, _: u8) -> exception::Result<Option<()>>;
 }
 
 impl Core for Stream {
+    fn flush(stream: &Stream, index: usize) {
+        let tab_ref: Ref<Vec<RefCell<fs::File>>> = stream.filetab.borrow();
+
+        match index {
+            STDOUT => {
+                std::io::stdout().flush().unwrap();
+            }
+            STDERR => {
+                std::io::stderr().flush().unwrap();
+            }
+            _ => {
+                if index >= tab_ref.len() {
+                    panic!("internal: stream index consistency");
+                }
+            }
+        }
+    }
+
     fn close(stream: &Stream, index: usize) {
         let tab_ref: Ref<Vec<RefCell<fs::File>>> = stream.filetab.borrow();
 
