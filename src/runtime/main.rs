@@ -147,12 +147,22 @@ fn load(mu: &Mu, path: &str, debug: bool) -> Option<()> {
                                     println!();
                                 }
                             }
-                            Err(_) => {
+                            Err(e) => {
+                                eprint!(
+                                    "exception: (load eval) raised from {1}, {:?} condition on ",
+                                    e.condition, e.source
+                                );
+                                mu.write(e.tag, true, mu.errout).unwrap();
                                 break;
                             }
                         }
                     }
-                    Err(_) => {
+                    Err(e) => {
+                        eprint!(
+                            "exception: (load compile) raised from {1}, {:?} condition on ",
+                            e.condition, e.source
+                        );
+                        mu.write(e.tag, true, mu.errout).unwrap();
                         break;
                     }
                 }
