@@ -48,9 +48,9 @@ impl Cons {
                         ),
                     }
                 }
-                _ => panic!("internal: tag format inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: cons type required"),
+            _ => panic!(),
         }
     }
 
@@ -59,9 +59,9 @@ impl Cons {
             Type::Null => cons,
             Type::Cons => match cons {
                 Tag::Indirect(_) => Self::to_image(mu, cons).car,
-                _ => panic!("internal: tag format inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: cons tag required"),
+            _ => panic!(),
         }
     }
 
@@ -70,9 +70,9 @@ impl Cons {
             Type::Null => cons,
             Type::Cons => match cons {
                 Tag::Indirect(_) => Self::to_image(mu, cons).cdr,
-                _ => panic!("internal: tag format inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: cons tag required"),
+            _ => panic!(),
         }
     }
 }
@@ -127,12 +127,9 @@ impl Core for Cons {
                                     match <Mu as Reader>::read(mu, stream, false, Tag::nil(), true)
                                     {
                                         Ok(eol) if EOL.eq_(eol) => Ok(cdr),
-                                        Ok(_) => Err(Exception::raise(
-                                            mu,
-                                            Condition::Eof,
-                                            "mu:car",
-                                            stream,
-                                        )),
+                                        Ok(_) => {
+                                            Err(Exception::new(Condition::Eof, "mu:car", stream))
+                                        }
                                         Err(e) => Err(e),
                                     }
                                 }
@@ -186,7 +183,7 @@ impl Core for Cons {
                 Self::append(mu, Cons::cdr(mu, cons0), cons1),
             )
             .evict(mu),
-            _ => panic!("interal: cons type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -194,7 +191,7 @@ impl Core for Cons {
         match Tag::type_of(mu, cons) {
             Type::Null => 0,
             Type::Cons => ConsIter::new(mu, cons).count(),
-            _ => panic!("interal: cons type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -229,7 +226,7 @@ impl Core for Cons {
                     }
                 }
             },
-            _ => panic!("internal: cons type required"),
+            _ => panic!(),
         }
     }
 
@@ -255,7 +252,7 @@ impl Core for Cons {
                     }
                 }
             },
-            _ => panic!("internal: cons type required"),
+            _ => panic!(),
         }
     }
 }
@@ -284,7 +281,7 @@ impl MuFunction for Cons {
         fp.value = match Tag::type_of(mu, list) {
             Type::Null => list,
             Type::Cons => Self::car(mu, list),
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:car", list)),
+            _ => return Err(Exception::new(Condition::Type, "mu:car", list)),
         };
 
         Ok(())
@@ -296,7 +293,7 @@ impl MuFunction for Cons {
         fp.value = match Tag::type_of(mu, list) {
             Type::Null => list,
             Type::Cons => Self::cdr(mu, list),
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:cdr", list)),
+            _ => return Err(Exception::new(Condition::Type, "mu:cdr", list)),
         };
 
         Ok(())
@@ -313,7 +310,7 @@ impl MuFunction for Cons {
         match Tag::type_of(mu, list) {
             Type::Null => fp.value = Fixnum::as_tag(0),
             Type::Cons => fp.value = Fixnum::as_tag(Cons::length(mu, list) as i64),
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:length", list)),
+            _ => return Err(Exception::new(Condition::Type, "mu:length", list)),
         }
 
         Ok(())
@@ -324,7 +321,7 @@ impl MuFunction for Cons {
         let list = fp.argv[1];
 
         if Tag::type_of(mu, nth) != Type::Fixnum || Fixnum::as_i64(mu, nth) < 0 {
-            return Err(Exception::raise(mu, Condition::Type, "mu:nth", nth));
+            return Err(Exception::new(Condition::Type, "mu:nth", nth));
         }
 
         match Tag::type_of(mu, list) {
@@ -336,7 +333,7 @@ impl MuFunction for Cons {
                 fp.value = Self::nth(mu, Fixnum::as_i64(mu, nth) as usize, list).unwrap();
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:nth", list)),
+            _ => Err(Exception::new(Condition::Type, "mu:nth", list)),
         }
     }
 
@@ -345,7 +342,7 @@ impl MuFunction for Cons {
         let list = fp.argv[1];
 
         if Tag::type_of(mu, nth) != Type::Fixnum || Fixnum::as_i64(mu, nth) < 0 {
-            return Err(Exception::raise(mu, Condition::Type, "mu:nthcdr", nth));
+            return Err(Exception::new(Condition::Type, "mu:nthcdr", nth));
         }
 
         match Tag::type_of(mu, list) {
@@ -357,7 +354,7 @@ impl MuFunction for Cons {
                 fp.value = Self::nthcdr(mu, Fixnum::as_i64(mu, nth) as usize, list).unwrap();
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:nthcdr", list)),
+            _ => Err(Exception::new(Condition::Type, "mu:nthcdr", list)),
         }
     }
 }

@@ -49,8 +49,7 @@ pub trait Compiler {
 impl Compiler for Mu {
     fn compile_if(mu: &Mu, args: Tag) -> exception::Result<Tag> {
         if Cons::length(mu, args) != 3 {
-            return Err(Exception::raise(
-                mu,
+            return Err(Exception::new(
                 Condition::Syntax,
                 "compile::compile_quote",
                 args,
@@ -63,7 +62,7 @@ impl Compiler for Mu {
             Namespace::intern(mu, mu.mu_ns, Scope::Intern, "if".to_string(), Tag::nil()),
             match Cons::nth(mu, 0, args) {
                 Some(t) => t,
-                None => panic!("internal: if argument inconsistency"),
+                None => panic!(),
             },
             Cons::list(
                 mu,
@@ -72,7 +71,7 @@ impl Compiler for Mu {
                     Tag::nil(),
                     match Cons::nth(mu, 1, args) {
                         Some(t) => t,
-                        None => panic!("internal: if argument inconsistency"),
+                        None => panic!(),
                     },
                 ],
             ),
@@ -83,7 +82,7 @@ impl Compiler for Mu {
                     Tag::nil(),
                     match Cons::nth(mu, 2, args) {
                         Some(t) => t,
-                        None => panic!("internal: if argument inconsistency"),
+                        None => panic!(),
                     },
                 ],
             ),
@@ -94,8 +93,7 @@ impl Compiler for Mu {
 
     fn compile_quote(mu: &Mu, args: Tag) -> exception::Result<Tag> {
         if Cons::length(mu, args) != 1 {
-            return Err(Exception::raise(
-                mu,
+            return Err(Exception::new(
                 Condition::Syntax,
                 "compile::compile_quote",
                 args,
@@ -108,8 +106,7 @@ impl Compiler for Mu {
     fn compile_special_form(mu: &Mu, name: Tag, args: Tag) -> exception::Result<Tag> {
         match SPECMAP.iter().copied().find(|spec| name.eq_(spec.0)) {
             Some(spec) => spec.1(mu, args),
-            None => Err(Exception::raise(
-                mu,
+            None => Err(Exception::new(
                 Condition::Syntax,
                 "compile::special_form",
                 args,
@@ -140,8 +137,7 @@ impl Compiler for Mu {
             if Tag::type_of(mu, symbol) == Type::Symbol {
                 match symv.iter().rev().position(|lex| symbol.eq_(*lex)) {
                     Some(_) => {
-                        return Err(Exception::raise(
-                            mu,
+                        return Err(Exception::new(
                             Condition::Syntax,
                             "compile::compile_frame_symbols",
                             symbol,
@@ -150,8 +146,7 @@ impl Compiler for Mu {
                     _ => symv.push(symbol),
                 }
             } else {
-                return Err(Exception::raise(
-                    mu,
+                return Err(Exception::new(
                     Condition::Type,
                     "compile::compile_frame_symbols",
                     symbol,
@@ -199,8 +194,7 @@ impl Compiler for Mu {
                 match Tag::type_of(mu, lambda) {
                     Type::Null | Type::Cons => (lambda, Cons::cdr(mu, args)),
                     _ => {
-                        return Err(Exception::raise(
-                            mu,
+                        return Err(Exception::new(
                             Condition::Type,
                             "compile::compile_lambda",
                             args,
@@ -209,8 +203,7 @@ impl Compiler for Mu {
                 }
             }
             _ => {
-                return Err(Exception::raise(
-                    mu,
+                return Err(Exception::new(
                     Condition::Syntax,
                     "compile::compile_lambda",
                     args,
@@ -264,23 +257,13 @@ impl Compiler for Mu {
                         Ok(arglist) => match Self::compile(mu, func) {
                             Ok(fnc) => match Tag::type_of(mu, fnc) {
                                 Type::Function => Ok(Cons::new(fnc, arglist).evict(mu)),
-                                _ => Err(Exception::raise(
-                                    mu,
-                                    Condition::Type,
-                                    "compile::compile",
-                                    func,
-                                )),
+                                _ => Err(Exception::new(Condition::Type, "compile::compile", func)),
                             },
                             Err(e) => Err(e),
                         },
                         Err(e) => Err(e),
                     },
-                    _ => Err(Exception::raise(
-                        mu,
-                        Condition::Type,
-                        "compile::compile",
-                        func,
-                    )),
+                    _ => Err(Exception::new(Condition::Type, "compile::compile", func)),
                 }
             }
             _ => Ok(expr),

@@ -5,9 +5,6 @@
 //!    Condition
 //!    Exception
 //!    Result<Exception>
-//!    print
-//!    raise
-//!    craise
 use {
     crate::{
         core::{
@@ -80,42 +77,15 @@ impl fmt::Display for Exception {
 }
 
 impl Exception {
-    pub fn print(&self, mu: &Mu) {
-        eprintln!();
-        eprint!(
-            "exception: raised from {1}, {:?} condition on ",
-            self.condition, self.source
-        );
-
-        match mu.write(self.tag, true, mu.errout) {
-            Ok(_) => eprintln!(),
-            Err(_) => panic!("internal: can't write error-out"),
-        }
-    }
-
-    pub fn craise(mu: &Mu, src: &str, tag: Tag) {
-        let ex = Exception {
-            condition: Condition::Error,
-            source: src.to_string(),
-            tag,
-        };
-
-        ex.print(mu);
-    }
-
-    pub fn raise(mu: &Mu, condition: Condition, src: &str, tag: Tag) -> Self {
-        let ex = Exception {
+    pub fn new(condition: Condition, src: &str, tag: Tag) -> Self {
+        Exception {
             condition,
             source: src.to_string(),
             tag,
-        };
-
-        ex.print(mu);
-
-        ex
+        }
     }
 
-    fn map_condition(mu: &Mu, keyword: Tag) -> Result<Condition> {
+    fn map_condition(keyword: Tag) -> Result<Condition> {
         #[allow(clippy::unnecessary_to_owned)]
         let condmap = CONDMAP
             .to_vec()
@@ -124,8 +94,7 @@ impl Exception {
 
         match condmap {
             Some(entry) => Ok(entry.1),
-            _ => Err(Exception::raise(
-                mu,
+            _ => Err(Exception::new(
                 Condition::Syntax,
                 "exception::map_condition",
                 keyword,
@@ -142,7 +111,7 @@ impl Exception {
 
         match condmap {
             Some(entry) => Ok(entry.0),
-            _ => panic!("internal: unmapped condition"),
+            _ => panic!(),
         }
     }
 }
@@ -158,14 +127,14 @@ impl MuFunction for Exception {
         let condition = fp.argv[1];
 
         fp.value = match Tag::type_of(mu, condition) {
-            Type::Keyword => match Self::map_condition(mu, condition) {
+            Type::Keyword => match Self::map_condition(condition) {
                 Ok(cond) => {
-                    Self::raise(mu, cond, "mu:raise", src);
+                    Self::new(cond, "mu:raise", src);
                     src
                 }
-                Err(_) => return Err(Exception::raise(mu, Condition::Type, "mu:raise", condition)),
+                Err(_) => return Err(Exception::new(Condition::Type, "mu:raise", condition)),
             },
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:raise", condition)),
+            _ => return Err(Exception::new(Condition::Type, "mu:raise", condition)),
         };
 
         Ok(())
@@ -187,9 +156,9 @@ impl MuFunction for Exception {
                         }
                     }
                 },
-                _ => return Err(Exception::raise(mu, Condition::Type, "mu:with-ex", handler)),
+                _ => return Err(Exception::new(Condition::Type, "mu:with-ex", handler)),
             },
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:with-ex", thunk)),
+            _ => return Err(Exception::new(Condition::Type, "mu:with-ex", thunk)),
         };
 
         Ok(())

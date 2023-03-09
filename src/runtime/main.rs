@@ -254,7 +254,13 @@ pub fn main() {
                     match mu.compile(tag) {
                         Ok(form) => match mu.eval(form) {
                             Ok(eval) => mu.write(eval, false, mu.stdout).unwrap(),
-                            Err(_) => (),
+                            Err(e) => {
+                                eprint!(
+                                    "exception: raised from {1}, {:?} condition on ",
+                                    e.condition, e.source
+                                );
+                                mu.write(e.tag, true, mu.errout).unwrap()
+                            }
                         },
                         Err(_) => (),
                     }

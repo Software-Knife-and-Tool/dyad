@@ -37,7 +37,7 @@ impl Struct {
 
                 r#struct.stype
             }
-            _ => panic!("internal: struct type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -48,7 +48,7 @@ impl Struct {
 
                 r#struct.vector
             }
-            _ => panic!("internal: struct type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -66,9 +66,9 @@ impl Struct {
                         ),
                     }
                 }
-                _ => panic!("internal: tag format consistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: struct type required"),
+            _ => panic!(),
         }
     }
 
@@ -78,7 +78,7 @@ impl Struct {
                 let vector = TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu);
                 Struct { stype, vector }.evict(mu)
             }
-            _ => panic!("internal: struct type inconsistency"),
+            _ => panic!(),
         }
     }
 }
@@ -136,7 +136,7 @@ impl<'a> Core<'a> for Struct {
 
                 mu.write_string(")".to_string(), stream)
             }
-            _ => panic!("internal: struct type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -147,8 +147,7 @@ impl<'a> Core<'a> for Struct {
                     let vec_list = match Cons::read(mu, stream) {
                         Ok(list) => {
                             if list.null_() {
-                                return Err(Exception::raise(
-                                    mu,
+                                return Err(Exception::new(
                                     Condition::Type,
                                     "struct::read",
                                     Tag::nil(),
@@ -157,12 +156,7 @@ impl<'a> Core<'a> for Struct {
                             list
                         }
                         Err(_) => {
-                            return Err(Exception::raise(
-                                mu,
-                                Condition::Syntax,
-                                "struct::read",
-                                stream,
-                            ));
+                            return Err(Exception::new(Condition::Syntax, "struct::read", stream));
                         }
                     };
 
@@ -176,12 +170,12 @@ impl<'a> Core<'a> for Struct {
 
                             Ok(Self::to_tag(mu, stype, vec))
                         }
-                        _ => Err(Exception::raise(mu, Condition::Type, "struct::read", stype)),
+                        _ => Err(Exception::new(Condition::Type, "struct::read", stype)),
                     }
                 }
-                _ => Err(Exception::raise(mu, Condition::Eof, "struct::read", stream)),
+                _ => Err(Exception::new(Condition::Eof, "struct::read", stream)),
             },
-            Ok(None) => Err(Exception::raise(mu, Condition::Eof, "struct::read", stream)),
+            Ok(None) => Err(Exception::new(Condition::Eof, "struct::read", stream)),
             Err(e) => Err(e),
         }
     }
@@ -216,7 +210,7 @@ impl MuFunction for Struct {
                 fp.value = image.stype;
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:st-type", tag)),
+            _ => Err(Exception::new(Condition::Type, "mu:st-type", tag)),
         }
     }
 
@@ -230,7 +224,7 @@ impl MuFunction for Struct {
                 fp.value = image.vector;
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:st-vec", tag)),
+            _ => Err(Exception::new(Condition::Type, "mu:st-vec", tag)),
         }
     }
 
@@ -250,7 +244,7 @@ impl MuFunction for Struct {
                 Struct { stype, vector }.evict(mu)
             }
             _ => {
-                return Err(Exception::raise(mu, Condition::Type, "mu:struct", stype));
+                return Err(Exception::new(Condition::Type, "mu:struct", stype));
             }
         };
 

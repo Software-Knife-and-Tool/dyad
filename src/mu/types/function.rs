@@ -74,9 +74,9 @@ impl Function {
                         ),
                     }
                 }
-                _ => panic!("internal: function type inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: function type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -84,9 +84,9 @@ impl Function {
         match Tag::type_of(mu, func) {
             Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).nreq,
-                _ => panic!("internal: function type inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: function type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -94,9 +94,9 @@ impl Function {
         match Tag::type_of(mu, func) {
             Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).lambda,
-                _ => panic!("internal: function type inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: function type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -104,9 +104,9 @@ impl Function {
         match Tag::type_of(mu, func) {
             Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).form,
-                _ => panic!("internal: function type inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: function type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -114,9 +114,9 @@ impl Function {
         match Tag::type_of(mu, func) {
             Type::Function => match func {
                 Tag::Indirect(_) => Self::to_image(mu, func).frame,
-                _ => panic!("internal: function type inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: function type inconsistency"),
+            _ => panic!(),
         }
     }
 }
@@ -153,7 +153,7 @@ impl Core for Function {
                         ("native".to_string(), name.to_string())
                     }
                     _ => {
-                        panic!("internal: function type inconsistency")
+                        panic!()
                     }
                 };
 
@@ -162,7 +162,7 @@ impl Core for Function {
                     stream,
                 )
             }
-            _ => panic!("internal: function type inconsistency"),
+            _ => panic!(),
         }
     }
 }

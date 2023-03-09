@@ -56,9 +56,9 @@ impl MuFunction for Mu {
         fp.value = match Tag::key_type(to_key) {
             Some(to_type) => match Self::coerce(mu, src, to_type) {
                 Some(tag) => tag,
-                None => return Err(Exception::raise(mu, Condition::Type, "mu:coerce", to_key)),
+                None => return Err(Exception::new(Condition::Type, "mu:coerce", to_key)),
             },
-            None => return Err(Exception::raise(mu, Condition::Type, "mu:coerce", to_key)),
+            None => return Err(Exception::new(Condition::Type, "mu:coerce", to_key)),
         };
 
         Ok(())

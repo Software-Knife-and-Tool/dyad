@@ -82,7 +82,6 @@ pub trait Core {
     fn eq(&self, _: Tag, _: Tag) -> bool;
     fn nil(&self) -> Tag;
     fn compile(&self, _: Tag) -> exception::Result<Tag>;
-    fn raise(&self, _: Tag, _: &str);
     fn read(&self, _: Tag, _: bool, _: Tag) -> exception::Result<Tag>;
     fn read_string(&self, _: String) -> exception::Result<Tag>;
     fn write(&self, _: Tag, _: bool, _: Tag) -> exception::Result<()>;
@@ -110,17 +109,17 @@ impl Core for Mu {
         mu.version = Vector::from_string(<Mu as Core>::VERSION).evict(&mu);
 
         mu.stdin = match Stream::open_stdin(&mu) {
-            Err(_) => panic!("internal: can't open standard-input"),
+            Err(_) => panic!(),
             Ok(s) => s,
         };
 
         mu.stdout = match Stream::open_stdout(&mu) {
-            Err(_) => panic!("internal: can't open standard-output"),
+            Err(_) => panic!(),
             Ok(s) => s,
         };
 
         mu.errout = match Stream::open_errout(&mu) {
-            Err(_) => panic!("internal: can't open error-output"),
+            Err(_) => panic!(),
             Ok(s) => s,
         };
 
@@ -129,12 +128,12 @@ impl Core for Mu {
 
         match Namespace::add_ns(&mu, mu.nil_ns) {
             Ok(_) => (),
-            Err(_) => panic!("internal: namespaces inconsistency"),
+            Err(_) => panic!(),
         };
 
         match Namespace::add_ns(&mu, mu.mu_ns) {
             Ok(_) => (),
-            Err(_) => panic!("internal: namespaces inconsistency"),
+            Err(_) => panic!(),
         };
 
         Self::install_mu_symbols(&mu);
@@ -175,34 +174,22 @@ impl Core for Mu {
                     }
                     Type::Symbol => {
                         if Symbol::is_unbound(self, func) {
-                            Err(Exception::raise(
-                                self,
-                                Condition::Unbound,
-                                "core::eval",
-                                func,
-                            ))
+                            Err(Exception::new(Condition::Unbound, "core::eval", func))
                         } else {
                             let fnc = Symbol::value_of(self, func);
                             match Tag::type_of(self, fnc) {
                                 Type::Function => self.apply(fnc, args),
-                                _ => {
-                                    Err(Exception::raise(self, Condition::Type, "core::eval", func))
-                                }
+                                _ => Err(Exception::new(Condition::Type, "core::eval", func)),
                             }
                         }
                     }
                     Type::Function => self.apply(func, args),
-                    _ => Err(Exception::raise(self, Condition::Type, "core::eval", func)),
+                    _ => Err(Exception::new(Condition::Type, "core::eval", func)),
                 }
             }
             Type::Symbol => {
                 if Symbol::is_unbound(self, expr) {
-                    Err(Exception::raise(
-                        self,
-                        Condition::Unbound,
-                        "core:eval",
-                        expr,
-                    ))
+                    Err(Exception::new(Condition::Unbound, "core:eval", expr))
                 } else {
                     Ok(Symbol::value_of(self, expr))
                 }
@@ -217,10 +204,6 @@ impl Core for Mu {
 
     fn eof(&self, stream: Tag) -> bool {
         Stream::is_eof(self, stream)
-    }
-
-    fn raise(&self, src: Tag, cond: &str) {
-        Exception::craise(self, cond, src)
     }
 
     fn read(&self, stream: Tag, eofp: bool, eof_value: Tag) -> exception::Result<Tag> {
@@ -246,7 +229,7 @@ impl Core for Mu {
             Type::Stream => Stream::write(self, tag, escape, stream),
             Type::Vector => Vector::write(self, tag, escape, stream),
             Type::Struct => Struct::write(self, tag, escape, stream),
-            _ => panic!("internal: write type inconsistency"),
+            _ => panic!(),
         }
     }
 
