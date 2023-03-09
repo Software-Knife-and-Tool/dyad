@@ -126,18 +126,13 @@ impl MuFunction for Exception {
         let src = fp.argv[0];
         let condition = fp.argv[1];
 
-        fp.value = match Tag::type_of(mu, condition) {
+        match Tag::type_of(mu, condition) {
             Type::Keyword => match Self::map_condition(condition) {
-                Ok(cond) => {
-                    Self::new(cond, "mu:raise", src);
-                    src
-                }
-                Err(_) => return Err(Exception::new(Condition::Type, "mu:raise", condition)),
+                Ok(cond) => Err(Self::new(cond, "mu:raise", src)),
+                Err(_) => Err(Self::new(Condition::Type, "mu:raise", condition)),
             },
-            _ => return Err(Exception::new(Condition::Type, "mu:raise", condition)),
-        };
-
-        Ok(())
+            _ => Err(Self::new(Condition::Type, "mu:raise", condition)),
+        }
     }
 
     fn mu_with_ex(mu: &Mu, fp: &mut Frame) -> Result<()> {
