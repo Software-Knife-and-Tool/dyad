@@ -50,96 +50,59 @@
     (mu:write obj :t mu:std-out)))           
 
 (mu:intern core::ns :extern "raise"
-   (:lambda (obj msg)
-     (core::eprinc "error: ")
-     (core::eprinc msg)
-     (core::eprinc " ")
-     (core::eprint obj)
-     (core:terpri mu:err-out)
-     (mu:raise :error obj)))
+  (:lambda (obj cond)
+     (mu:raise (core:make-exception obj cond "core:raise") :except)))
 
 (mu:intern core::ns :extern "raise-if"
    (:lambda (test obj msg)
      (:if test
-          ((:lambda ()
-             (core::eprinc "raise-if: ")
-             (core::eprinc msg)
-             (core::eprinc " ")
-             (core::eprint obj)
-             (core:terpri mu:err-out)
-             (mu:raise :error obj)))
+          (mu:raise (core:make-exception obj :error msg) :except)
           obj)))
 
 (mu:intern core::ns :extern "raise-when"
    (:lambda (fn obj msg)
      (:if (mu:apply fn (core::list obj))
-          ((:lambda ()
-             (core::eprinc "raise-when: ")
-             (core::eprinc msg)
-             (core::eprinc " ")
-             (core::eprint obj)
-             (core:terpri mu:err-out)
-             (mu:raise :error obj)))
+          (mu:raise (core:make-exception obj :error msg) :except)
           obj)))
 
 (mu:intern core::ns :extern "raise-unless"
-   (:lambda (fnp obj msg)
-     (:if (mu:apply fnp (core::list obj))
+   (:lambda (fn obj msg)
+     (:if (mu:apply fn (core::list obj))
           obj
-          ((:lambda ()
-             (core::eprinc "raise-unless: ")
-             (core::eprinc msg)
-             (core::eprinc " ")
-             (core::eprint obj)
-             (core:terpri mu:err-out)
-             (mu:raise :error obj))))))
+          (mu:raise (core:make-exception obj :error msg) :except))))
 
 (mu:intern core::ns :extern "warn"
-   (:lambda (obj msg)
-     (core::eprinc "warning: ")
-     (core::eprinc msg)
-     (core::eprinc " ")
-     (core::eprint obj)
-     (core:terpri mu:err-out)
+  (:lambda (obj msg)
+     (core:format mu:err-out "warning: ~A ~A~%" (core::list2 msg obj))
      obj))
 
 ;;;
-;;; break loop
+;;; core repl - no amenities
 ;;;
-(mu:intern core::ns :extern "break"
-   (:lambda (except)
-     (core:raise-unless core:stringp except "core:break: not an exception")
-     (core:write ";;; entering break loop, :h for commands" () ())
-     (core:terpri ())
-     (mu:fix
+(mu:intern core::ns :intern "repl"
+  (:lambda ()
+     (mu:fix            
       (:lambda (loop)
-        (:if (core:stringp loop)
-             loop
-             (:if (core:eof :t)
-                  ()
-                  ((:lambda (form)
-                     (:if (mu:eq form :h)
-                          ((:lambda ()
-                             (core:write "break help:" () ()) (core:terpri ())
-                             (core:write ":x - exit process" () ()) (core:terpri ())
-                             (core:write ":r - return from break" () ()) (core:terpri ())
-                             (core:write ":s - print stack frames" () ()) (core:terpri ())
-                             (core:null loop)))
-                          (:if (mu:eq form :x)
-                               (mu:exit 0)
-                               (:if (mu:eq form :s)
-                                    ((:lambda ()
-                                       (core:mapc
-                                        (:lambda (frame) (core::print-frame frame))
-                                        (mu:car (mu::context)))
-                                       (core:null loop)))
-                                    (:if (mu:eq form :r)
-                                         except
-                                         ((:lambda ()
-                                            (core:write (mu:eval (core:compile form)) () :t)
-                                            (core:terpri ())
-                                            (core:null loop))))))))
-                   ((:lambda ()
-                      (core:write "break> " () ())
-                      (core:read :t () ())))))))
-     ())))
+        (:if (core:eof :t)
+             ()
+             (mu:with-ex
+                 (:lambda (obj cond)
+                   (:if (mu:eq cond :except)
+                        ((:lambda ()
+                           (core::eprinc "core exception: ")
+                           (core::print-exception mu:err-out obj)
+                           (core:terpri mu:err-out)))
+                        (core:format mu:err-out "mu exception: on ~S with condition ~A~%" (core::list2 obj cond)))
+                   (core:null loop))
+               (:lambda ()
+                 (core:format :t "core> " ())
+                 (mu:flush mu:std-out)
+                 ((:lambda (form)
+                    (:if (core:eof :t)
+                         ()
+                         ((:lambda (form)
+                            (core:format :t "[~A] ~S~%" (core::list2 (mu:type-of form) form))
+                            (core:null loop))
+                          (mu:eval (core:compile form)))))
+                  (core:read :t () ()))))))
+        ())))
