@@ -3,7 +3,6 @@
 #
 assert_eq "(mu:type-of core:print-exception)" ":func"
 assert_eq "(mu:type-of core:make-exception)" ":func"
-assert_eq "(mu:type-of core:break)" ":func"
 assert_eq "(mu:type-of core:raise)" ":func"
 assert_eq "(mu:type-of core:raise-if)" ":func"
 assert_eq "(mu:type-of core:raise-unless)" ":func"

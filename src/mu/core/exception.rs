@@ -35,6 +35,7 @@ pub struct Exception {
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub enum Condition {
     Arity,
+    Except,
     Eof,
     Error,
     Open,
@@ -52,6 +53,7 @@ lazy_static! {
     static ref CONDMAP: Vec<(Tag, Condition)> = vec![
         (Symbol::keyword("arity"), Condition::Arity),
         (Symbol::keyword("div0"), Condition::ZeroDivide),
+        (Symbol::keyword("except"), Condition::Except),
         (Symbol::keyword("eof"), Condition::Eof),
         (Symbol::keyword("error"), Condition::Error),
         (Symbol::keyword("open"), Condition::Open),
