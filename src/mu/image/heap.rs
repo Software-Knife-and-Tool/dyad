@@ -109,7 +109,7 @@ impl Heap {
         let base = self.write_barrier;
 
         if base + (((ntypes + 1) * 8) as usize) > self.size {
-            panic!("core::heap out of room");
+            panic!();
         } else {
             let data = &mut self.mmap;
             let hinfo = Info::new()
@@ -140,7 +140,7 @@ impl Heap {
         let len_to_8: usize = vdata.len() + (8 - (vdata.len() & 7));
 
         if base + (((ntypes + 1) * 8) as usize) > self.size {
-            panic!("core::heap out of room");
+            panic!();
         } else {
             let data = &mut self.mmap;
             let hinfo = Info::new()

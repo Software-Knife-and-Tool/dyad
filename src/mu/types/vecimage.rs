@@ -64,7 +64,7 @@ impl<'a> IVector for IndirectVector<'a> {
 
                 let data = match ivec {
                     IVec::Byte(vec_u8) => &vec_u8[..],
-                    _ => panic!("internal: vector type inconsistency"),
+                    _ => panic!(),
                 };
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
@@ -79,7 +79,7 @@ impl<'a> IVector for IndirectVector<'a> {
 
                 let data = match ivec {
                     IVec::Char(string) => string.as_bytes(),
-                    _ => panic!("internal: vector type inconsistency"),
+                    _ => panic!(),
                 };
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
@@ -98,7 +98,7 @@ impl<'a> IVector for IndirectVector<'a> {
                             slices.push(tag.as_slice());
                         }
                     }
-                    _ => panic!("internal: vector type inconsistency"),
+                    _ => panic!(),
                 }
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
@@ -117,7 +117,7 @@ impl<'a> IVector for IndirectVector<'a> {
                             slices.push(n.to_le_bytes());
                         }
                     }
-                    _ => panic!("internal: vector type inconsistency"),
+                    _ => panic!(),
                 }
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
@@ -140,7 +140,7 @@ impl<'a> IVector for IndirectVector<'a> {
                         }
                         vec_u8
                     }
-                    _ => panic!("internal: vector type inconsistency"),
+                    _ => panic!(),
                 };
 
                 let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
@@ -175,7 +175,7 @@ impl<'a> IVector for IndirectVector<'a> {
 
                     Some(Fixnum::as_tag(slice[0] as i64))
                 }
-                _ => panic!("internal: vector type inconsistency"),
+                _ => panic!(),
             },
             Type::Char => match vector {
                 Tag::Indirect(image) => {
@@ -186,7 +186,7 @@ impl<'a> IVector for IndirectVector<'a> {
 
                     Some(Char::as_tag(slice[0] as char))
                 }
-                _ => panic!("internal: vector type inconsistency"),
+                _ => panic!(),
             },
             Type::T => match vector {
                 Tag::Indirect(image) => {
@@ -200,7 +200,7 @@ impl<'a> IVector for IndirectVector<'a> {
                             .unwrap(),
                     ))
                 }
-                _ => panic!("internal: vector type inconsistency"),
+                _ => panic!(),
             },
             Type::Fixnum => match vector {
                 Tag::Indirect(image) => {
@@ -216,7 +216,7 @@ impl<'a> IVector for IndirectVector<'a> {
                         slice[0..8].try_into().unwrap(),
                     )))
                 }
-                _ => panic!("internal: vector type inconsistency"),
+                _ => panic!(),
             },
             Type::Float => match vector {
                 Tag::Indirect(image) => {
@@ -232,9 +232,9 @@ impl<'a> IVector for IndirectVector<'a> {
                         slice[0..4].try_into().unwrap(),
                     )))
                 }
-                _ => panic!("internal: vector type inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: vector type inconsistency"),
+            _ => panic!(),
         }
     }
 }

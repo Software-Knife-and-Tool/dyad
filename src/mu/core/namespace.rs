@@ -163,7 +163,7 @@ impl Core for Mu {
                 Fixnum::as_tag(*nreqs as i64),
                 Fixnum::as_tag(match id.try_into().unwrap() {
                     Some(n) => n as i64,
-                    None => panic!("internal: mu function id inconsistency"),
+                    None => panic!(),
                 }),
                 Tag::nil(),
             )

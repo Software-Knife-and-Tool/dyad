@@ -60,7 +60,7 @@ impl Frame {
                 match Tag::type_of(mu, func) {
                     Type::Function => {
                         if !stype.eq_(Symbol::keyword("frame")) {
-                            panic!("internal: frame type inconsistency")
+                            panic!()
                         }
 
                         let mut args = Vec::new();
@@ -75,10 +75,10 @@ impl Frame {
                             value: Tag::nil(),
                         }
                     }
-                    _ => panic!("internal: frame type inconsistency"),
+                    _ => panic!(),
                 }
             }
-            _ => panic!("internal: frame type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -156,12 +156,7 @@ impl Frame {
         match Tag::type_of(mu, func) {
             Type::Symbol => {
                 if Symbol::is_unbound(mu, func) {
-                    Err(Exception::raise(
-                        mu,
-                        Condition::Unbound,
-                        "frame::apply",
-                        func,
-                    ))
+                    Err(Exception::new(Condition::Unbound, "frame::apply", func))
                 } else {
                     self.apply(mu, Symbol::value_of(mu, func))
                 }
@@ -173,7 +168,7 @@ impl Frame {
                     let nargs = self.argv.len();
 
                     if nargs != nreqs {
-                        return Err(Exception::raise(mu, Condition::Arity, "frame::apply", func));
+                        return Err(Exception::new(Condition::Arity, "frame::apply", func));
                     }
 
                     let fn_off = Fixnum::as_i64(mu, Function::form_of(mu, func)) as usize;
@@ -189,7 +184,7 @@ impl Frame {
                     let nargs = self.argv.len();
 
                     if nargs != nreqs {
-                        return Err(Exception::raise(mu, Condition::Arity, "frame::apply", func));
+                        return Err(Exception::new(Condition::Arity, "frame::apply", func));
                     }
 
                     let mut value = Tag::nil();
@@ -211,14 +206,9 @@ impl Frame {
 
                     Ok(value)
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "frame::apply::car",
-                    func,
-                )),
+                _ => Err(Exception::new(Condition::Type, "frame::apply::car", func)),
             },
-            _ => Err(Exception::raise(mu, Condition::Type, "frame::apply", func)),
+            _ => Err(Exception::new(Condition::Type, "frame::apply", func)),
         }
     }
 }
@@ -266,7 +256,7 @@ impl MuFunction for Frame {
 
                 vec_ref[0].to_tag(mu)
             }
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:fr-get", func)),
+            _ => return Err(Exception::new(Condition::Type, "mu:fr-get", func)),
         };
 
         Ok(())
@@ -277,7 +267,7 @@ impl MuFunction for Frame {
 
         match Tag::type_of(mu, fp.value) {
             Type::Function => Self::frame_stack_pop(mu, fp.value),
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:fr-pop", fp.value)),
+            _ => return Err(Exception::new(Condition::Type, "mu:fr-pop", fp.value)),
         }
 
         Ok(())
@@ -288,14 +278,7 @@ impl MuFunction for Frame {
 
         match Tag::type_of(mu, fp.value) {
             Type::Vector => Self::from_tag(mu, fp.value).frame_stack_push(mu),
-            _ => {
-                return Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:fr-push",
-                    fp.value,
-                ))
-            }
+            _ => return Err(Exception::new(Condition::Type, "mu:fr-push", fp.value)),
         }
 
         Ok(())
@@ -316,11 +299,11 @@ impl MuFunction for Frame {
                         fp.value = tag;
                         Ok(())
                     }
-                    None => Err(Exception::raise(mu, Condition::Type, "mu:lex-ref", frame)),
+                    None => Err(Exception::new(Condition::Type, "mu:lex-ref", frame)),
                 },
-                _ => Err(Exception::raise(mu, Condition::Type, "mu:lex-ref", offset)),
+                _ => Err(Exception::new(Condition::Type, "mu:lex-ref", offset)),
             },
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:lex-ref", frame)),
+            _ => Err(Exception::new(Condition::Type, "mu:lex-ref", frame)),
         }
     }
 }

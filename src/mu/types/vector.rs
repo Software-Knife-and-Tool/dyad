@@ -65,9 +65,9 @@ impl Vector {
                         ),
                     }
                 }
-                _ => panic!("internal: tag format consistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: vector type required"),
+            _ => panic!(),
         }
     }
 
@@ -83,10 +83,10 @@ impl Vector {
                     .find(|desc| image.vtype.eq_(desc.0))
                 {
                     Some(desc) => desc.1,
-                    None => panic!("internal: vector type inconsistency"),
+                    None => panic!(),
                 }
             }
-            _ => panic!("internal: tag format inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -97,7 +97,7 @@ impl Vector {
                 let image = Self::to_image(mu, vector);
                 Fixnum::as_i64(mu, image.length) as usize
             }
-            _ => panic!("internal: tag format inconsistency"),
+            _ => panic!(),
         }
     }
 }
@@ -125,7 +125,7 @@ impl<'a> Core<'a> for Vector {
                 Fixnum::as_tag(Self::length_of(mu, vector) as i64),
                 match Tag::type_key(Self::type_of(mu, vector)) {
                     Some(key) => key,
-                    None => panic!("internal: type inconsistency"),
+                    None => panic!(),
                 },
             ],
         )
@@ -162,7 +162,7 @@ impl<'a> Core<'a> for Vector {
                     DirectType::Byte => str::from_utf8(&dir.data().to_le_bytes()).unwrap()
                         [..dir.length() as usize]
                         .to_string(),
-                    _ => panic!("internal: vector state inconsistency"),
+                    _ => panic!(),
                 },
                 Tag::Indirect(image) => {
                     let heap_ref: Ref<image::heap::Heap> = mu.heap.borrow();
@@ -179,9 +179,9 @@ impl<'a> Core<'a> for Vector {
                     .unwrap()
                     .to_string()
                 }
-                _ => panic!("internal: tag format inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: vector type required"),
+            _ => panic!(),
         }
     }
 
@@ -206,7 +206,7 @@ impl<'a> Core<'a> for Vector {
 
                     Ok(())
                 }
-                Err(_) => panic!("internal: vector type inconsistency"),
+                Err(_) => panic!(),
             },
             Tag::Indirect(_) => match Self::type_of(mu, vector) {
                 Type::Char => {
@@ -258,7 +258,7 @@ impl<'a> Core<'a> for Vector {
                     mu.write_string(")".to_string(), stream)
                 }
             },
-            _ => panic!("internal: vector type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -272,12 +272,7 @@ impl<'a> Core<'a> for Vector {
                         Ok(Some('"')) => break,
                         Ok(Some(ch)) => str.push(ch),
                         Ok(None) => {
-                            return Err(Exception::raise(
-                                mu,
-                                Condition::Eof,
-                                "vector::read",
-                                stream,
-                            ));
+                            return Err(Exception::new(Condition::Eof, "vector::read", stream));
                         }
                         Err(e) => return Err(e),
                     }
@@ -289,8 +284,7 @@ impl<'a> Core<'a> for Vector {
                 let vec_list = match Cons::read(mu, stream) {
                     Ok(list) => {
                         if list.null_() {
-                            return Err(Exception::raise(
-                                mu,
+                            return Err(Exception::new(
                                 Condition::Type,
                                 "vector::read",
                                 Tag::nil(),
@@ -299,12 +293,7 @@ impl<'a> Core<'a> for Vector {
                         list
                     }
                     Err(_) => {
-                        return Err(Exception::raise(
-                            mu,
-                            Condition::Syntax,
-                            "vector::read",
-                            stream,
-                        ));
+                        return Err(Exception::new(Condition::Syntax, "vector::read", stream));
                     }
                 };
 
@@ -329,8 +318,7 @@ impl<'a> Core<'a> for Vector {
                                         vec.push(ch)
                                     }
                                     _ => {
-                                        return Err(Exception::raise(
-                                            mu,
+                                        return Err(Exception::new(
                                             Condition::Type,
                                             "vector::read",
                                             el,
@@ -349,8 +337,7 @@ impl<'a> Core<'a> for Vector {
                                     Type::Fixnum => {
                                         let byte = Fixnum::as_i64(mu, el);
                                         if !(0..255).contains(&byte) {
-                                            return Err(Exception::raise(
-                                                mu,
+                                            return Err(Exception::new(
                                                 Condition::Range,
                                                 "vector::read",
                                                 el,
@@ -359,8 +346,7 @@ impl<'a> Core<'a> for Vector {
                                         vec.push(byte as u8)
                                     }
                                     _ => {
-                                        return Err(Exception::raise(
-                                            mu,
+                                        return Err(Exception::new(
                                             Condition::Type,
                                             "vector::read",
                                             el,
@@ -379,8 +365,7 @@ impl<'a> Core<'a> for Vector {
                                 match Tag::type_of(mu, el) {
                                     Type::Fixnum => vec.push(Fixnum::as_i64(mu, el)),
                                     _ => {
-                                        return Err(Exception::raise(
-                                            mu,
+                                        return Err(Exception::new(
                                             Condition::Type,
                                             "vector::read",
                                             el,
@@ -399,8 +384,7 @@ impl<'a> Core<'a> for Vector {
                                 match Tag::type_of(mu, el) {
                                     Type::Float => vec.push(Float::as_f32(mu, el)),
                                     _ => {
-                                        return Err(Exception::raise(
-                                            mu,
+                                        return Err(Exception::new(
                                             Condition::Type,
                                             "vector::read",
                                             el,
@@ -411,17 +395,12 @@ impl<'a> Core<'a> for Vector {
 
                             Ok(TypedVec::<Vec<f32>> { vec }.vec.to_vector().evict(mu))
                         }
-                        _ => panic!("internal: vector type inconsistency"),
+                        _ => panic!(),
                     },
-                    None => Err(Exception::raise(
-                        mu,
-                        Condition::Type,
-                        "vector::read",
-                        vec_type,
-                    )),
+                    None => Err(Exception::new(Condition::Type, "vector::read", vec_type)),
                 }
             }
-            _ => panic!("internal: vector type required"),
+            _ => panic!(),
         }
     }
 
@@ -448,9 +427,9 @@ impl<'a> Core<'a> for Vector {
                     Some(Char::as_tag(vector.data(mu).to_le_bytes()[index] as char))
                 }
                 Tag::Indirect(_) => IndirectVector::r#ref(mu, vector, index),
-                _ => panic!("internal: vector type inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: vector type inconsistency"),
+            _ => panic!(),
         }
     }
 }
@@ -470,14 +449,7 @@ impl MuFunction for Vector {
 
         fp.value = match Self::to_type(type_sym) {
             Some(vtype) => match vtype {
-                Type::Null => {
-                    return Err(Exception::raise(
-                        mu,
-                        Condition::Type,
-                        "mu:sv-list",
-                        type_sym,
-                    ))
-                }
+                Type::Null => return Err(Exception::new(Condition::Type, "mu:sv-list", type_sym)),
                 Type::T => {
                     let mut vec = Vec::new();
                     for cons in ConsIter::new(mu, list) {
@@ -496,9 +468,7 @@ impl MuFunction for Vector {
                             Type::Char => {
                                 vec.push(Char::as_char(mu, el));
                             }
-                            _ => {
-                                return Err(Exception::raise(mu, Condition::Type, "mu:sv-list", el))
-                            }
+                            _ => return Err(Exception::new(Condition::Type, "mu:sv-list", el)),
                         }
                     }
 
@@ -515,19 +485,12 @@ impl MuFunction for Vector {
                                 let byte = Fixnum::as_i64(mu, el);
 
                                 if !(0..=255).contains(&byte) {
-                                    return Err(Exception::raise(
-                                        mu,
-                                        Condition::Range,
-                                        "mu:sv-list",
-                                        el,
-                                    ));
+                                    return Err(Exception::new(Condition::Range, "mu:sv-list", el));
                                 }
 
                                 vec.push(byte as u8);
                             }
-                            _ => {
-                                return Err(Exception::raise(mu, Condition::Type, "mu:sv-list", el))
-                            }
+                            _ => return Err(Exception::new(Condition::Type, "mu:sv-list", el)),
                         }
                     }
 
@@ -542,9 +505,7 @@ impl MuFunction for Vector {
                             Type::Fixnum => {
                                 vec.push(Fixnum::as_i64(mu, el));
                             }
-                            _ => {
-                                return Err(Exception::raise(mu, Condition::Type, "mu:sv-list", el))
-                            }
+                            _ => return Err(Exception::new(Condition::Type, "mu:sv-list", el)),
                         }
                     }
 
@@ -559,30 +520,18 @@ impl MuFunction for Vector {
                             Type::Float => {
                                 vec.push(Float::as_f32(mu, el));
                             }
-                            _ => {
-                                return Err(Exception::raise(mu, Condition::Type, "mu:sv-list", el))
-                            }
+                            _ => return Err(Exception::new(Condition::Type, "mu:sv-list", el)),
                         }
                     }
 
                     TypedVec::<Vec<f32>> { vec }.vec.to_vector().evict(mu)
                 }
                 _ => {
-                    return Err(Exception::raise(
-                        mu,
-                        Condition::Type,
-                        "mu:sv-list",
-                        type_sym,
-                    ));
+                    return Err(Exception::new(Condition::Type, "mu:sv-list", type_sym));
                 }
             },
             None => {
-                return Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:sv-list",
-                    type_sym,
-                ));
+                return Err(Exception::new(Condition::Type, "mu:sv-list", type_sym));
             }
         };
 
@@ -598,21 +547,21 @@ impl MuFunction for Vector {
                 let nth = Fixnum::as_i64(mu, index);
 
                 if nth < 0 || nth as usize >= Self::length_of(mu, vector) {
-                    return Err(Exception::raise(mu, Condition::Range, "mu:sv-ref", index));
+                    return Err(Exception::new(Condition::Range, "mu:sv-ref", index));
                 }
 
                 match Tag::type_of(mu, vector) {
                     Type::Vector => {
                         fp.value = match Self::r#ref(mu, vector, nth as usize) {
                             Some(ch) => ch,
-                            None => panic!("internal: mu:svref inconsistency"),
+                            None => panic!(),
                         };
                         Ok(())
                     }
-                    _ => Err(Exception::raise(mu, Condition::Type, "mu:sv-ref", vector)),
+                    _ => Err(Exception::new(Condition::Type, "mu:sv-ref", vector)),
                 }
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:sv-ref", index)),
+            _ => Err(Exception::new(Condition::Type, "mu:sv-ref", index)),
         }
     }
 
@@ -623,12 +572,12 @@ impl MuFunction for Vector {
             Type::Vector => {
                 fp.value = match Tag::type_key(Vector::type_of(mu, vector)) {
                     Some(key) => key,
-                    None => panic!("internal: type inconsistency"),
+                    None => panic!(),
                 };
 
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:sv-type", vector)),
+            _ => Err(Exception::new(Condition::Type, "mu:sv-type", vector)),
         }
     }
 
@@ -640,7 +589,7 @@ impl MuFunction for Vector {
                 fp.value = Fixnum::as_tag(Self::length_of(mu, vector) as i64);
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:sv-len", vector)),
+            _ => Err(Exception::new(Condition::Type, "mu:sv-len", vector)),
         }
     }
 }

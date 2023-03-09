@@ -92,12 +92,7 @@ impl Reader for Mu {
                     }
                 }
                 Ok(None) => {
-                    return Err(Exception::raise(
-                        mu,
-                        Condition::Eof,
-                        "read::read_comment",
-                        stream,
-                    ))
+                    return Err(Exception::new(Condition::Eof, "read::read_comment", stream))
                 }
                 Err(e) => return Err(e),
             }
@@ -124,8 +119,7 @@ impl Reader for Mu {
                                 }
                             }
                             Ok(None) => {
-                                return Err(Exception::raise(
-                                    mu,
+                                return Err(Exception::new(
                                     Condition::Eof,
                                     "read::read_block_comment",
                                     stream,
@@ -136,8 +130,7 @@ impl Reader for Mu {
                     }
                 }
                 Ok(None) => {
-                    return Err(Exception::raise(
-                        mu,
+                    return Err(Exception::new(
                         Condition::Eof,
                         "read::read_block_comment",
                         stream,
@@ -168,8 +161,7 @@ impl Reader for Mu {
                             break;
                         }
                         _ => {
-                            return Err(Exception::raise(
-                                mu,
+                            return Err(Exception::new(
                                 Condition::Range,
                                 "read::read_token",
                                 stream,
@@ -177,12 +169,7 @@ impl Reader for Mu {
                         }
                     },
                     None => {
-                        return Err(Exception::raise(
-                            mu,
-                            Condition::Range,
-                            "read::read_token",
-                            stream,
-                        ))
+                        return Err(Exception::new(Condition::Range, "read::read_token", stream))
                     }
                 },
                 Ok(None) => {
@@ -215,21 +202,11 @@ impl Reader for Mu {
                             break;
                         }
                         _ => {
-                            return Err(Exception::raise(
-                                mu,
-                                Condition::Range,
-                                "read::read_atom",
-                                stream,
-                            ))
+                            return Err(Exception::new(Condition::Range, "read::read_atom", stream))
                         }
                     },
                     None => {
-                        return Err(Exception::raise(
-                            mu,
-                            Condition::Range,
-                            "read::read_atom",
-                            stream,
-                        ))
+                        return Err(Exception::new(Condition::Range, "read::read_atom", stream))
                     }
                 },
                 Ok(None) => {
@@ -248,8 +225,7 @@ impl Reader for Mu {
                         if token.starts_with(':')
                             && (token.len() > Tag::DIRECT_STR_MAX + 1 || token.len() == 1)
                         {
-                            return Err(Exception::raise(
-                                mu,
+                            return Err(Exception::new(
                                 Condition::Syntax,
                                 "read::read_atom",
                                 Vector::from_string(&token).evict(mu),
@@ -268,8 +244,7 @@ impl Reader for Mu {
                                     Some(ns) => {
                                         Ok(Namespace::intern(mu, ns, Scope::Extern, name, *UNBOUND))
                                     }
-                                    None => Err(Exception::raise(
-                                        mu,
+                                    None => Err(Exception::new(
                                         Condition::Unbound,
                                         "read::read_atom",
                                         Vector::from_string(sym[0]).evict(mu),
@@ -284,16 +259,14 @@ impl Reader for Mu {
                                     Some(ns) => {
                                         Ok(Namespace::intern(mu, ns, Scope::Intern, name, *UNBOUND))
                                     }
-                                    None => Err(Exception::raise(
-                                        mu,
+                                    None => Err(Exception::new(
                                         Condition::Unbound,
                                         "read::read_atom",
                                         Vector::from_string(sym[0]).evict(mu),
                                     )),
                                 }
                             }
-                            _ => Err(Exception::raise(
-                                mu,
+                            _ => Err(Exception::new(
                                 Condition::Syntax,
                                 "read::read_atom",
                                 Vector::from_string(&token).evict(mu),
@@ -335,8 +308,7 @@ impl Reader for Mu {
                                         "return" => Ok(Some(Char::as_tag('\r'))),
                                         _ => {
                                             println!("erad_char_literal: {str}");
-                                            Err(Exception::raise(
-                                                mu,
+                                            Err(Exception::new(
                                                 Condition::Range,
                                                 "read::read_char_literal",
                                                 stream,
@@ -344,8 +316,7 @@ impl Reader for Mu {
                                         }
                                     }
                                 }
-                                Ok(None) => Err(Exception::raise(
-                                    mu,
+                                Ok(None) => Err(Exception::new(
                                     Condition::Eof,
                                     "read::read_char_literal",
                                     stream,
@@ -358,8 +329,7 @@ impl Reader for Mu {
                             Ok(Some(Char::as_tag(ch)))
                         }
                     },
-                    None => Err(Exception::raise(
-                        mu,
+                    None => Err(Exception::new(
                         Condition::Syntax,
                         "read::read_char_literal",
                         stream,
@@ -368,8 +338,7 @@ impl Reader for Mu {
                 Ok(None) => Ok(Some(Char::as_tag(ch))),
                 Err(e) => Err(e),
             },
-            Ok(None) => Err(Exception::raise(
-                mu,
+            Ok(None) => Err(Exception::new(
                 Condition::Eof,
                 "read::read_char_literal",
                 stream,
@@ -390,21 +359,11 @@ impl Reader for Mu {
                     Ok(Some(ch)) => match Self::read_atom(mu, ch, stream) {
                         Ok(atom) => match Tag::type_of(mu, atom) {
                             Type::Symbol => Ok(Some(atom)),
-                            _ => Err(Exception::raise(
-                                mu,
-                                Condition::Type,
-                                "read::sharp_macro",
-                                stream,
-                            )),
+                            _ => Err(Exception::new(Condition::Type, "read::sharp_macro", stream)),
                         },
                         Err(e) => Err(e),
                     },
-                    Ok(None) => Err(Exception::raise(
-                        mu,
-                        Condition::Eof,
-                        "read::sharp_macro",
-                        stream,
-                    )),
+                    Ok(None) => Err(Exception::new(Condition::Eof, "read::sharp_macro", stream)),
                     Err(e) => Err(e),
                 },
                 '|' => match Self::read_block_comment(mu, stream) {
@@ -424,8 +383,7 @@ impl Reader for Mu {
                     Ok(token) => match token {
                         Some(hex) => match i64::from_str_radix(&hex, 16) {
                             Ok(fx) => Ok(Some(Fixnum::as_tag(fx))),
-                            Err(_) => Err(Exception::raise(
-                                mu,
+                            Err(_) => Err(Exception::new(
                                 Condition::Syntax,
                                 "read::sharp_macro",
                                 Char::as_tag(ch),
@@ -433,26 +391,19 @@ impl Reader for Mu {
                         },
                         None => panic!(),
                     },
-                    Err(_) => Err(Exception::raise(
-                        mu,
+                    Err(_) => Err(Exception::new(
                         Condition::Syntax,
                         "read::sharp_macro",
                         Char::as_tag(ch),
                     )),
                 },
-                _ => Err(Exception::raise(
-                    mu,
+                _ => Err(Exception::new(
                     Condition::Type,
                     "read::sharp_macro",
                     Char::as_tag(ch),
                 )),
             },
-            Ok(None) => Err(Exception::raise(
-                mu,
-                Condition::Eof,
-                "read::sharp_macro",
-                stream,
-            )),
+            Ok(None) => Err(Exception::new(Condition::Eof, "read::sharp_macro", stream)),
             Err(e) => Err(e),
         }
     }
@@ -476,7 +427,7 @@ impl Reader for Mu {
                 if eofp {
                     return Ok(eof_value);
                 } else {
-                    return Err(Exception::raise(mu, Condition::Eof, "read::read", stream));
+                    return Err(Exception::new(Condition::Eof, "read::read", stream));
                 }
             }
             Ok(_) => (),
@@ -488,7 +439,7 @@ impl Reader for Mu {
                 if eofp {
                     Ok(eof_value)
                 } else {
-                    Err(Exception::raise(mu, Condition::Eof, "read::read", stream))
+                    Err(Exception::new(Condition::Eof, "read::read", stream))
                 }
             }
             Ok(Some(ch)) => match map_char_syntax(ch) {
@@ -500,8 +451,7 @@ impl Reader for Mu {
                             Ok(None) => Self::read(mu, stream, eofp, eof_value, recursivep),
                             Err(e) => Err(e),
                         },
-                        _ => Err(Exception::raise(
-                            mu,
+                        _ => Err(Exception::new(
                             Condition::Type,
                             "read::read",
                             Fixnum::as_tag(ch as i64),
@@ -528,29 +478,26 @@ impl Reader for Mu {
                             if recursivep {
                                 Ok(*EOL)
                             } else {
-                                Err(Exception::raise(mu, Condition::Syntax, "read:read", stream))
+                                Err(Exception::new(Condition::Syntax, "read:read", stream))
                             }
                         }
                         ';' => match Self::read_comment(mu, stream) {
                             Ok(_) => Self::read(mu, stream, eofp, eof_value, recursivep),
                             Err(e) => Err(e),
                         },
-                        _ => Err(Exception::raise(
-                            mu,
+                        _ => Err(Exception::new(
                             Condition::Range,
                             "read::read_atom",
                             Char::as_tag(ch),
                         )),
                     },
-                    _ => Err(Exception::raise(
-                        mu,
+                    _ => Err(Exception::new(
                         Condition::Read,
                         "read::read_atom",
                         Char::as_tag(ch),
                     )),
                 },
-                _ => Err(Exception::raise(
-                    mu,
+                _ => Err(Exception::new(
                     Condition::Read,
                     "read::read_atom",
                     Char::as_tag(ch),

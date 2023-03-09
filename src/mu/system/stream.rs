@@ -59,7 +59,7 @@ impl Core for Stream {
             }
             _ => {
                 if index >= tab_ref.len() {
-                    panic!("internal: stream index consistency");
+                    panic!();
                 }
             }
         }
@@ -72,7 +72,7 @@ impl Core for Stream {
             STDIN | STDOUT | STDERR => (),
             _ => {
                 if index >= tab_ref.len() {
-                    panic!("internal: stream index consistency");
+                    panic!();
                 } else {
                     let file: Ref<fs::File> = tab_ref[index].borrow();
                     std::mem::drop(file);
@@ -150,7 +150,7 @@ impl Core for Stream {
                     }),
                 }
             }
-            _ => panic!("internal: stream type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -186,7 +186,7 @@ impl Core for Stream {
                     }),
                 }
             }
-            _ => panic!("internal: stream type inconsistency"),
+            _ => panic!(),
         }
     }
 }

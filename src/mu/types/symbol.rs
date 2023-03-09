@@ -49,7 +49,7 @@ impl Symbol {
         match str[0] as char {
             ':' => {
                 if len > Tag::DIRECT_STR_MAX + 1 || len == 1 {
-                    panic!("internal: keyword format inconsistency")
+                    panic!()
                 }
 
                 let str = name[1..].to_string();
@@ -93,9 +93,9 @@ impl Symbol {
                         heap_ref.of_length(main.offset() as usize + 24, 8).unwrap(),
                     ),
                 },
-                _ => panic!("internal: tag format inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: symbol type required"),
+            _ => panic!(),
         }
     }
 
@@ -104,9 +104,9 @@ impl Symbol {
             Type::Keyword => Tag::nil(),
             Type::Symbol => match symbol {
                 Tag::Indirect(_) => Self::to_image(mu, symbol).namespace,
-                _ => panic!("internal: tag format inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: symbol type required"),
+            _ => panic!(),
         }
     }
 
@@ -114,13 +114,13 @@ impl Symbol {
         match Tag::type_of(mu, symbol) {
             Type::Keyword => match symbol {
                 Tag::Direct(_) => Symbol::keyword("extern"),
-                _ => panic!("internal: tag format inconsistency"),
+                _ => panic!(),
             },
             Type::Symbol => match symbol {
                 Tag::Indirect(_) => Self::to_image(mu, symbol).scope,
-                _ => panic!("internal: tag format inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: symbol type required"),
+            _ => panic!(),
         }
     }
 
@@ -128,13 +128,13 @@ impl Symbol {
         match Tag::type_of(mu, symbol) {
             Type::Keyword => match symbol {
                 Tag::Direct(dir) => Tag::to_direct(dir.data(), dir.length(), DirectType::Byte),
-                _ => panic!("internal: tag format inconsistency"),
+                _ => panic!(),
             },
             Type::Symbol => match symbol {
                 Tag::Indirect(_) => Self::to_image(mu, symbol).name,
-                _ => panic!("internal: tag format inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: symbol type required"),
+            _ => panic!(),
         }
     }
 
@@ -143,9 +143,9 @@ impl Symbol {
             Type::Keyword => symbol,
             Type::Symbol => match symbol {
                 Tag::Indirect(_) => Self::to_image(mu, symbol).value,
-                _ => panic!("internal: symbol type inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: symbol type required"),
+            _ => panic!(),
         }
     }
 }
@@ -202,7 +202,7 @@ impl Core for Symbol {
         let len = str.len();
 
         if len > Tag::DIRECT_STR_MAX || len == 0 {
-            panic!("internal: keyword format inconsistency")
+            panic!()
         }
 
         let str = name.to_string();
@@ -226,7 +226,7 @@ impl Core for Symbol {
                     }
                     Ok(())
                 }
-                Err(_) => panic!("internal: symbol content inconsistency"),
+                Err(_) => panic!(),
             },
             Type::Symbol => {
                 let name = Self::name_of(mu, symbol);
@@ -252,13 +252,13 @@ impl Core for Symbol {
                                 Err(e) => return Err(e),
                             }
                         } else {
-                            panic!("internal: symbol scope type inconsistency")
+                            panic!()
                         }
                     }
                 }
                 mu.write(name, false, stream)
             }
-            _ => panic!("internal: symbol type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -283,7 +283,7 @@ impl MuFunction for Symbol {
 
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Keyword | Type::Symbol => Symbol::name_of(mu, symbol),
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:sy-name", symbol)),
+            _ => return Err(Exception::new(Condition::Type, "mu:sy-name", symbol)),
         };
 
         Ok(())
@@ -295,7 +295,7 @@ impl MuFunction for Symbol {
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Symbol => Symbol::namespace_of(mu, symbol),
             Type::Keyword => Self::keyword("keyword"),
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:sy-ns", symbol)),
+            _ => return Err(Exception::new(Condition::Type, "mu:sy-ns", symbol)),
         };
 
         Ok(())
@@ -307,13 +307,13 @@ impl MuFunction for Symbol {
         fp.value = match Tag::type_of(mu, symbol) {
             Type::Symbol => {
                 if Symbol::is_unbound(mu, symbol) {
-                    return Err(Exception::raise(mu, Condition::Type, "mu:sy-value", symbol));
+                    return Err(Exception::new(Condition::Type, "mu:sy-value", symbol));
                 } else {
                     Symbol::value_of(mu, symbol)
                 }
             }
             Type::Keyword => symbol,
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:sy-ns", symbol)),
+            _ => return Err(Exception::new(Condition::Type, "mu:sy-ns", symbol)),
         };
 
         Ok(())
@@ -331,7 +331,7 @@ impl MuFunction for Symbol {
                     symbol
                 }
             }
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:unboundp", symbol)),
+            _ => return Err(Exception::new(Condition::Type, "mu:unboundp", symbol)),
         };
 
         Ok(())
@@ -361,7 +361,7 @@ impl MuFunction for Symbol {
                 fp.value = Self::keyword(&str);
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:make-kw", symbol)),
+            _ => Err(Exception::new(Condition::Type, "mu:make-kw", symbol)),
         }
     }
 
@@ -374,7 +374,7 @@ impl MuFunction for Symbol {
                 fp.value = Self::new(mu, mu.nil_ns, Scope::Extern, &str, *UNBOUND).evict(mu);
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:symbol", symbol)),
+            _ => Err(Exception::new(Condition::Type, "mu:symbol", symbol)),
         }
     }
 }

@@ -134,9 +134,9 @@ impl Tag {
             Tag::Indirect(heap) => match heap_ref.info(heap.offset() as usize) {
                 Some(info) => match Type::try_from(info.tag_type()) {
                     Ok(etype) => etype as u64,
-                    Err(_) => panic!("internal: tag format inconsistency"),
+                    Err(_) => panic!(),
                 },
-                None => panic!("internal: tag info inconsistency"),
+                None => panic!(),
             },
         }
     }
@@ -144,7 +144,7 @@ impl Tag {
     pub fn length(&self) -> u64 {
         match self {
             Tag::Direct(tag) => tag.length() as u64,
-            _ => panic!("internal: direct tag required"),
+            _ => panic!(),
         }
     }
 
@@ -209,7 +209,7 @@ impl Tag {
             0 | 4 => Tag::Fixnum(as_u64 as i64),
             1 | 2 | 3 | 5 | 7 => Tag::Indirect(TagIndirect::from(as_u64)),
             6 => Tag::Direct(TagDirect::from(as_u64)),
-            _ => panic!("internal: immediate tag required"),
+            _ => panic!(),
         }
     }
 
@@ -234,11 +234,11 @@ impl Tag {
                     TagType::Heap => match heap_ref.info(indirect.offset() as usize) {
                         Some(info) => match Type::try_from(info.tag_type()) {
                             Ok(etype) => etype,
-                            Err(_) => panic!("internal: tag format inconsistency"),
+                            Err(_) => panic!(),
                         },
-                        None => panic!("internal: tag info inconsistency"),
+                        None => panic!(),
                     },
-                    _ => panic!("internal: indirect tag type inconsistency"),
+                    _ => panic!(),
                 },
             }
         }
@@ -280,7 +280,7 @@ impl MuFunction for Tag {
     fn mu_typeof(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         fp.value = match Self::type_key(Self::type_of(mu, fp.argv[0])) {
             Some(type_key) => type_key,
-            None => panic!("internal: type_of inconsistency"),
+            None => panic!(),
         };
 
         Ok(())

@@ -68,7 +68,7 @@ impl Stream {
                         .with_tag(TagType::Heap),
                 )
             }
-            _ => panic!("internal: stream type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -98,9 +98,9 @@ impl Stream {
 
                     image
                 }
-                _ => panic!("internal: stream type inconsistency"),
+                _ => panic!(),
             },
-            _ => panic!("internal: stream type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -115,7 +115,7 @@ impl Stream {
 
         let offset = match stream {
             Tag::Indirect(heap) => heap.offset(),
-            _ => panic!("internal: tag format inconsistency"),
+            _ => panic!(),
         } as usize;
 
         let mut heap_ref: RefMut<image::heap::Heap> = mu.heap.borrow_mut();
@@ -194,12 +194,7 @@ impl Core for Stream {
 
     fn get_string(mu: &Mu, tag: Tag) -> exception::Result<Tag> {
         if !Self::is_open(mu, tag) {
-            return Err(Exception::raise(
-                mu,
-                Condition::Open,
-                "stream::get_string",
-                tag,
-            ));
+            return Err(Exception::new(Condition::Open, "stream::get_string", tag));
         }
 
         match Tag::type_of(mu, tag) {
@@ -228,18 +223,13 @@ impl Core for Stream {
                                         .evict(mu),
                                 )
                             }
-                            _ => Err(Exception::raise(
-                                mu,
-                                Condition::Type,
-                                "stream::get_string",
-                                tag,
-                            )),
+                            _ => Err(Exception::new(Condition::Type, "stream::get_string", tag)),
                         }
                     }
-                    _ => panic!("internal: tag format inconsistency"),
+                    _ => panic!(),
                 }
             }
-            _ => panic!("internal: stream type required"),
+            _ => panic!(),
         }
     }
 
@@ -262,7 +252,7 @@ impl Core for Stream {
                     ),
                 }
             }
-            _ => panic!("internal: stream type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -355,17 +345,11 @@ impl Core for Stream {
         let unch = image.unch;
 
         if !Self::is_open(mu, stream) {
-            return Err(Exception::raise(
-                mu,
-                Condition::Open,
-                "stream::read_char",
-                stream,
-            ));
+            return Err(Exception::new(Condition::Open, "stream::read_char", stream));
         }
 
         if image.direction.eq_(Symbol::keyword("output")) {
-            return Err(Exception::raise(
-                mu,
+            return Err(Exception::new(
                 Condition::Stream,
                 "stream::read_char",
                 stream,
@@ -390,10 +374,7 @@ impl Core for Stream {
                                 Ok(None)
                             }
                         },
-                        Err(e) => {
-                            e.print(mu);
-                            Err(e)
-                        }
+                        Err(e) => Err(e),
                     }
                 } else {
                     image.unch = Tag::nil();
@@ -422,7 +403,7 @@ impl Core for Stream {
 
                     match ch {
                         Some(ch) => Ok(Some(Char::as_char(mu, ch))),
-                        None => panic!("internal: string stream inconsistency"),
+                        None => panic!(),
                     }
                 } else {
                     image.unch = Tag::nil();
@@ -436,7 +417,7 @@ impl Core for Stream {
                     Ok(Some(Char::as_char(mu, unch)))
                 }
             }
-            _ => panic!("internal: stream type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -446,17 +427,11 @@ impl Core for Stream {
         let unch = image.unch;
 
         if !Self::is_open(mu, stream) {
-            return Err(Exception::raise(
-                mu,
-                Condition::Open,
-                "stream::read_byte",
-                stream,
-            ));
+            return Err(Exception::new(Condition::Open, "stream::read_byte", stream));
         }
 
         if image.direction.eq_(Symbol::keyword("output")) {
-            return Err(Exception::raise(
-                mu,
+            return Err(Exception::new(
                 Condition::Stream,
                 "stream::read_byte",
                 stream,
@@ -481,10 +456,7 @@ impl Core for Stream {
                                 Ok(None)
                             }
                         },
-                        Err(e) => {
-                            e.print(mu);
-                            Err(e)
-                        }
+                        Err(e) => Err(e),
                     }
                 } else {
                     image.unch = Tag::nil();
@@ -512,10 +484,10 @@ impl Core for Stream {
 
                 match ch {
                     Some(ch) => Ok(Some(Char::as_char(mu, ch) as u8)),
-                    None => panic!("internal: string stream inconsistency"),
+                    None => panic!(),
                 }
             }
-            _ => panic!("internal: stream type inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -523,8 +495,7 @@ impl Core for Stream {
         let mut image = Self::to_image(mu, stream);
 
         if !Self::is_open(mu, stream) {
-            return Err(Exception::raise(
-                mu,
+            return Err(Exception::new(
                 Condition::Open,
                 "stream::unread_char",
                 stream,
@@ -532,8 +503,7 @@ impl Core for Stream {
         }
 
         if image.direction.eq_(Symbol::keyword("output")) {
-            return Err(Exception::raise(
-                mu,
+            return Err(Exception::new(
                 Condition::Type,
                 "stream::unread_char",
                 stream,
@@ -546,8 +516,7 @@ impl Core for Stream {
 
             Ok(None)
         } else {
-            Err(Exception::raise(
-                mu,
+            Err(Exception::new(
                 Condition::Stream,
                 "stream::unread_char",
                 Char::as_tag(ch),
@@ -560,8 +529,7 @@ impl Core for Stream {
         let mut image = Self::to_image(mu, stream);
 
         if !Self::is_open(mu, stream) {
-            return Err(Exception::raise(
-                mu,
+            return Err(Exception::new(
                 Condition::Open,
                 "stream::write_char",
                 stream,
@@ -569,8 +537,7 @@ impl Core for Stream {
         }
 
         if image.direction.eq_(Symbol::keyword("input")) {
-            return Err(Exception::raise(
-                mu,
+            return Err(Exception::new(
                 Condition::Type,
                 "system::write_char",
                 stream,
@@ -589,7 +556,7 @@ impl Core for Stream {
 
                 Ok(None)
             }
-            _ => panic!("internal: stream state inconsistency"),
+            _ => panic!(),
         }
     }
 
@@ -598,8 +565,7 @@ impl Core for Stream {
         let mut image = Self::to_image(mu, stream);
 
         if !Self::is_open(mu, stream) {
-            return Err(Exception::raise(
-                mu,
+            return Err(Exception::new(
                 Condition::Open,
                 "stream::write_byte",
                 stream,
@@ -607,8 +573,7 @@ impl Core for Stream {
         }
 
         if image.direction.eq_(Symbol::keyword("input")) {
-            return Err(Exception::raise(
-                mu,
+            return Err(Exception::new(
                 Condition::Type,
                 "system::write_byte",
                 stream,
@@ -664,7 +629,7 @@ impl MuFunction for Stream {
                     Tag::nil()
                 }
             }
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:close", stream)),
+            _ => return Err(Exception::new(Condition::Type, "mu:close", stream)),
         };
 
         Ok(())
@@ -681,7 +646,7 @@ impl MuFunction for Stream {
                     Tag::nil()
                 }
             }
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:openp", stream)),
+            _ => return Err(Exception::new(Condition::Type, "mu:openp", stream)),
         };
 
         Ok(())
@@ -694,13 +659,13 @@ impl MuFunction for Stream {
 
         let arg = match Tag::type_of(mu, st_arg) {
             Type::Vector => Vector::as_string(mu, st_arg),
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:open", st_arg)),
+            _ => return Err(Exception::new(Condition::Type, "mu:open", st_arg)),
         };
 
         let dir = match Tag::type_of(mu, st_dir) {
             Type::Keyword if st_dir.eq_(Symbol::keyword("input")) => true,
             Type::Keyword if st_dir.eq_(Symbol::keyword("output")) => false,
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:open", st_dir)),
+            _ => return Err(Exception::new(Condition::Type, "mu:open", st_dir)),
         };
 
         match Tag::type_of(mu, st_type) {
@@ -712,7 +677,7 @@ impl MuFunction for Stream {
                 fp.value = Self::open_string(mu, &arg, dir).unwrap();
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:open", st_type)),
+            _ => Err(Exception::new(Condition::Type, "mu:open", st_type)),
         }
     }
 
@@ -729,12 +694,7 @@ impl MuFunction for Stream {
         }
 
         if image.direction.eq_(Symbol::keyword("input")) {
-            return Err(Exception::raise(
-                mu,
-                Condition::Stream,
-                "system::flush",
-                stream,
-            ));
+            return Err(Exception::new(Condition::Stream, "system::flush", stream));
         }
 
         match Tag::type_of(mu, image.source) {
@@ -742,7 +702,7 @@ impl MuFunction for Stream {
                 let stream_id = Fixnum::as_i64(mu, image.source) as usize;
                 SystemStream::flush(system_stream, stream_id)
             }
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:flush", stream)),
+            _ => return Err(Exception::new(Condition::Type, "mu:flush", stream)),
         }
 
         Ok(())
@@ -761,7 +721,7 @@ impl MuFunction for Stream {
                 }
                 Err(e) => Err(e),
             },
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:read", stream)),
+            _ => Err(Exception::new(Condition::Type, "mu:read", stream)),
         }
     }
 
@@ -778,7 +738,7 @@ impl MuFunction for Stream {
                 }
                 Err(e) => Err(e),
             },
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:write", stream)),
+            _ => Err(Exception::new(Condition::Type, "mu:write", stream)),
         }
     }
 
@@ -794,7 +754,7 @@ impl MuFunction for Stream {
                 };
                 Ok(())
             }
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:eof", stream)),
+            _ => Err(Exception::new(Condition::Type, "mu:eof", stream)),
         }
     }
 
@@ -809,7 +769,7 @@ impl MuFunction for Stream {
                 }
                 Err(e) => Err(e),
             },
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:get-str", stream)),
+            _ => Err(Exception::new(Condition::Type, "mu:get-str", stream)),
         }
     }
 
@@ -822,10 +782,10 @@ impl MuFunction for Stream {
             Type::Stream => match Self::read_char(mu, stream) {
                 Ok(Some(ch)) => Char::as_tag(ch),
                 Ok(None) if eoferrp.null_() => eof_value,
-                Ok(None) => return Err(Exception::raise(mu, Condition::Eof, "mu:rd-char", stream)),
+                Ok(None) => return Err(Exception::new(Condition::Eof, "mu:rd-char", stream)),
                 Err(e) => return Err(e),
             },
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:rd-char", stream)),
+            _ => return Err(Exception::new(Condition::Type, "mu:rd-char", stream)),
         };
 
         Ok(())
@@ -840,10 +800,10 @@ impl MuFunction for Stream {
             Type::Stream => match Self::read_byte(mu, stream) {
                 Ok(Some(byte)) => Fixnum::as_tag(byte as i64),
                 Ok(None) if erreofp.null_() => eof_value,
-                Ok(None) => return Err(Exception::raise(mu, Condition::Eof, "mu:rd-byte", stream)),
+                Ok(None) => return Err(Exception::new(Condition::Eof, "mu:rd-byte", stream)),
                 Err(e) => return Err(e),
             },
-            _ => return Err(Exception::raise(mu, Condition::Type, "mu:rd-byte", stream)),
+            _ => return Err(Exception::new(Condition::Type, "mu:rd-byte", stream)),
         };
 
         Ok(())
@@ -856,7 +816,7 @@ impl MuFunction for Stream {
         match Tag::type_of(mu, stream) {
             Type::Stream => match Self::unread_char(mu, stream, Char::as_char(mu, ch)) {
                 Ok(Some(_)) => {
-                    panic!("internal: unexpected return from mu_unread_char")
+                    panic!()
                 }
                 Ok(None) => {
                     fp.value = ch;
@@ -864,7 +824,7 @@ impl MuFunction for Stream {
                 }
                 Err(e) => Err(e),
             },
-            _ => Err(Exception::raise(mu, Condition::Type, "mu:un-char", stream)),
+            _ => Err(Exception::new(Condition::Type, "mu:un-char", stream)),
         }
     }
 
@@ -881,19 +841,9 @@ impl MuFunction for Stream {
                     }
                     Err(e) => Err(e),
                 },
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:write-char",
-                    stream,
-                )),
+                _ => Err(Exception::new(Condition::Type, "mu:write-char", stream)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:write-char",
-                stream,
-            )),
+            _ => Err(Exception::new(Condition::Type, "mu:write-char", stream)),
         }
     }
 
@@ -912,19 +862,9 @@ impl MuFunction for Stream {
                         Err(e) => Err(e),
                     }
                 }
-                _ => Err(Exception::raise(
-                    mu,
-                    Condition::Type,
-                    "mu:write-char",
-                    stream,
-                )),
+                _ => Err(Exception::new(Condition::Type, "mu:write-char", stream)),
             },
-            _ => Err(Exception::raise(
-                mu,
-                Condition::Type,
-                "mu:write-byte",
-                stream,
-            )),
+            _ => Err(Exception::new(Condition::Type, "mu:write-byte", stream)),
         }
     }
 }
