@@ -246,6 +246,13 @@
 (mu:intern core::ns :extern "last"
    (:lambda (list)
      (core:raise-unless core:listp list "core:last: not a list")
-     (:if list
-          (mu:nthcdr (core:1- (mu:length list)) list)
-          ())))
+     (mu:fix
+      (:lambda (loop)
+        (:if (core:null list)
+             loop
+             ((:lambda (cdr)
+                (:if (core:consp cdr)
+                     cdr
+                     loop))
+              (mu:cdr loop))))
+      list)))

@@ -17,7 +17,7 @@ use {
             namespace::Core as _,
         },
         types::{
-            cons::{Cons, ConsIter, Core as _},
+            cons::{Cons, Core as _, ProperListIter},
             fixnum::Fixnum,
             function::Function,
             r#struct::{Core as _, Struct},
@@ -194,7 +194,7 @@ impl Frame {
                     Self::env_push(mu, self.func, offset);
                     self.frame_stack_push(mu);
 
-                    for cons in ConsIter::new(mu, Function::form_of(mu, func)) {
+                    for cons in ProperListIter::new(mu, Function::form_of(mu, func)) {
                         value = match mu.eval(Cons::car(mu, cons)) {
                             Ok(value) => value,
                             Err(e) => return Err(e),

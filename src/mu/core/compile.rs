@@ -13,7 +13,7 @@ use {
             mu::Mu,
         },
         types::{
-            cons::{Cons, ConsIter, Core as _},
+            cons::{Cons, Core as _, ProperListIter},
             fixnum::Fixnum,
             function::Function,
             namespace::{Core as _, Namespace, Scope},
@@ -118,7 +118,7 @@ impl Compiler for Mu {
     fn compile_list(mu: &Mu, body: Tag) -> exception::Result<Tag> {
         let mut body_vec = Vec::new();
 
-        for cons in ConsIter::new(mu, body) {
+        for cons in ProperListIter::new(mu, body) {
             match Self::compile(mu, Cons::car(mu, cons)) {
                 Ok(expr) => body_vec.push(expr),
                 Err(e) => return Err(e),
@@ -132,7 +132,7 @@ impl Compiler for Mu {
     fn compile_frame_symbols(mu: &Mu, lambda: Tag) -> exception::Result<Vec<Tag>> {
         let mut symv = Vec::new();
 
-        for cons in ConsIter::new(mu, lambda) {
+        for cons in ProperListIter::new(mu, lambda) {
             let symbol = Cons::car(mu, cons);
             if Tag::type_of(mu, symbol) == Type::Symbol {
                 match symv.iter().rev().position(|lex| symbol.eq_(*lex)) {

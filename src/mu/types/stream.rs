@@ -21,7 +21,7 @@ use {
         system::stream::{STDERR, STDIN, STDOUT},
         types::{
             char::Char,
-            cons::{Cons, ConsIter, Core as _},
+            cons::{Cons, Core as _, ProperListIter},
             fixnum::Fixnum,
             r#struct::Struct,
             symbol::{Core as _, Symbol},
@@ -210,7 +210,7 @@ impl Core for Stream {
                         match Tag::type_of(mu, source) {
                             Type::Null => Ok(Vector::from_string("").evict(mu)),
                             Type::Cons => {
-                                let string = ConsIter::new(mu, source).fold(
+                                let string = ProperListIter::new(mu, source).fold(
                                     String::from(""),
                                     |mut acc, cons| {
                                         acc.push(Char::as_char(mu, Cons::car(mu, cons)));
