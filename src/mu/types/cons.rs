@@ -77,7 +77,7 @@ impl Cons {
     }
 }
 
-/// core operations
+// core operations
 pub trait Core {
     fn evict(&self, _: &Mu) -> Tag;
     fn append(_: &Mu, _: Tag, _: Tag) -> Tag;
@@ -190,7 +190,7 @@ impl Core for Cons {
     fn length(mu: &Mu, cons: Tag) -> usize {
         match Tag::type_of(mu, cons) {
             Type::Null => 0,
-            Type::Cons => ConsIter::new(mu, cons).count(),
+            Type::Cons => ProperListIter::new(mu, cons).count(),
             _ => panic!(),
         }
     }
@@ -203,6 +203,33 @@ impl Core for Cons {
 
         list
     }
+
+    /*
+        fn nth(mu: &Mu, n: usize, cons: Tag) -> Option<Tag> {
+            let mut nth = n;
+            let mut tail = cons;
+
+            match Tag::type_of(mu, cons) {
+                Type::Null => Some(Tag::nil()),
+                Type::Cons => loop {
+                    match Tag::type_of(mu, tail) {
+                        _ if tail.null_() => return Some(Tag::nil()),
+                        Type::Cons => {
+                            if nth == 0 {
+                                return Some(Self::car(mu, tail));
+                            }
+                            nth -= 1;
+                            tail = Self::cdr(mu, tail)
+                        }
+                        _ => {
+                            return None;
+                        }
+                    }
+                },
+                _ => panic!(),
+            }
+    }
+        */
 
     fn nth(mu: &Mu, n: usize, cons: Tag) -> Option<Tag> {
         let mut nth = n;
@@ -221,8 +248,7 @@ impl Core for Cons {
                         tail = Self::cdr(mu, tail)
                     }
                     _ => {
-                        print!("nth: not on dotted lists");
-                        return None;
+                        return if nth != 0 { None } else { Some(tail) };
                     }
                 }
             },
@@ -247,8 +273,7 @@ impl Core for Cons {
                         tail = Self::cdr(mu, tail)
                     }
                     _ => {
-                        print!("nthcdr: not on dotted lists");
-                        return None;
+                        return if nth != 0 { None } else { Some(tail) };
                     }
                 }
             },
@@ -330,7 +355,11 @@ impl MuFunction for Cons {
                 Ok(())
             }
             Type::Cons => {
-                fp.value = Self::nth(mu, Fixnum::as_i64(mu, nth) as usize, list).unwrap();
+                fp.value = match Self::nth(mu, Fixnum::as_i64(mu, nth) as usize, list) {
+                    Some(tag) => tag,
+                    None => return Err(Exception::new(Condition::Type, "mu:nth", list)),
+                };
+
                 Ok(())
             }
             _ => Err(Exception::new(Condition::Type, "mu:nth", list)),
@@ -351,7 +380,11 @@ impl MuFunction for Cons {
                 Ok(())
             }
             Type::Cons => {
-                fp.value = Self::nthcdr(mu, Fixnum::as_i64(mu, nth) as usize, list).unwrap();
+                fp.value = match Self::nthcdr(mu, Fixnum::as_i64(mu, nth) as usize, list) {
+                    Some(tag) => tag,
+                    None => return Err(Exception::new(Condition::Type, "mu:nth", list)),
+                };
+
                 Ok(())
             }
             _ => Err(Exception::new(Condition::Type, "mu:nthcdr", list)),
@@ -360,22 +393,23 @@ impl MuFunction for Cons {
 }
 
 /// iterator
-pub struct ConsIter<'a> {
+pub struct ProperListIter<'a> {
     mu: &'a Mu,
     pub cons: Tag,
 }
 
-impl<'a> ConsIter<'a> {
+impl<'a> ProperListIter<'a> {
     pub fn new(mu: &'a Mu, cons: Tag) -> Self {
         Self { mu, cons }
     }
 }
 
-impl<'a> Iterator for ConsIter<'a> {
+// proper lists only
+impl<'a> Iterator for ProperListIter<'a> {
     type Item = Tag;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.cons.eq_(Tag::nil()) {
+        if self.cons.null_() {
             None
         } else {
             let cons = self.cons;

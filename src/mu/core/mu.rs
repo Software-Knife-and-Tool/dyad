@@ -18,7 +18,7 @@ use {
         system::sys as system,
         types::{
             char::{Char, Core as _},
-            cons::{Cons, ConsIter, Core as _},
+            cons::{Cons, Core as _, ProperListIter},
             fixnum::{Core as _, Fixnum},
             float::{Core as _, Float},
             function::{Core as _, Function},
@@ -149,7 +149,7 @@ impl Core for Mu {
         let value = Tag::nil();
         let mut argv = Vec::new();
 
-        for cons in ConsIter::new(self, args) {
+        for cons in ProperListIter::new(self, args) {
             match self.eval(Cons::car(self, cons)) {
                 Ok(arg) => argv.push(arg),
                 Err(e) => return Err(e),

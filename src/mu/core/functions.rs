@@ -12,7 +12,7 @@ use crate::{
     },
     types::{
         char::{Char, Core as _},
-        cons::{Cons, ConsIter, Core as _},
+        cons::{Cons, Core as _, ProperListIter},
         fixnum::{Core as _, Fixnum},
         float::{Core as _, Float},
         function::{Core as _, Function},
@@ -65,7 +65,7 @@ impl MuFunction for Mu {
                     let value = Tag::nil();
                     let mut argv = Vec::new();
 
-                    for cons in ConsIter::new(mu, args) {
+                    for cons in ProperListIter::new(mu, args) {
                         argv.push(Cons::car(mu, cons))
                     }
 

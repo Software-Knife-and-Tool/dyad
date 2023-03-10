@@ -14,7 +14,7 @@ use {
         image,
         types::{
             char::Char,
-            cons::{Cons, ConsIter, Core as _},
+            cons::{Cons, Core as _, ProperListIter},
             fixnum::Fixnum,
             float::Float,
             r#struct::Struct,
@@ -303,14 +303,14 @@ impl<'a> Core<'a> for Vector {
                     Some(tab) => match tab.1 {
                         Type::T => {
                             let mut vec = Vec::new();
-                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                            for cons in ProperListIter::new(mu, Cons::cdr(mu, vec_list)) {
                                 vec.push(Cons::car(mu, cons));
                             }
                             Ok(TypedVec::<Vec<Tag>> { vec }.vec.to_vector().evict(mu))
                         }
                         Type::Char => {
                             let mut vec = String::new();
-                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                            for cons in ProperListIter::new(mu, Cons::cdr(mu, vec_list)) {
                                 let el = Cons::car(mu, cons);
                                 match Tag::type_of(mu, el) {
                                     Type::Char => {
@@ -331,7 +331,7 @@ impl<'a> Core<'a> for Vector {
                         }
                         Type::Byte => {
                             let mut vec = Vec::<u8>::new();
-                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                            for cons in ProperListIter::new(mu, Cons::cdr(mu, vec_list)) {
                                 let el = Cons::car(mu, cons);
                                 match Tag::type_of(mu, el) {
                                     Type::Fixnum => {
@@ -360,7 +360,7 @@ impl<'a> Core<'a> for Vector {
                         Type::Fixnum => {
                             let mut vec = Vec::new();
 
-                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                            for cons in ProperListIter::new(mu, Cons::cdr(mu, vec_list)) {
                                 let el = Cons::car(mu, cons);
                                 match Tag::type_of(mu, el) {
                                     Type::Fixnum => vec.push(Fixnum::as_i64(mu, el)),
@@ -379,7 +379,7 @@ impl<'a> Core<'a> for Vector {
                         Type::Float => {
                             let mut vec = Vec::new();
 
-                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                            for cons in ProperListIter::new(mu, Cons::cdr(mu, vec_list)) {
                                 let el = Cons::car(mu, cons);
                                 match Tag::type_of(mu, el) {
                                     Type::Float => vec.push(Float::as_f32(mu, el)),
@@ -452,7 +452,7 @@ impl MuFunction for Vector {
                 Type::Null => return Err(Exception::new(Condition::Type, "mu:sv-list", type_sym)),
                 Type::T => {
                     let mut vec = Vec::new();
-                    for cons in ConsIter::new(mu, list) {
+                    for cons in ProperListIter::new(mu, list) {
                         vec.push(Cons::car(mu, cons));
                     }
 
@@ -461,7 +461,7 @@ impl MuFunction for Vector {
                 Type::Char => {
                     let mut vec = String::new();
 
-                    for cons in ConsIter::new(mu, list) {
+                    for cons in ProperListIter::new(mu, list) {
                         let el = Cons::car(mu, cons);
 
                         match Tag::type_of(mu, el) {
@@ -477,7 +477,7 @@ impl MuFunction for Vector {
                 Type::Byte => {
                     let mut vec = Vec::<u8>::new();
 
-                    for cons in ConsIter::new(mu, list) {
+                    for cons in ProperListIter::new(mu, list) {
                         let el = Cons::car(mu, cons);
 
                         match Tag::type_of(mu, el) {
@@ -498,7 +498,7 @@ impl MuFunction for Vector {
                 }
                 Type::Fixnum => {
                     let mut vec = Vec::new();
-                    for cons in ConsIter::new(mu, list) {
+                    for cons in ProperListIter::new(mu, list) {
                         let el = Cons::car(mu, cons);
 
                         match Tag::type_of(mu, el) {
@@ -513,7 +513,7 @@ impl MuFunction for Vector {
                 }
                 Type::Float => {
                     let mut vec = Vec::new();
-                    for cons in ConsIter::new(mu, list) {
+                    for cons in ProperListIter::new(mu, list) {
                         let el = Cons::car(mu, cons);
 
                         match Tag::type_of(mu, el) {

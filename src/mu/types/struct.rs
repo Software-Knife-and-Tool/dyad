@@ -13,7 +13,7 @@ use {
         },
         image,
         types::{
-            cons::{Cons, ConsIter, Core as _},
+            cons::{Cons, Core as _, ProperListIter},
             stream::{Core as _, Stream},
             symbol::{Core as _, Symbol},
             vecimage::{TypedVec, VecType, VectorIter},
@@ -164,7 +164,7 @@ impl<'a> Core<'a> for Struct {
                     match Tag::type_of(mu, stype) {
                         Type::Keyword => {
                             let mut vec = Vec::new();
-                            for cons in ConsIter::new(mu, Cons::cdr(mu, vec_list)) {
+                            for cons in ProperListIter::new(mu, Cons::cdr(mu, vec_list)) {
                                 vec.push(Cons::car(mu, cons));
                             }
 
@@ -235,7 +235,7 @@ impl MuFunction for Struct {
         fp.value = match Tag::type_of(mu, stype) {
             Type::Keyword => {
                 let mut vec = Vec::new();
-                for cons in ConsIter::new(mu, list) {
+                for cons in ProperListIter::new(mu, list) {
                     vec.push(Cons::car(mu, cons));
                 }
 
