@@ -122,15 +122,21 @@
                    (core:raise designator "core::string not a char"))))))
 
 (mu:intern core::ns :extern "string-append"
-   (:lambda (list)
-     (core:raise-unless core:listp list "core:string: is not a list")
-     ((:lambda (result)
-       (core:mapc
-        (:lambda (str)
-          (core:raise-unless core:stringp str "core:string-append: is not a string")
-          (core::mapv (:lambda (item) (mu:write item () result)) str))
+  (:lambda (list)
+    (core:raise-unless core:listp list "core:string: is not a list")
+    ((:lambda (stream)
+       (mu:fix
+        (:lambda (list)
+          (:if list
+               (core::prog2
+                   ((:lambda (str)
+                      (core:raise-unless core:stringp str "core:string-append: is not a string")
+                      (mu:write str () stream))
+                    (mu:car list))
+                   (mu:cdr list))
+               ()))
         list)
-       (mu:get-str result))
+       (mu:get-str stream))
      (mu:open :string :output ""))))
 
 (mu:intern core::ns :extern "substr"

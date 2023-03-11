@@ -7,7 +7,7 @@
 (mu:intern core::ns :extern "vector-type"
   (:lambda (vector)
     (core:raise-unless core:vectorp vector "core:vector-type: not a vector")
-
+    
     (mu:sv-type vector)))
 
 (mu:intern core::ns :extern "svref"
