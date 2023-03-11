@@ -185,7 +185,7 @@
         (:if macro-symbol
             (core:symbol-value macro-symbol)
             ()))
-      (mu:ns-map core::core-char-macro-ns :extern (mu:vector :char (core::list char))))))
+      (mu:ns-find core::core-char-macro-ns :extern (mu:vector :char (core::list char))))))
 
 (mu:intern core::ns :extern "set-macro-character"
    (:lambda (char fn non-terminating)
