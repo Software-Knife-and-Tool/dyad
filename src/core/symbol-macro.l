@@ -79,7 +79,7 @@
                                 (:if (core:null sym)
                                      (mu:ns-imp ns)
                                      sym))
-                              (mu:ns-map ns :extern symbol))
+                              (mu:ns-find ns :extern symbol))
                              ns))
                       (core::read-get-ns)))
                    (mu:intern (core::read-get-ns) scope base ()))
@@ -109,7 +109,7 @@
         (:if macro-symbol
             macro-symbol
             ()))
-      (mu:ns-map core::core-symbol-macro-ns :extern (core:symbol-name symbol)))))
+      (mu:ns-find core::core-symbol-macro-ns :extern (core:symbol-name symbol)))))
 
 (mu:intern core::ns :extern "define-symbol-macro"
    (:lambda (symbol form)

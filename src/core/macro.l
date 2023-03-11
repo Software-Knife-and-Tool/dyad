@@ -31,19 +31,19 @@
                :intern
                (core:string-append (mu:ns-name symbol-ns) ":macrodefs")
                (mu:make-ns (mu:make-ns (core:string-append (mu:ns-name symbol-ns) ":macro-functions") ()))))))
-      (mu:ns-map (mu:sy-ns symbol) :intern (core:string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
+      (mu:ns-find (mu:sy-ns symbol) :intern (core:string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
       (mu:sy-ns symbol)
       (mu:sy-name symbol)
       (mu:sy-ext symbol))))
 
-(mu:intern core::ns :intern "core-find-macro-env"
+(mu:intern core::ns :intern "core-find-macro"
    (:lambda (symbol env)
-     (core:raise-unless core:symbolp symbol "core-find-macro-env: is not a symbol")           
+     (core:raise-unless core:symbolp symbol "core-find-macro: is not a symbol")
      ((:lambda (macro-ns symbol-ns symbol-name symbol-scope)
         (:if macro-ns
-             (mu:ns-map (mu:sy-val macro-ns) symbol-scope symbol-name)
+             (mu:ns-find (mu:sy-val macro-ns) symbol-scope symbol-name)
              ()))
-     (mu:ns-map (mu:sy-ns symbol) :intern (core:string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
+     (mu:ns-find (mu:sy-ns symbol) :intern (core:string-append (mu:ns-name (mu:sy-ns symbol)) ":macrodefs"))
      (mu:sy-ns symbol)
      (mu:sy-name symbol)
      (mu:sy-ext symbol))))
@@ -91,7 +91,7 @@
                   (:if macro
                        (mu:sy-val macro)
                        ()))
-                (core::core-find-macro-env symbol env)))
+                (core::core-find-macro symbol env)))
           ())))
 
 ;;;

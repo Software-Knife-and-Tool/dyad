@@ -17,11 +17,11 @@
                       (core:raise sym "intern: symbol already bound")
                       (mu:intern (core::read-get-ns) :extern (mu:sy-name symbol)value))
                  (mu:intern (core::read-get-ns) :extern (mu:sy-name symbol) value)))
-          (mu:ns-map (core::read-get-ns) :extern (mu:sy-name symbol)))
+          (mu:ns-find (core::read-get-ns) :extern (mu:sy-name symbol)))
          ((:lambda (ns name)
              (mu:intern
               (core::read-get-ns)
-              (:if (mu:ns-map ns :extern name)
+              (:if (mu:ns-find ns :extern name)
                    :extern
                    :intern)
               name

@@ -311,7 +311,7 @@ pub trait MuFunction {
     fn mu_intern(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_make_ns(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_map_ns(_: &Mu, _: &mut Frame) -> exception::Result<()>;
-    fn mu_ns_map(_: &Mu, _: &mut Frame) -> exception::Result<()>;
+    fn mu_ns_find(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_ns_import(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_ns_name(_: &Mu, _: &mut Frame) -> exception::Result<()>;
     fn mu_ns_interns(_: &Mu, _: &mut Frame) -> exception::Result<()>;
@@ -383,7 +383,7 @@ impl MuFunction for Namespace {
         }
     }
 
-    fn mu_ns_map(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
+    fn mu_ns_find(mu: &Mu, fp: &mut Frame) -> exception::Result<()> {
         let ns = fp.argv[0];
         let scope = fp.argv[1];
         let name = fp.argv[2];
@@ -395,10 +395,10 @@ impl MuFunction for Namespace {
                 } else if scope.eq_(Symbol::keyword("intern")) {
                     false
                 } else {
-                    return Err(Exception::new(Condition::Type, "mu:ns-map", scope));
+                    return Err(Exception::new(Condition::Type, "mu:ns-find", scope));
                 }
             }
-            _ => return Err(Exception::new(Condition::Type, "mu:ns-map", scope)),
+            _ => return Err(Exception::new(Condition::Type, "mu:ns-find", scope)),
         };
 
         match Tag::type_of(mu, name) {
@@ -436,9 +436,9 @@ impl MuFunction for Namespace {
 
                     Ok(())
                 }
-                _ => Err(Exception::new(Condition::Type, "mu:ns-map", ns)),
+                _ => Err(Exception::new(Condition::Type, "mu:ns-find", ns)),
             },
-            _ => Err(Exception::new(Condition::Type, "mu:ns-map", name)),
+            _ => Err(Exception::new(Condition::Type, "mu:ns-find", name)),
         }
     }
 
