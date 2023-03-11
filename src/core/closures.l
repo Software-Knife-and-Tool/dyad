@@ -163,7 +163,7 @@
                         ((:lambda (macro-fn)
                            (:if macro-fn
                                 (core::compile-macro-call fn args env)
-                                (core::symbol-call fn args env)))
+                                (core::compile-symbol-call fn args env)))
                          (core:macro-function fn env))
                         (core::compile-symbol-call fn args env))
                    (core:raise fn "compile-application: not a function designator"))))))
