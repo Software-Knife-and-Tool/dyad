@@ -149,8 +149,8 @@ fn load(mu: &Mu, path: &str, debug: bool) -> Option<()> {
                             }
                             Err(e) => {
                                 eprint!(
-                                    "exception: (load eval) raised from {1}, {:?} condition on ",
-                                    e.condition, e.source
+                                    "exception: (load eval) raised from {:?}, {:?} condition on ",
+                                    e.source, e.condition
                                 );
                                 mu.write(e.tag, true, mu.errout).unwrap();
                                 break;
@@ -159,8 +159,8 @@ fn load(mu: &Mu, path: &str, debug: bool) -> Option<()> {
                     }
                     Err(e) => {
                         eprint!(
-                            "exception: (load compile) raised from {1}, {:?} condition on ",
-                            e.condition, e.source
+                            "exception: (load compile) raised from {:?}, {:?} condition on ",
+                            e.source, e.condition
                         );
                         mu.write(e.tag, true, mu.errout).unwrap();
                         break;
@@ -266,8 +266,8 @@ pub fn main() {
                             Ok(eval) => mu.write(eval, false, mu.stdout).unwrap(),
                             Err(e) => {
                                 eprint!(
-                                    "exception: raised from {1}, {:?} condition on ",
-                                    e.condition, e.source
+                                    "exception: raised from {:?}, {:?} condition on ",
+                                    e.source, e.condition
                                 );
                                 mu.write(e.tag, true, mu.errout).unwrap()
                             }

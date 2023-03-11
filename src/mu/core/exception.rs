@@ -144,7 +144,7 @@ impl MuFunction for Exception {
                 Type::Function => match mu.apply(thunk, Tag::nil()) {
                     Ok(v) => v,
                     Err(e) => {
-                        let args = vec![Self::map_condkey(e.condition).unwrap(), e.tag];
+                        let args = vec![e.tag, Self::map_condkey(e.condition).unwrap()];
                         match mu.apply(handler, Cons::list(mu, &args)) {
                             Ok(v) => v,
                             Err(e) => return Err(e),
