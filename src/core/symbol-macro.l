@@ -26,7 +26,7 @@
 ;;;
 ;;; symbol readers
 ;;;
-(mu:intern core::ns :intern "read-symbol-keywordp"
+(mu:intern core::ns :intern "read-keywordp"
   (:lambda (name)
       (mu:eq #\: (core:schar name 0))))
 
@@ -62,28 +62,14 @@
                                (mu:fx-add colon (mu:fx-sub (core:length name) (core:1+ colon)))))))
      (core:string-position #\: name))))
 
-(mu:intern core::ns :intern "read-resolve-symbol"
+(mu:intern core::ns :intern "read-symbol"
    (:lambda (symbol)
-     (:if (core::read-symbol-keywordp symbol)
+     (:if (core::read-keywordp symbol)
           (mu:keyword (core::read-symbol-name symbol))
-          ((:lambda (ns scope base)
+          ((:lambda (ns scope name)
              (:if (core:null ns)
-                  ((:lambda (sym)
-                     (:if sym
-                          sym
-                          (mu:intern (mu:map-ns "") :extern base ())))
-                     (mu:fix
-                      (:lambda (ns)
-                        (:if (core:namespacep ns)
-                             ((:lambda (sym)
-                                (:if (core:null sym)
-                                     (mu:ns-imp ns)
-                                     sym))
-                              (mu:ns-find ns :extern symbol))
-                             ns))
-                      (core::read-get-ns)))
-                   (mu:intern (core::read-get-ns) scope base ()))
-                  (mu:intern (core::read-get-ns) scope base ()))
+                  (mu:intern (mu:map-ns "") :extern name ())
+                  (mu:intern ns scope name ())))
            (core::read-symbol-ns symbol)
            (core::read-symbol-scope symbol)
            (core::read-symbol-name symbol)))))
