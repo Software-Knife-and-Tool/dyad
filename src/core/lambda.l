@@ -77,8 +77,6 @@
 (mu:intern core::ns :intern "compile-lambda"
    (:lambda (form env)
      ((:lambda (lambda-desc body)
-        (core:warn lambda-desc "compile-lambda:")
-        (core:warn body "compile-lambda:")
         (mu:compile
            (mu:cons :lambda
               (mu:cons (core::lambda-prop :symbols lambda-desc)
@@ -91,7 +89,6 @@
 ;;;
 (mu:intern core::ns :intern "closure"
   (:lambda (fn)
-     (core:warn fn "closure:")           
      ((:lambda (lambda-desc)
         (core:raise-when core:null lambda-desc "core::closure: closing bare function")
         ((:lambda (desc body)
@@ -115,8 +112,6 @@
 ;;;
 (mu:intern core::ns :intern "compile-closure"
   (:lambda (lambda-desc form env)
-    (core:warn lambda-desc "compile-closure:")
-    (core:warn form "compile-closure:")
     (core:maplist
      (:lambda (form-cons)
        ((:lambda (compiled-form)
@@ -141,7 +136,6 @@
 ;;;
 (mu:intern core::ns :intern "compile-lambda-body"
   (:lambda (lambda-desc body env)
-    (core:warn lambda-desc "compile-lambda-body:")
     (:if body
          ((:lambda (env)
               (core::compile-closure lambda-desc body env))
@@ -165,6 +159,7 @@
 ;;;
 ;;; `returns:` qualified symbol or *frame-ref*
 ;;;
+#|
 (mu:intern core::ns :intern "compile-symbol"
    (:lambda (symbol env)
      ((:lambda (env-ref)
@@ -176,41 +171,36 @@
                  env)
                (mu:compile symbol)))
        (core::symbol-frame symbol env))))
+|#
 
-(mu:intern core::ns :intern "resolve-symbol"
-   (:lambda (symbol)
-     (:if (core::read-symbol-keywordp symbol)
-          (mu:keyword (core::read-symbol-name symbol))
-          ((:lambda (ns scope base)
-             (:if (core:null ns)
-                  ((:lambda (sym)
-                     (:if sym
-                          sym
-                          (mu:intern (mu:map-ns "") :extern base ())))
+(mu:intern core::ns :intern "compile-symbol"
+   (:lambda (symbol env)
+     ((:lambda (ns name)
+        (:if (core:null ns)
+             ((:lambda (frame-ref)
+                (:if frame-ref
+                     frame-ref
                      (mu:fix
                       (:lambda (ns)
                         (:if (core:namespacep ns)
-                             ((:lambda (sym)
-                                (:if (core:null sym)
-                                     (mu:ns-imp ns)
-                                     sym))
+                             ((:lambda (import)
+                                (:if import
+                                     import
+                                     (mu:ns-imp ns)))
                               (mu:ns-find ns :extern symbol))
                              ns))
-                      (core::read-get-ns)))
-                   (mu:intern (core::read-get-ns) scope base ()))
-                  (mu:intern (core::read-get-ns) scope base ()))
-           (core::read-symbol-ns symbol)
-           (core::read-symbol-scope symbol)
-           (core::read-symbol-name symbol)))))
+                      (core::read-get-ns))))
+              (core::symbol-frame-ref symbol env))
+             (mu:intern (core::read-get-ns) :extern name ())))
+        (mu:sy-ns symbol)
+        (mu:sy-name symbol))))
 
 ;;;
 ;;; Resolving body symbols
 ;;;
-;;; *symbol-frame* looks up *symbol* in a compiled environment.
+;;; *symbol-frame-ref* looks up *symbol* in a compiled environment.
 ;;;
-;;; if found return a *lexical-descriptor*, otherwise *nil*.
-;;;
-;;; [*lexical-descriptor*] `(frame-id . offset)`
+;;; if found return a compiled frame reference, otherwise *nil*.
 ;;;
 ;;; `symbol:` symbol to be compiled
 ;;;
@@ -218,7 +208,7 @@
 ;;;
 ;;; `returns:` *frame-ref* or *nil*
 ;;;
-(mu:intern core::ns :intern "symbol-frame"
+(mu:intern core::ns :intern "symbol-frame-ref"
    (:lambda (symbol env)
      (core:foldl
       (:lambda (frame acc)
@@ -226,7 +216,9 @@
              acc
              ((:lambda (offset)
                 (:if offset
-                     (mu:cons (core::lambda-prop :func frame) offset)
+                     (core::compile
+                      (core::list3 'mu::fr-ref (core::lambda-prop :func frame) offset)
+                      env)
                      ()))
               (core:positionl (:lambda (el) (mu:eq el symbol)) (core::lambda-prop :symbols frame)))))
       ()

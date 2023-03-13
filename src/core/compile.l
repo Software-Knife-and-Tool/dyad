@@ -120,12 +120,12 @@
    (:lambda (symbol)
       (mu:cdr (core:assoc
         symbol
-        '((defconst    . core::defconst)
-          (defun       . core::defun)
-          (defmacro    . core::defmacro)
-          (if          . core::if)
-          (lambda      . core::lambda)
-          (:quote      . core::quote))))))
+        '((defconst . core::defconst)
+          (defun    . core::defun)
+          (defmacro . core::defmacro)
+          (if       . core::if)
+          (lambda   . core::lambda)
+          (quote    . core::quote))))))
 
 ;;;
 ;;; compile

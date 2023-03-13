@@ -174,22 +174,22 @@ impl Core for Mu {
                     }
                     Type::Symbol => {
                         if Symbol::is_unbound(self, func) {
-                            Err(Exception::new(Condition::Unbound, "core::eval", func))
+                            Err(Exception::new(Condition::Unbound, "mu::eval", func))
                         } else {
                             let fnc = Symbol::value_of(self, func);
                             match Tag::type_of(self, fnc) {
                                 Type::Function => self.apply(fnc, args),
-                                _ => Err(Exception::new(Condition::Type, "core::eval", func)),
+                                _ => Err(Exception::new(Condition::Type, "mu::eval", func)),
                             }
                         }
                     }
                     Type::Function => self.apply(func, args),
-                    _ => Err(Exception::new(Condition::Type, "core::eval", func)),
+                    _ => Err(Exception::new(Condition::Type, "mu::eval", func)),
                 }
             }
             Type::Symbol => {
                 if Symbol::is_unbound(self, expr) {
-                    Err(Exception::new(Condition::Unbound, "core:eval", expr))
+                    Err(Exception::new(Condition::Unbound, "mu:eval", expr))
                 } else {
                     Ok(Symbol::value_of(self, expr))
                 }
