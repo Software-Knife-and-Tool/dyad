@@ -1,12 +1,6 @@
 #
 # general core compiler tests
 #
-assert_eq "(mu:eq :func (mu:type-of core::compile-add-env))" ":t"
-assert_eq "(mu:eq :func (mu:type-of core::compile-lambda))" ":t"
-assert_eq "(mu:eq :func (mu:type-of core::compile-lambda-body))" ":t"
-assert_eq "(mu:eq :func (mu:type-of core::compile-symbol))" ":t"
-assert_eq "(mu:eq :func (mu:type-of core::core-lambda))" ":t"
-assert_eq "(mu:eq :func (mu:type-of core::symbol-frame))" ":t"
 assert_eq "(mu:eq :func (mu:type-of core:compile))" ":t"
 # special forms if, defconst, lambda
 assert_eq "(mu:eq :func (mu:type-of (core:compile '(lambda () 1))))" ":t"
