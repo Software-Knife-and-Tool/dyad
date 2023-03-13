@@ -177,6 +177,32 @@
                (mu:compile symbol)))
        (core::symbol-frame symbol env))))
 
+(mu:intern core::ns :intern "resolve-symbol"
+   (:lambda (symbol)
+     (:if (core::read-symbol-keywordp symbol)
+          (mu:keyword (core::read-symbol-name symbol))
+          ((:lambda (ns scope base)
+             (:if (core:null ns)
+                  ((:lambda (sym)
+                     (:if sym
+                          sym
+                          (mu:intern (mu:map-ns "") :extern base ())))
+                     (mu:fix
+                      (:lambda (ns)
+                        (:if (core:namespacep ns)
+                             ((:lambda (sym)
+                                (:if (core:null sym)
+                                     (mu:ns-imp ns)
+                                     sym))
+                              (mu:ns-find ns :extern symbol))
+                             ns))
+                      (core::read-get-ns)))
+                   (mu:intern (core::read-get-ns) scope base ()))
+                  (mu:intern (core::read-get-ns) scope base ()))
+           (core::read-symbol-ns symbol)
+           (core::read-symbol-scope symbol)
+           (core::read-symbol-name symbol)))))
+
 ;;;
 ;;; Resolving body symbols
 ;;;

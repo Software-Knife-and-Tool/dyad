@@ -130,7 +130,7 @@
        ((:lambda (number)
           (:if number
                number
-               (core::symbol-macro-expand (core::read-resolve-symbol token))))
+               (core::symbol-macro-expand (core::read-symbol token))))
         (core::read-number token)))
      (core:get-output-stream-string core::reader-stream))))
 
