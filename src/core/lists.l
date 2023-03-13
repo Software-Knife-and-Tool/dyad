@@ -229,19 +229,21 @@
          (mu:length list)))))
 
 (mu:intern core::ns :extern "assoc"
-   (:lambda (item list)
-     (mu:car
-        (mu:fix
-         (:lambda (lst)
-           (:if lst
-               ((:lambda (entry)
-                  (core:raise-unless core:consp entry "core:assoc: not a cons")
-                  (:if (mu:eq item (mu:car entry))
-                      lst
-                      (mu:cdr lst)))
-                (mu:car lst))
-               ()))
-         list))))
+  (:lambda (item list)           
+    (mu:car
+     (mu:fix
+      (:lambda (lst)
+        (:if lst
+             ((:lambda (entry)
+                (core:raise-unless core:listp entry "core:assoc: not a cons")
+                (:if (core:null entry)
+                     (mu:cdr lst)
+                     (:if (mu:eq item (mu:car entry))
+                          lst
+                          (mu:cdr lst))))
+              (mu:car lst))
+             ()))
+      list))))
 
 (mu:intern core::ns :extern "last"
    (:lambda (list)
