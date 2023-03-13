@@ -23,11 +23,11 @@ core:      format         total: 12       failed: 0        aborted: 0
 core:      lambda         total: 35       failed: 20       aborted: 0       
 core:      list           total: 78       failed: 0        aborted: 0       
 core:      macro          total: 9        failed: 3        aborted: 0       
-core:      reader         total: 52       failed: 4        aborted: 0       
+core:      reader         total: 58       failed: 4        aborted: 0       
 core:      sequence       total: 3        failed: 0        aborted: 0       
 core:      stream         total: 22       failed: 0        aborted: 0       
 core:      string         total: 20       failed: 0        aborted: 0       
 core:      vector         total: 13       failed: 0        aborted: 0       
 -----------------------
-core:      passed: 276    total: 314      failed: 38       aborted: 0         
+core:      passed: 282    total: 320      failed: 38       aborted: 0         
 
