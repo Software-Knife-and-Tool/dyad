@@ -4,6 +4,12 @@
 assert_eq "(mu:type-of core:in-namespace)" ":func"
 assert_eq "(mu:type-of core:read)" ":func"
 # symbols
+assert_eq '(mu:sy-name (core:read (core:make-string-stream :input "a") () ()))' '"a"'
+assert_eq '(mu:sy-name (core:read (core:make-string-stream :input "core::a") () ()))' '"a"'
+assert_eq '(mu:sy-name (core:read (core:make-string-stream :input "core:a") () ()))' '"a"'
+assert_eq '(mu:sy-ns (core:read (core:make-string-stream :input "a") () ()))' '#<namespace: "">'
+assert_eq '(mu:sy-ns (core:read (core:make-string-stream :input "core::a") () ()))' '#<namespace: "core">'
+assert_eq '(mu:sy-ns (core:read (core:make-string-stream :input "core:a") () ()))' '#<namespace: "core">'
 assert_eq "(core:read (core:make-string-stream :input \"a\") () ())" "a"
 assert_eq "(core:read (core:make-string-stream :input \"core:a\") () ())" "core:a"
 assert_eq "(core:read (core:make-string-stream :input \"abc\") () ())" "abc"
